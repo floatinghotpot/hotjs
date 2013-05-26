@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, HTML5!</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<link rel="stylesheet" href="css/main.css">
+<script type="text/javascript" src="js/lib/jquery-1.9.js"></script>
+<script type="text/javascript" src="js/hotjs/math.js"></script>
+<script type="text/javascript" src="js/hotjs/hashmap.js"></script>
+<script type="text/javascript" src="js/hotjs/oo.js"></script>
+<script type="text/javascript" src="js/hotjs/animation.js"></script>
+<script type="text/javascript" src="js/hotjs/resource.js"></script>
+<script type="text/javascript" src="js/hotjs/input.js"></script>
+<script type="text/javascript" src="js/hotjs/entity.js"></script>
+<script type="text/javascript" src="js/hotjs/background.js"></script>
+<script type="text/javascript" src="js/hotjs/canvas.js"></script>
+</head>
+<body>
+
+	<script>
+	var gameCanvas = null;
+
+	function main(now) {
+		// data & modal update
+		gameCanvas.update(now);
+		
+		// render view
+		gameCanvas.render(now);
+		
+		requestNextAnimationFrame(main);
+	}
+
+	function init() {
+		gameCanvas = new rnj.Canvas({id: 'canvas', width: 580, height: 223});
+		gameCanvas.setBackground( new rnj.CanvasBackground("img/wall.jpg") );
+
+		requestNextAnimationFrame(main);	
+	}
+
+	$(document).ready(function(){
+		init();
+	});	
+	</script>
+</body>
+
+</html>
