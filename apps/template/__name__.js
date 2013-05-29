@@ -1,19 +1,22 @@
-var render = new hotjs.Render(hotjs.Render.CANVAS, 'container');
+var sceneHello = new hotjs.Scene({
+	width : 640,
+	height : 480
+});
 
-var view = new hotjs.View({
+var sceneMenu = new hotjs.Scene({
 	width : 320,
 	height : 480
-}).addTo(render, 'logoview');
+});
 
 var bg = new hotjs.Layer({
 	width : 320,
 	height : 480
-}).addTo(view, 'background');
+}).addTo(sceneHello, 'background');
 
 var layer = new hotjs.Layer({
 	width : 320,
 	height : 480
-}).addTo(view, 'logoboard');
+}).addTo(sceneHello, 'logoboard');
 
 hotjs.ImageManager.add({
 	hot : "img/hot-256.png"
@@ -28,6 +31,22 @@ var logo = new hotjs.Entity({
 	y : "center",
 	velocityRotate : 90,
 	backgroundImage : "hot"
-}).addTo(layer);
+})
+.addTo(layer)
+.on('click',function(e){
+	
+})
+.on('drag',function(e){
+	
+})
+.on('drop',function(e){
 
-hotjs.App.start(render);
+});
+
+var app = new hotjs.App;
+var view = new hotjs.View(hotjs.View.CANVAS, 'container').setSize(320,480);
+app.setView(view)
+.addScene(sceneHello,'hello')
+.addScene(sceneMenu,'menu')
+.switchScene('menu')
+.start();
