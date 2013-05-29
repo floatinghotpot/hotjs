@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>demo1: logo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+</head>
+<body>
+<div id="container" ></div>
+<script type="text/javascript" src="../collie.js"></script>
+<script type="text/javascript">
+var layer = new collie.Layer({
+    width: 320,
+    height: 480
+});
+  
+collie.ImageManager.add({
+    logo: "img/logo.png"
+});
+  
+var logo = new collie.DisplayObject({
+    x: "center",
+    y: "center",
+    velocityRotate: 90,
+    backgroundImage: "logo"
+}).addTo(layer);
+  
+collie.Renderer.addLayer(layer);
+collie.Renderer.load(document.getElementById("container"));
+collie.Renderer.start();
+</script>
+</body>
+</html>
