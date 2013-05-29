@@ -1,7 +1,7 @@
 // name space
 var hotjs = hotjs || {};
 
-// app, render, view -> layer -> entity
+// app -> view -> scene -> layer -> entity
 
 // event: mouse, touch, keyboard, userdefined
 
@@ -42,6 +42,22 @@ Function.prototype.inheritsFrom = function(parentClassOrObject) {
 	return this;
 };
 
+//[].indexOf(value)
+if (!Array.prototype.indexOf) {
+	Array.prototype.indexOf = function(obj, fromIndex) {
+		if (fromIndex == null) {
+			fromIndex = 0;
+		} else if (fromIndex < 0) {
+			fromIndex = Math.max(0, this.length + fromIndex);
+		}
+		for ( var i = fromIndex, j = this.length; i < j; i++) {
+			if (this[i] === obj)
+				return i;
+		}
+		return -1;
+	};
+}
+
 // A cross-browser requestAnimationFrame
 // See
 // https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
@@ -55,13 +71,20 @@ var requestAnimFrame = (function() {
 
 // --------- hotjs.View ----------------
 hotjs.View = function(){
-	var canvas = document.createElement("canvas");
-	canvas.width = 480;
-	canvas.height = 320;
-	document.body.appendChild(canvas);
-	
-	this.canvas = canvas;
-	this.ctx = canvas.getContext("2d");
+	this.canvas = document.createElement("canvas");
+	this.canvas.width = 480;
+	this.canvas.height = 320;
+	this.ctx = this.canvas.getContext("2d");
+
+	this.container = undefined;
+	this.prototype.setContainer(id){
+		this.container = document.getElementById(id);
+		if(this.container == undefined) {
+			this.container = document.body;
+		}
+		this.container.appendChild(this.canvas);
+		return this;
+	}
 	
 	this.prototype.setSize = function(w,h) {
 		this.canvas.width = w;
@@ -69,9 +92,56 @@ hotjs.View = function(){
 		return this;
 	};
 	
-	this.scene = undefined;
-	this.prototype.setScene = function(s) {
-		this.scene = s;
+	// --- scene handling -------
+	this.curScene = undefined;
+	this.scenes = {};
+	this.sceneStack = [];
+	this.prototype.addScene = function(id, s) {
+		s.setView(this);
+		this.scenes[id] = s;
+		return this;
+	};
+	this.prototype.removeSceneById = function(id) {
+		var s = this.scenes[id];
+		if( s != undefined ) {
+			if(this.curScene == s) {
+				this.curScene = undefined;
+			}
+			s.stop();
+			delete this.scenes[id];
+		}
+		return this;
+	};
+	this.prototype.switchScene = function(s) {
+		if( s != undefined ) {
+			if( this.curScene != undefined ) {
+				this.curScene.pause();
+			}
+			this.curScene = s;
+			this.curScene.activate();
+		}
+		return this;
+	};
+	this.prototype.switchSceneById = function(id) {
+		var s = this.scenes[id];
+		this.switchScene(s);
+		return this;
+	};
+	this.prototype.pushSceneById = function(id) {
+		this.sceneStack.push( this.curScene );
+		this.switchSceneById(id);
+		return this;
+	};
+	this.prototype.popScene = function() {
+		var s = this.sceneStack.pop();
+		this.switchScene(s);
+		return this;
+	};
+	this.prototype.render = function() {
+		for(var i=0; i<this.scenes.length; i++) {
+			this.scenes[i].render();
+		}
+		return this;
 	};
 	
 	// TODO: listen input events & forward
@@ -98,16 +168,14 @@ hotjs_main = function(){
 
 hotjs.App = function(){
 	hotjs_app = this;
-	
-	this.view = undefined;
-	this.curScene = undefined;
-	this.scenes = {};
-	this.sceneStack = [];
 	this.upTime = 0;
-	this.prototype.setView(v) {
-		this.view = v;
+	
+	this.views = [];
+	this.prototype.addView(v) {
+		this.views.push(v);
 		return this;
 	};
+
 	this.prototype.start = function() {
 		hotjs_app = this;
 		
@@ -134,63 +202,38 @@ hotjs.App = function(){
 	this.prototype.update = function(dt) {
 		this.upTime += dt;
 		
+		for(var i=0; this.views.length; i++) {
+			this.views[i].update(dt);
+		}
 		return this;
 	};
 	this.prototype.render = function() {
-		if( this.curScene != undefined ) {
-			this.curScene.render();
-		}		
+		for(var i=0; this.views.length; i++) {
+			this.views[i].render();
+		}
 		return this;
 	};
 	
-	// --- scene handling -------
-	this.prototype.addScene = function(id, s) {
-		this.scenes[id] = s;
-		return this;
-	};
-	this.prototype.removeSceneById = function(id) {
-		var s = this.scenes[id];
-		if( s != undefined ) {
-			if(this.curScene == s) {
-				this.curScene = undefined;
-			}
-			s.stop();
-			delete this.scenes[id];
-		}
-		return this;
-	};
-	this.prototype.switchScene = function(s) {
-		if( s != undefined ) {
-			if( this.curScene != undefined ) {
-				this.curScene.pause();
-			}
-			this.curScene = s;
-			this.curScene.activate( this.view );
-		}
-	};
-	this.prototype.switchSceneById = function(id) {
-		var s = this.scenes[id];
-		this.switchScene(s);
-		return this;
-	};
-	this.prototype.pushSceneById = function(id) {
-		this.sceneStack.push( this.curScene );
-		this.switchSceneById(id);
-	};
-	this.prototype.popScene = function() {
-		var s = this.sceneStack.pop();
-		this.switchScene(s);
-	};
+
 };
 
 // ------------- hotjs.Scene -----------
 
 hotjs.Node = function() {
-	
+	this.pos = [0,0];
+	this.img = undefined;
+	this.subnodes = [];
 };
 
 hotjs.Scene = function(){
 	
+	this.view = undefined;
+	this.prototype.setView(v) {
+		this.view = v;
+	}
+	this.prototype.addLayer = function(L) {
+		this.subnodes.push(addLayer);
+	};
 };
 
 function init() {
