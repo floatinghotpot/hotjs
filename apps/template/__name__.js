@@ -16,18 +16,18 @@ var layer = new hotjs.Layer({
 }).addTo(view, 'logoboard');
 
 hotjs.ImageManager.add({
-	logo : "img/logo.png"
+	hot : "img/hot-256.png"
 });
 
 hotjs.AudioManager.add({
-	laugh : "media/laugh.mp3"
+	hello : "media/hello.mp3"
 });
 
 var logo = new hotjs.Entity({
 	x : "center",
 	y : "center",
 	velocityRotate : 90,
-	backgroundImage : "logo"
+	backgroundImage : "hot"
 }).addTo(layer);
 
 hotjs.App.start(render);
