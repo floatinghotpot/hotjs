@@ -13,14 +13,14 @@ var bg = new hotjs.Layer({
 var layer = new hotjs.Layer({
 	width : 320,
 	height : 480
-}).addTo(view, 'logolayer');
+}).addTo(view, 'logoboard');
 
 hotjs.ImageManager.add({
 	logo : "img/logo.png"
 });
 
 hotjs.AudioManager.add({
-	laugh : "audio/laugh.mp3"
+	laugh : "media/laugh.mp3"
 });
 
 var logo = new hotjs.Entity({
