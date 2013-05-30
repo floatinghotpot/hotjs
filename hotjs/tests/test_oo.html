@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+
+</head>
+<body>
+	<div id="container"></div>
+	<script>
+	
+	// -------------------- source code -----------------------
+	var hotjs = hotjs || {}
+	hotjs.inherit = function(Sub, Super, o) {
+		Sub.prototype = new Super();
+		Sub.prototype.parent = Super.prototype;
+		Sub.prototype.constructor = Sub;
+		
+		for( var p in o ) {
+			if (o.hasOwnProperty(p) && p !== "prototype") {
+				Sub.prototype[p] = o[p];
+			}				
+		}
+	}
+	
+	hotjs.log = function(o, n) {
+		if (typeof n == 'undefined' ) n = 0;
+		
+		var prefix = "";
+		for ( var i = 0; i < n; i++) prefix += "  ";
+		
+		if( typeof o == "object" ) {
+			console.log(prefix + typeof o + ' {');
+			for ( var p in o) {
+				if (typeof o[p] == 'object' || typeof o[p] == 'function') {
+					console.log( prefix + "  " + p + ' (' + typeof o[p]+ ') = ' );
+					hotjs.log(o[p], n + 1);
+				} else {
+					console.log(prefix + "  " + p + ' (' + typeof o[p]+ ') = ' + o[p]);
+				}
+			}
+			console.log(prefix + '}');
+		} else {
+			console.log( o );
+		}
+	}
+	
+	// ---------------- test case -----------------
+	var A = function() {
+		console.log('A()');
+		this.x = 0;
+		this.y = 0.2;
+	}
+
+	A.prototype = {
+		f : function() {
+			console.log(this.x);
+			return this;
+		},
+		f1 : function() {
+			this.x = 1;
+			return this;
+		}
+	};
+
+	B = function() {
+		console.log('B()');
+		A.apply(this, arguments);
+		this.member3 = 'subMember3';
+	}
+
+	hotjs.inherit(B, A, {
+		f2 : function() {
+			this.x = 2;
+			return this;
+		},
+		f1 : function() {
+			this.parent.f1.call(this);
+			this.x += 2;
+			return this;
+		} 
+	});
+
+	hotjs.log(B);
+	
+	var o = new B().f1().f();
+	hotjs.log(o);
+
+	</script>
+</body>
+
+</html>

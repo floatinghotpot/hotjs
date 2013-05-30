@@ -26,20 +26,48 @@ var hotjs = hotjs || {};
 hotjs.require = function(file) {
 };
 
-//or write a tool func for inherit
-Function.prototype.inheritsFrom = function(parentClassOrObject) {
-	if (parentClassOrObject.constructor == Function) {
-		//Normal Inheritance 
-		this.prototype = new parentClassOrObject;
-		this.prototype.constructor = this;
-		this.prototype.parent = parentClassOrObject.prototype;
+// tool for inherit
+// See 
+// "tests/test_oo.html" for example & use case
+hotjs.inherit = function(Sub, Super, o) {
+	if (Super.constructor == Function) {
+		Sub.prototype = new Super;
+		Sub.prototype.parent = Super.prototype;
+		Sub.prototype.constructor = Sub;
 	} else {
-		//Pure Virtual Inheritance 
-		this.prototype = parentClassOrObject;
-		this.prototype.constructor = this;
-		this.prototype.parent = parentClassOrObject;
+		Sub.prototype = Super;
+		Sub.prototype.parent = Super.prototype;
+		Sub.prototype.constructor = Sub;
 	}
-	return this;
+	
+	for( var p in o ) {
+		if (o.hasOwnProperty(p) && p !== "prototype") {
+			Sub.prototype[p] = o[p];
+		}				
+	}
+};
+
+// tool to print variable value in console
+hotjs.log = function(o, n) {
+	if (typeof n == 'undefined' ) n = 0;
+	
+	var prefix = "";
+	for ( var i = 0; i < n; i++) prefix += "  ";
+	
+	if( typeof o == "object" ) {
+		console.log(prefix + typeof o + ' {');
+		for ( var p in o) {
+			if (typeof o[p] == 'object') {
+				console.log( prefix + "  " + p + ' (' + typeof o[p]+ ') = ' );
+				hotjs.log(o[p], n + 1);
+			} else {
+				console.log(prefix + "  " + p + ' (' + typeof o[p]+ ') = ' + o[p]);
+			}
+		}
+		console.log(prefix + '}');
+	} else {
+		console.log( o );
+	}
 };
 
 //[].indexOf(value)
@@ -69,84 +97,7 @@ var requestAnimFrame = (function() {
 			};
 })();
 
-// --------- hotjs.View ----------------
-hotjs.View = function(){
-	this.canvas = document.createElement("canvas");
-	this.canvas.width = 480;
-	this.canvas.height = 320;
-	this.ctx = this.canvas.getContext("2d");
 
-	this.container = undefined;
-	this.prototype.setContainer(id){
-		this.container = document.getElementById(id);
-		if(this.container == undefined) {
-			this.container = document.body;
-		}
-		this.container.appendChild(this.canvas);
-		return this;
-	}
-	
-	this.prototype.setSize = function(w,h) {
-		this.canvas.width = w;
-		this.canvas.height = h;
-		return this;
-	};
-	
-	// --- scene handling -------
-	this.curScene = undefined;
-	this.scenes = {};
-	this.sceneStack = [];
-	this.prototype.addScene = function(id, s) {
-		s.setView(this);
-		this.scenes[id] = s;
-		return this;
-	};
-	this.prototype.removeSceneById = function(id) {
-		var s = this.scenes[id];
-		if( s != undefined ) {
-			if(this.curScene == s) {
-				this.curScene = undefined;
-			}
-			s.stop();
-			delete this.scenes[id];
-		}
-		return this;
-	};
-	this.prototype.switchScene = function(s) {
-		if( s != undefined ) {
-			if( this.curScene != undefined ) {
-				this.curScene.pause();
-			}
-			this.curScene = s;
-			this.curScene.activate();
-		}
-		return this;
-	};
-	this.prototype.switchSceneById = function(id) {
-		var s = this.scenes[id];
-		this.switchScene(s);
-		return this;
-	};
-	this.prototype.pushSceneById = function(id) {
-		this.sceneStack.push( this.curScene );
-		this.switchSceneById(id);
-		return this;
-	};
-	this.prototype.popScene = function() {
-		var s = this.sceneStack.pop();
-		this.switchScene(s);
-		return this;
-	};
-	this.prototype.render = function() {
-		for(var i=0; i<this.scenes.length; i++) {
-			this.scenes[i].render();
-		}
-		return this;
-	};
-	
-	// TODO: listen input events & forward
-	
-};
 
 // ----------- hotjs.App ----------------------
 var hotjs_app = undefined;
@@ -171,12 +122,14 @@ hotjs.App = function(){
 	this.upTime = 0;
 	
 	this.views = [];
-	this.prototype.addView(v) {
+};
+
+hotjs.App.prototype = {
+	addView : function(v) {
 		this.views.push(v);
 		return this;
-	};
-
-	this.prototype.start = function() {
+	},
+	start : function() {
 		hotjs_app = this;
 		
 		resources.load();
@@ -187,55 +140,152 @@ hotjs.App = function(){
 		});
 		
 		return this;
-	};
-	this.prototype.init = function() {
+	},
+	init : function() {
 		this.reset();
 		
 		hotjs_lastTime = Date.now();
 		hotjs_main();
 
 		return this;
-	};
-	this.prototype.reset = function() {
+	},
+	reset : function() {
 		return this;
-	};
-	this.prototype.update = function(dt) {
+	},
+	update : function(dt) {
 		this.upTime += dt;
 		
 		for(var i=0; this.views.length; i++) {
 			this.views[i].update(dt);
 		}
 		return this;
-	};
-	this.prototype.render = function() {
+	},
+	render : function() {
 		for(var i=0; this.views.length; i++) {
 			this.views[i].render();
 		}
 		return this;
-	};
-	
-
+	}
 };
 
-// ------------- hotjs.Scene -----------
+//--------- hotjs.View ----------------
+
+hotjs.View = function(){
+	this.canvas = document.createElement("canvas");
+	this.ctx = this.canvas.getContext("2d");
+	this.canvas.width = 480;
+	this.canvas.height = 320;
+
+	this.container = undefined;
+
+	this.curScene = undefined;
+	this.scenes = {};
+	this.sceneStack = [];
+};
+
+hotjs.View.prototype = {
+	setContainer : function(id){
+		this.container = document.getElementById(id);
+		if(this.container == undefined) {
+			this.container = document.body;
+		}
+		this.container.appendChild(this.canvas);
+		return this;
+	},
+	setSize : function(w,h) {
+		this.canvas.width = w;
+		this.canvas.height = h;
+		return this;
+	},
+	addScene : function(id, s) {
+		s.setView(this);
+		this.scenes[id] = s;
+		return this;
+	}, 
+	removeSceneById : function(id) {
+		var s = this.scenes[id];
+		if( s != undefined ) {
+			if(this.curScene == s) {
+				this.curScene = undefined;
+			}
+			s.stop();
+			delete this.scenes[id];
+		}
+		return this;
+	}, 
+	switchScene : function(s) {
+		if( s != undefined ) {
+			if( this.curScene != undefined ) {
+				this.curScene.pause();
+			}
+			this.curScene = s;
+			this.curScene.activate();
+		}
+		return this;
+	},
+	switchSceneById : function(id) {
+		var s = this.scenes[id];
+		this.switchScene(s);
+		return this;
+	},
+	pushSceneById : function(id) {
+		this.sceneStack.push( this.curScene );
+		this.switchSceneById(id);
+		return this;
+	}, 
+	popScene : function() {
+		var s = this.sceneStack.pop();
+		this.switchScene(s);
+		return this;
+	},
+	render : function() {
+		for(var i=0; i<this.scenes.length; i++) {
+			this.scenes[i].render();
+		}
+		return this;
+	}
+	
+	// TODO: listen input events & forward
+	
+};
+
+// ------------- hotjs.Node -----------
 
 hotjs.Node = function() {
 	this.pos = [0,0];
 	this.img = undefined;
 	this.subnodes = [];
+	this.index = {};
 };
+
+hotjs.Node.prototype = {
+	setPos : function(x,y) {
+		this.pos[0] = x, this.pos[1] = y;
+	},
+	setImage : function(img) {
+		this.img = img;
+	},
+	addNode : function(n, id) {
+		this.subnodes.push(n);
+		if(typeof id == 'string') {
+			this.index[id] = n;
+		}
+	}
+};
+
+//------------- hotjs.Scene -----------
 
 hotjs.Scene = function(){
-	
 	this.view = undefined;
-	this.prototype.setView(v) {
-		this.view = v;
-	}
-	this.prototype.addLayer = function(L) {
-		this.subnodes.push(addLayer);
-	};
 };
 
+hotjs.inherit( hotjs.Scene, hotjs.Node, {
+	setView : function(v) {
+		this.view = v;
+	}
+});
+
+// ----------------------------------
 function init() {
 	terrainPattern = ctx.createPattern(resources.get('img/terrain.png'),
 			'repeat');

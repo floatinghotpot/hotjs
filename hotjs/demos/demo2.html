@@ -8,22 +8,48 @@
 <link rel="stylesheet" href="css/main.css">
 
 <script type="text/javascript" src="../../lib/jquery-1.9.js"></script>
-<script type="text/javascript" src="../hotjs.js"></script>
+<!-- <script type="text/javascript" src="../hotjs.js"></script> -->
 
 </head>
 <body>
 	<div id="container"></div>
 	<script>
-	
-	$(document).ready(function(){
-		var app = new hotjs.App;
-		var view = new hotjs.View('container').setSize(320,480);
-		var sceneHello = new hotjs.Scene();
-		app.setView(view)
-		.addScene(sceneHello,'hello')
-		.switchScene('hello')
-		.start();
-	});	
+
+		Super = function() {
+			this.member1 = 'superMember1';
+			Super.prototype.f1 = function(){};
+		}
+		Super.prototype.member2 = 'superMember2';
+
+		Sub = function() {
+			this.member3 = 'subMember3';
+			//...
+		}
+		Sub.prototype = new Super();
+		Sub.prototype.f2 = function(){};
+		
+		
+		var o = new Sub();
+		for (var i in o) {
+			console.log(i + ', ' + typeof i );
+		}
+		console.log('---\n');
+		for (var i in o.prototype) {
+			console.log(i + ', ' + typeof i );
+		}
+
+		// 	$(document).ready(function(){
+		// 		var sceneHello = new hotjs.Scene()
+		// 		.setSize(640,960);
+
+		// 		var view = new hotjs.View()
+		// 		.setSize(320,480)
+		// 		.setContainer('container')
+		// 		.addScene(sceneHello,'hello')
+		// 		.switchScene('hello');
+
+		// 		var app = new hotjs.App.addView(view).start();
+		// 	});
 	</script>
 </body>
 
