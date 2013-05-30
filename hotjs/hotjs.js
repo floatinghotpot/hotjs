@@ -132,12 +132,12 @@ hotjs.App.prototype = {
 	start : function() {
 		hotjs_app = this;
 		
-		resources.load();
-		resources.onReady(function(){
+		//resources.load();
+		//resources.onReady(function(){
 			if(hotjs_app != undefined) {
 				hotjs_app.init();
 			}
-		});
+		//});
 		
 		return this;
 	},
@@ -155,13 +155,13 @@ hotjs.App.prototype = {
 	update : function(dt) {
 		this.upTime += dt;
 		
-		for(var i=0; this.views.length; i++) {
+		for(var i=0; i<this.views.length; i++) {
 			this.views[i].update(dt);
 		}
 		return this;
 	},
 	render : function() {
-		for(var i=0; this.views.length; i++) {
+		for(var i=0; i<this.views.length; i++) {
 			this.views[i].render();
 		}
 		return this;
@@ -179,8 +179,14 @@ hotjs.View = function(){
 	this.container = undefined;
 
 	this.curScene = undefined;
-	this.scenes = {};
+	this.scenes = [];
+	this.sceneIndex = {};
 	this.sceneStack = [];
+	
+	this.fpsInfo = false;
+	this.dtSum = 0;
+	this.frames = 0;
+	this.fps = 60;
 };
 
 hotjs.View.prototype = {
@@ -197,35 +203,30 @@ hotjs.View.prototype = {
 		this.canvas.height = h;
 		return this;
 	},
-	addScene : function(id, s) {
+	addScene : function(s, id) {
 		s.setView(this);
-		this.scenes[id] = s;
-		return this;
-	}, 
-	removeSceneById : function(id) {
-		var s = this.scenes[id];
-		if( s != undefined ) {
-			if(this.curScene == s) {
-				this.curScene = undefined;
-			}
-			s.stop();
-			delete this.scenes[id];
+		this.scenes.push( s );
+		if(typeof id != 'undefined') {
+			this.sceneIndex[id] = s;
 		}
+		this.curScene = s;
 		return this;
 	}, 
 	switchScene : function(s) {
 		if( s != undefined ) {
 			if( this.curScene != undefined ) {
-				this.curScene.pause();
+				this.curScene.stop();
 			}
 			this.curScene = s;
-			this.curScene.activate();
+			s.play();
 		}
 		return this;
 	},
 	switchSceneById : function(id) {
-		var s = this.scenes[id];
-		this.switchScene(s);
+		var s = this.sceneIndex[id];
+		if(typeof s != 'undefined') {
+			this.switchScene(s);
+		}
 		return this;
 	},
 	pushSceneById : function(id) {
@@ -238,9 +239,38 @@ hotjs.View.prototype = {
 		this.switchScene(s);
 		return this;
 	},
+	showFPS : function(f) {
+		this.fpsInfo = f;
+		return this;
+	},
+	update : function(dt) {
+		for(var i=0; i<this.scenes.length; i++) {
+			this.scenes[i].update(dt);
+		}
+
+		if( this.fpsInfo ) {
+			this.frames ++;
+			this.dtSum += dt;
+			if( this.dtSum > 1 ) {
+				this.fps = Math.floor( this.frames / this.dtSum + 0.5 );
+				this.dtSum = 0;
+				this.frames = 0;
+			}
+		}
+		return this;
+	},
 	render : function() {
 		for(var i=0; i<this.scenes.length; i++) {
-			this.scenes[i].render();
+			this.scenes[i].render(this.ctx);
+		}
+		
+		if( this.fpsInfo ) {
+			var c = this.ctx;
+			c.save();
+			c.strokeStyle = "#000000";
+			c.fillText( this.fps + ' fps', 10, 20 );
+			c.fillText( this.frames, 10, 40 );
+			c.restore();
 		}
 		return this;
 	}
@@ -253,23 +283,64 @@ hotjs.View.prototype = {
 
 hotjs.Node = function() {
 	this.pos = [0,0];
+	this.size = [0,0];
+	this.rotation = 0;
+	this.scale = 1;
+
+	this.velocity = [0,0];
+	this.spin = 0;
+	this.shrink = 1;
+	
 	this.img = undefined;
+
 	this.subnodes = [];
 	this.index = {};
 };
 
 hotjs.Node.prototype = {
 	setPos : function(x,y) {
-		this.pos[0] = x, this.pos[1] = y;
+		this.pos = [x,y];
+	},
+	setSize : function(w,h) {
+		this.size = [w,h];
+		return this;
+	},
+	setRotation : function(r) {
+		this.rotation = r;
+		return this;
+	},
+	setScale : function(s) {
+		this.scale = s;
+		return this;
+	},
+	setVelocity : function(v) {
+		this.velocity = v;
+		return this;
+	},
+	setSpin : function(s) {
+		this.spin = s;
+		return this;
 	},
 	setImage : function(img) {
 		this.img = img;
+		return this;
 	},
 	addNode : function(n, id) {
 		this.subnodes.push(n);
 		if(typeof id == 'string') {
 			this.index[id] = n;
 		}
+		return this;
+	},
+	update : function(dt) {
+		// TODO: update pos / rotation / scale
+		
+		return this;
+	},
+	render : function(c) {
+		// TODO: translate / rotate / scale
+		
+		return this;
 	}
 };
 
@@ -277,11 +348,47 @@ hotjs.Node.prototype = {
 
 hotjs.Scene = function(){
 	this.view = undefined;
+	this.playing = false;
 };
 
 hotjs.inherit( hotjs.Scene, hotjs.Node, {
 	setView : function(v) {
 		this.view = v;
+		return this;
+	},
+	play : function() {
+		this.playing = true;
+		return this;
+	},
+	stop : function() {
+		this.playing = false;
+		return this;
+	},
+	update : function(dt) {
+		this.parent.update.call(this, arguments);
+
+		var dx = 0, dy = 0;
+	},
+	render : function(c) {
+		this.parent.render.call(this, arguments);
+		
+		c.save();
+		c.fillStyle = "silver";
+		c.fillRect(0, 0, this.size[0], this.size[1]);
+		c.strokeStyle = "#0000ff";			
+		c.lineWidth = 1;
+		var m = 80, n = 80;
+		for( var i=0; i<this.size[0]; i+=m ) {
+			for( var j=0; j<this.size[1]; j+=n) {
+				c.save();
+				c.translate(i, j);
+
+				c.strokeRect(0,0, m, n);
+				c.restore();
+			}
+		}		
+		c.restore();
+		return this;
 	}
 });
 
@@ -315,7 +422,7 @@ var isGameOver;
 var terrainPattern;
 
 var score = 0;
-var scoreEl = document.getElementById('score');
+//var scoreEl = document.getElementById('score');
 
 // Speed in pixels per second
 var playerSpeed = 200;
@@ -341,7 +448,7 @@ function update(dt) {
 
 	checkCollisions();
 
-	scoreEl.innerHTML = score;
+	//scoreEl.innerHTML = score;
 };
 
 function handleInput(dt) {
