@@ -282,16 +282,25 @@ hotjs.View.prototype = {
 // ------------- hotjs.Node -----------
 
 hotjs.Node = function() {
+	// geometry, 2D only
 	this.pos = [0,0];
 	this.size = [0,0];
-	this.rotation = 0;
-	this.scale = 1;
+	this.scale = undefined; // default: [1,1]
+	this.rotation = undefined; // default: 0
 
-	this.velocity = [0,0];
-	this.spin = 0;
-	this.shrink = 1;
-	
+	this.color = undefined; // default: "black"
+	this.alpha = undefined; // default: 1, range: [0,1]
 	this.img = undefined;
+	
+	// physical
+	this.velocity = undefined; // default [0,0]
+	this.spin = undefined; // default: 0
+	this.shrink = undefined; // default: 1
+
+	this.accel = undefined; // default: [0,0]
+	this.fade = undefined; // default: 0
+	
+	this.quality = undefined; // default: 0
 
 	this.subnodes = [];
 	this.index = {};
@@ -300,6 +309,7 @@ hotjs.Node = function() {
 hotjs.Node.prototype = {
 	setPos : function(x,y) {
 		this.pos = [x,y];
+		return this;
 	},
 	setSize : function(w,h) {
 		this.size = [w,h];
@@ -309,19 +319,60 @@ hotjs.Node.prototype = {
 		this.rotation = r;
 		return this;
 	},
-	setScale : function(s) {
-		this.scale = s;
+	setScale : function(sx,sy) {
+		this.scale = [sx,sy];
 		return this;
 	},
-	setVelocity : function(v) {
-		this.velocity = v;
+	setVelocity : function(vx,vy) {
+		this.velocity = [vx,vy];
 		return this;
 	},
 	setSpin : function(s) {
+		if(this.rotation == undefined) {
+			this.rotation = 0;
+		}
 		this.spin = s;
 		return this;
 	},
+	setShrink : function(sx,sy) {
+		if(this.scale == undefined) {
+			this.scale = [1,1];
+		}
+		this.shrink = [sx,sy];
+		return this;
+	},
+	setQuality : function(q) {
+		this.quality = q;
+		return this;
+	},
+	setAccel : function(ax,ay) {
+		if(this.velocity == undefined) {
+			this.velocity = [0,0];
+		}
+		this.accel = [ax,ay];
+		return this;
+	},
+	setColor : function(c) {
+		this.color = c;
+		return this;
+	},
+	// alpha, range [0,1]
+	setAlpha : function(a) {
+		this.alpha = a;
+		return this;
+	},
+	// f can be a small like, like 1.0/60; or function: alpha = f(alpha)
+	setFade : function(f) {
+		if(this.alpha == undefined) this.alpha=1;
+		this.fade = f;
+		return this;
+	},
 	setImage : function(img) {
+		if(typeof img == 'string') {
+			var url = img;
+			img = new Image();
+			img.src = url;
+		}
 		this.img = img;
 		return this;
 	},
@@ -333,12 +384,63 @@ hotjs.Node.prototype = {
 		return this;
 	},
 	update : function(dt) {
-		// TODO: update pos / rotation / scale
+		// update pos / rotation / scale, according to velocity / spin / shrink
+		if(this.velocity !== undefined) {
+			this.pos[0] += this.velocity[0];
+			this.pos[1] += this.velocity[1];
+		}
+		if(this.spin !== undefined) {
+			this.rotation += this.spin;
+		}
+		if(this.shrink !== undefined) {
+			this.scale[0] *= this.shrink[0];
+			this.scale[1] *= this.shrink[1];
+		}
+		
+		// update velocity / alpha, according to accel / fade
+		if(this.accel !== undefined) {
+			this.velocity[0] += this.accel[0];
+			this.velocity[1] += this.accel[1];
+		}
+		if(this.fade !== undefined) {
+			if(typeof this.fade == 'number') {
+				this.alpha += this.fade;
+				if(this.alpha<0 || this.alpha>1) this.fade=undefined;
+			} else if (typeof this.fade == 'function') {
+				this.alpha = this.fade( this.alpha, dt );
+			}
+		}
+
+		for(var i=0; i<this.subnodes.length; i++) {
+			this.subnodes[i].update(dt);
+		}
 		
 		return this;
 	},
 	render : function(c) {
-		// TODO: translate / rotate / scale
+		c.save();
+		
+		// apply pos / scale / rotation
+		c.translate(this.pos[0], this.pos[1]);
+		if(this.scale !== undefined) c.scale(this.scale[0],this.scale[1]);
+		if(this.rotation !== undefined) c.rotate(this.rotation * Math.PI / 180);
+		if(this.alpha !== undefined) c.globalAlpha = this.alpha;
+		//if(this.composite !== undefined) c.globalCompositeOperation = this.compositeOperation;
+		
+		this.draw(c);
+		
+		for(var i=0; i<this.subnodes.length; i++) {
+			this.subnodes[i].render(c);
+		}
+		
+		c.restore();
+		return this;
+	},
+	draw : function(c) {
+		if(this.img !== undefined) {
+			c.translate( - this.img.width/2, -this.img.height/2 );
+			c.drawImage( this.img, 0, 0 );
+		}
 		
 		return this;
 	}
@@ -369,11 +471,10 @@ hotjs.inherit( hotjs.Scene, hotjs.Node, {
 
 		var dx = 0, dy = 0;
 	},
-	render : function(c) {
-		this.parent.render.call(this, arguments);
-		
+	draw : function(c) {
 		c.save();
-		c.fillStyle = "silver";
+		
+		c.fillStyle = this.color;
 		c.fillRect(0, 0, this.size[0], this.size[1]);
 		c.strokeStyle = "#0000ff";			
 		c.lineWidth = 1;
