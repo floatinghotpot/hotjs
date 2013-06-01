@@ -29,24 +29,6 @@ hotjs.require = function(file) {
 // tool for inherit
 // See 
 // "tests/test_oo.html" for example & use case
-hotjs.inheritxx = function(Sub, Super, o) {
-	if (Super.constructor == Function) {
-		Sub.prototype = new Super;
-		Sub.prototype.supClass = Super.prototype;
-		Sub.prototype.constructor = Sub;
-	} else {
-		Sub.prototype = Super;
-		Sub.prototype.supClass = Super.prototype;
-		Sub.prototype.constructor = Sub;
-	}
-	
-	for( var p in o ) {
-		if (o.hasOwnProperty(p) && p !== "prototype") {
-			Sub.prototype[p] = o[p];
-		}				
-	}
-};
-
 hotjs.inherit = function(childCtor, parentCtor, newMethods) {
 	function F() {};
 	F.prototype = parentCtor.prototype;
@@ -61,20 +43,6 @@ hotjs.inherit = function(childCtor, parentCtor, newMethods) {
 		if (newMethods.hasOwnProperty(p) && p !== "prototype") {
 			childCtor.prototype[p] = newMethods[p];
 		}
-	}
-};
-
-hotjs.basexx = function(me, opt_methodName, var_args) {
-	//console.log( arguments);
-	var caller = arguments.callee.caller;
-	//console.log( caller);
-	//var parent = caller.prototype.supClass;
-	var parent = caller.supClass;
-	//console.log( parent);
-	if( parent && parent.constructor ) {
-		// This is a constructor. Call the superclass constructor.
-		var args = Array.prototype.slice.call(arguments, 1);
-		return parent.constructor.apply(me, args);
 	}
 };
 
@@ -135,7 +103,7 @@ hotjs.log = function(o, n) {
 //[].indexOf(value)
 if (!Array.prototype.indexOf) {
 	Array.prototype.indexOf = function(obj, fromIndex) {
-		if (fromIndex == null) {
+		if (fromIndex == null || fromIndex == undefined) {
 			fromIndex = 0;
 		} else if (fromIndex < 0) {
 			fromIndex = Math.max(0, this.length + fromIndex);
@@ -147,6 +115,25 @@ if (!Array.prototype.indexOf) {
 		return -1;
 	};
 }
+
+// first, checks if it isn't implemented yet
+//if (!String.prototype.format) {
+//	String.prototype.format = function() {
+//		var args = arguments;
+//		return this.replace(/{(\d+)}/g, function(match, number) {
+//			return typeof args[number] != 'undefined' ? args[number] : match;
+//		});
+//	};
+//}
+
+//String.format("this is a {0}, {1}", v1, v2);
+//hotjs.format = function() {
+//	var args = arguments;
+//	return String.prototype.replace(/{(\d+)}/g, function(match, number) {
+//		return typeof args[number] != 'undefined' ? args[number] : match;
+//	});
+//};
+
 
 // A cross-browser requestAnimationFrame
 // See
@@ -239,6 +226,9 @@ hotjs.View = function(){
 	this.dtSum = 0;
 	this.frames = 0;
 	this.fps = 60;
+	
+	this.upTime = 0;
+	this.upTimeShow = ""; // h:m:s
 };
 
 hotjs.View.prototype = {
@@ -303,6 +293,15 @@ hotjs.View.prototype = {
 			this.frames ++;
 			this.dtSum += dt;
 			if( this.dtSum > 1 ) {
+				this.upTime += this.dtSum;
+				
+				var s = Math.floor(this.upTime);
+				var m = Math.floor( s / 60 );
+				s %= 60;
+				h = Math.floor( m / 60 );
+				m %= 60;
+				this.upTimeShow = h + " : " + m + " : " + s;
+				
 				this.fps = Math.floor( this.frames / this.dtSum + 0.5 );
 				this.dtSum = 0;
 				this.frames = 0;
@@ -319,8 +318,9 @@ hotjs.View.prototype = {
 			var c = this.ctx;
 			c.save();
 			c.strokeStyle = "#000000";
-			c.fillText( this.fps + ' fps', 10, 20 );
-			c.fillText( this.frames, 10, 40 );
+			c.fillText( this.upTimeShow, 10, 20 );
+			c.fillText( this.fps + ' fps', 10, 40 );
+			c.fillText( this.frames, 10, 60 );
 			c.restore();
 		}
 		return this;
@@ -331,10 +331,12 @@ hotjs.View.prototype = {
 };
 
 // ------------- hotjs.Node -----------
+var hotjs_node_id = 0;
 
-hotjs.Node = function(name) {
-	console.log("hotjs.Node: " + name);
+hotjs.Node = function() {
 	
+	this.name = (hotjs_node_id ++) + "";
+
 	// geometry, 2D only
 	this.pos = [0,0];
 	this.size = [0,0];
@@ -353,7 +355,7 @@ hotjs.Node = function(name) {
 	this.accel = undefined; // default: [0,0]
 	this.fade = undefined; // default: 0
 	
-	this.quality = undefined; // default: 0
+	this.mass = 1000; // default: 1000
 
 	this.subnodes = [];
 	this.index = {};
@@ -362,6 +364,10 @@ hotjs.Node = function(name) {
 };
 
 hotjs.Node.prototype = {
+	setName : function(n) {
+		this.name = n;
+		return true;
+	},
 	setPos : function(x,y) {
 		this.pos = [x,y];
 		return this;
@@ -437,6 +443,11 @@ hotjs.Node.prototype = {
 		}
 		return this;
 	},
+	removeNode : function(n) {
+		var i = this.subnodes.indexOf(n);
+		if( i>=0 ) this.subnodes.splice(i, 1);
+		return this;
+	},
 	update : function(dt) {
 		// update pos / rotation / scale, according to velocity / spin / shrink
 		if(this.velocity !== undefined) {
@@ -502,8 +513,8 @@ hotjs.Node.prototype = {
 
 //------------- hotjs.Scene -----------
 
-hotjs.Scene = function(name){
-	hotjs.base(this, name);
+hotjs.Scene = function(){
+	hotjs.base(this);
 	
 	this.playing = false;
 	this.grid = false;
@@ -524,8 +535,8 @@ hotjs.inherit( hotjs.Scene, hotjs.Node, {
 	},
 	update : function(dt) {
 		hotjs.Scene.supClass.update.call(this, dt);
-
-		var dx = 0, dy = 0;
+		
+		// TODO: do what? 
 	},
 	draw : function(c) {
 		c.save();

@@ -22,7 +22,10 @@
 	]);
 	resources.onReady(function(){
 		var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
+
 		var room = (new hotjs.Scene('room')).setSize(WIDTH,HEIGHT).setColor("#eeeeee").showGrid(true);
+		view1.addScene( room );
+		
 		var app = (new hotjs.App()).addView(view1).start();
 	});
 	</script>

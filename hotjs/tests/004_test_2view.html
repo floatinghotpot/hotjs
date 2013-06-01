@@ -10,24 +10,13 @@
 <script type="text/javascript" src="../resource.js"></script>
 <script type="text/javascript" src="../sprite.js"></script>
 <script type="text/javascript" src="../hotjs.js"></script>
+<script type="text/javascript" src="../math.js"></script>
 <script type="text/javascript" src="../physics.js"></script>
-<style type="text/css">
-html, body {
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-	margin: 0;
-	padding: 0;
-}
-input#kick {
-	position: absolute;
-	left: 480px;
-	top: 20px;
-}
-</style>
+
 </head>
 <body>
 	<div id="view1" style="display: inline-block; margin: 0px;"></div>
+	<div id="view2" style="display: inline-block; margin: 0px;"></div>
 	<script>
 
 	resources.load([
@@ -36,19 +25,34 @@ input#kick {
 	]);
 	
 	// -------------------- source code -----------------------
+
+	
 	var balls = [];
 	resources.onReady(function(){
 		
 		var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
-		var room = (new hotjs.Scene('room')).setSize(WIDTH,HEIGHT).setColor("#eeeeee").showGrid(true);
+	
+		var room1 = (new hotjs.Scene('room1')).setSize(WIDTH,HEIGHT).setColor("#eeeeee").showGrid(true);
+		view1.addScene(room1,'hello');
+
 		var b = (new Ball('red')).setImage(resources.get('smallbird.png'));
 		b.setPos(b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
-		view1.addScene(room,'hello');
-		room.addNode(b);
+		room1.addNode(b);
 		
 		balls.push(b);
 		
-		var app = (new hotjs.App()).addView(view1).start();
+		var view2 = (new hotjs.View()).setContainer('view2').setSize(WIDTH,HEIGHT);//.showFPS(true);
+
+		var room2 = (new hotjs.Scene()).setSize(WIDTH,HEIGHT).setColor("#aaaaaa").showGrid(true);
+		view2.addScene(room2,'room2');
+
+		b = (new Ball('red')).setImage(resources.get('redball.png'));
+		b.setPos(WIDTH-b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
+		room2.addNode(b);
+		
+		balls.push(b);
+		
+		var app = (new hotjs.App()).addView(view1).addView(view2).start();
 	});
 	
 	function kick_ball(i){
@@ -60,7 +64,9 @@ input#kick {
 		}
 	}
 	</script>
-	<input type="button" id="kick" value="Kick Bird" onClick="kick_ball(0);">
+	<br>
+	<input type="button" value="Kick Bird" onClick="kick_ball(0);">
+	<input type="button" value="Kick Ball" onClick="kick_ball(1);">
 </body>
 
 </html>
