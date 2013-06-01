@@ -29,14 +29,14 @@ hotjs.require = function(file) {
 // tool for inherit
 // See 
 // "tests/test_oo.html" for example & use case
-hotjs.inherit = function(Sub, Super, o) {
+hotjs.inheritxx = function(Sub, Super, o) {
 	if (Super.constructor == Function) {
 		Sub.prototype = new Super;
-		Sub.prototype.parent = Super.prototype;
+		Sub.prototype.supClass = Super.prototype;
 		Sub.prototype.constructor = Sub;
 	} else {
 		Sub.prototype = Super;
-		Sub.prototype.parent = Super.prototype;
+		Sub.prototype.supClass = Super.prototype;
 		Sub.prototype.constructor = Sub;
 	}
 	
@@ -47,6 +47,68 @@ hotjs.inherit = function(Sub, Super, o) {
 	}
 };
 
+hotjs.inherit = function(childCtor, parentCtor, newMethods) {
+	function F() {};
+	F.prototype = parentCtor.prototype;
+	
+	childCtor.prototype = new F();
+	childCtor.prototype.constructor = childCtor;
+	
+	childCtor.supClass = parentCtor.prototype;
+	childCtor.supClass.constructor = parentCtor;
+	
+	for ( var p in newMethods) {
+		if (newMethods.hasOwnProperty(p) && p !== "prototype") {
+			childCtor.prototype[p] = newMethods[p];
+		}
+	}
+};
+
+hotjs.basexx = function(me, opt_methodName, var_args) {
+	//console.log( arguments);
+	var caller = arguments.callee.caller;
+	//console.log( caller);
+	//var parent = caller.prototype.supClass;
+	var parent = caller.supClass;
+	//console.log( parent);
+	if( parent && parent.constructor ) {
+		// This is a constructor. Call the superclass constructor.
+		var args = Array.prototype.slice.call(arguments, 1);
+		return parent.constructor.apply(me, args);
+	}
+};
+
+hotjs.base = function(me, opt_methodName, var_args) {
+	var caller = arguments.callee.caller;
+	if (caller.supClass) {
+		// This is a constructor. Call the superclass constructor.
+		var args = Array.prototype.slice.call(arguments, 1);
+		var f = caller.supClass.constructor;
+		return f.apply(me, args);
+	}
+
+	var args = Array.prototype.slice.call(arguments, 2);
+	var foundCaller = false;
+	for ( var ctor = me.constructor; ctor; ctor = ctor.supClass && ctor.supClass.constructor) {
+		if (ctor.prototype[opt_methodName] === caller) {
+			foundCaller = true;
+		} else if (foundCaller) {
+			return ctor.prototype[opt_methodName].apply(me, args);
+		}
+	}
+
+	// If we did not find the caller in the prototype chain,
+	// then one of two things happened:
+	// 1) The caller is an instance method.
+	// 2) This method was not called by the right caller.
+	if (me[opt_methodName] === caller) {
+		return me.constructor.prototype[opt_methodName].apply(me, args);
+	} else {
+		throw Error('goog.base called from a method of one name '
+				+ 'to a method of a different name');
+	}
+};
+		
 // tool to print variable value in console
 hotjs.log = function(o, n) {
 	if (typeof n == 'undefined' ) n = 0;
@@ -132,16 +194,6 @@ hotjs.App.prototype = {
 	start : function() {
 		hotjs_app = this;
 		
-		//resources.load();
-		//resources.onReady(function(){
-			if(hotjs_app != undefined) {
-				hotjs_app.init();
-			}
-		//});
-		
-		return this;
-	},
-	init : function() {
 		this.reset();
 		
 		hotjs_lastTime = Date.now();
@@ -204,7 +256,6 @@ hotjs.View.prototype = {
 		return this;
 	},
 	addScene : function(s, id) {
-		s.setView(this);
 		this.scenes.push( s );
 		if(typeof id != 'undefined') {
 			this.sceneIndex[id] = s;
@@ -215,10 +266,10 @@ hotjs.View.prototype = {
 	switchScene : function(s) {
 		if( s != undefined ) {
 			if( this.curScene != undefined ) {
-				this.curScene.stop();
+				//this.curScene.stop();
 			}
 			this.curScene = s;
-			s.play();
+			//s.play();
 		}
 		return this;
 	},
@@ -281,7 +332,9 @@ hotjs.View.prototype = {
 
 // ------------- hotjs.Node -----------
 
-hotjs.Node = function() {
+hotjs.Node = function(name) {
+	console.log("hotjs.Node: " + name);
+	
 	// geometry, 2D only
 	this.pos = [0,0];
 	this.size = [0,0];
@@ -304,6 +357,8 @@ hotjs.Node = function() {
 
 	this.subnodes = [];
 	this.index = {};
+	
+	this.container = undefined;
 };
 
 hotjs.Node.prototype = {
@@ -368,15 +423,14 @@ hotjs.Node.prototype = {
 		return this;
 	},
 	setImage : function(img) {
-		if(typeof img == 'string') {
-			var url = img;
-			img = new Image();
-			img.src = url;
-		}
 		this.img = img;
+		this.size = [img.width, img.height];
 		return this;
 	},
 	addNode : function(n, id) {
+		if(this.subnodes == undefined) this.subnodes=[];
+		if(this.index == undefined) this.index={};
+		
 		this.subnodes.push(n);
 		if(typeof id == 'string') {
 			this.index[id] = n;
@@ -448,14 +502,16 @@ hotjs.Node.prototype = {
 
 //------------- hotjs.Scene -----------
 
-hotjs.Scene = function(){
-	this.view = undefined;
+hotjs.Scene = function(name){
+	hotjs.base(this, name);
+	
 	this.playing = false;
+	this.grid = false;
 };
 
 hotjs.inherit( hotjs.Scene, hotjs.Node, {
-	setView : function(v) {
-		this.view = v;
+	showGrid : function(g) {
+		this.grid = g;
 		return this;
 	},
 	play : function() {
@@ -467,27 +523,30 @@ hotjs.inherit( hotjs.Scene, hotjs.Node, {
 		return this;
 	},
 	update : function(dt) {
-		this.parent.update.call(this, arguments);
+		hotjs.Scene.supClass.update.call(this, dt);
 
 		var dx = 0, dy = 0;
 	},
 	draw : function(c) {
 		c.save();
-		
 		c.fillStyle = this.color;
 		c.fillRect(0, 0, this.size[0], this.size[1]);
-		c.strokeStyle = "#0000ff";			
-		c.lineWidth = 1;
-		var m = 80, n = 80;
-		for( var i=0; i<this.size[0]; i+=m ) {
-			for( var j=0; j<this.size[1]; j+=n) {
-				c.save();
-				c.translate(i, j);
-
-				c.strokeRect(0,0, m, n);
-				c.restore();
-			}
-		}		
+		if( this.grid ) {
+			c.strokeStyle = "rgb(0,0,0)";			
+			c.lineWidth = 0.1;
+			var m = 40, n = 40;
+			for( var i=0; i<this.size[0]; i+=m ) {
+				for( var j=0; j<this.size[1]; j+=n) {
+					c.save();
+					c.translate(i, j);
+	
+					c.strokeRect(0,0, m, n);
+					c.restore();
+				}
+			}		
+		}
+		c.lineWidth = 2;
+		c.strokeRect(0,0, this.size[0], this.size[1]);
 		c.restore();
 		return this;
 	}
