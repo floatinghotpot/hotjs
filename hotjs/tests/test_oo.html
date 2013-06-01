@@ -4,88 +4,83 @@
 <meta charset="UTF-8">
 <meta name="viewport"
 	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-
+<script type="text/javascript" src="../resource.js"></script>
+<script type="text/javascript" src="../sprite.js"></script>
+<script type="text/javascript" src="../hotjs.js"></script>
 </head>
 <body>
 	<div id="container"></div>
 	<script>
 	
-	// -------------------- source code -----------------------
-	var hotjs = hotjs || {}
-	hotjs.inherit = function(Sub, Super, o) {
-		Sub.prototype = new Super();
-		Sub.prototype.parent = Super.prototype;
-		Sub.prototype.constructor = Sub;
-		
-		for( var p in o ) {
-			if (o.hasOwnProperty(p) && p !== "prototype") {
-				Sub.prototype[p] = o[p];
-			}				
-		}
-	}
-	
-	hotjs.log = function(o, n) {
-		if (typeof n == 'undefined' ) n = 0;
-		
-		var prefix = "";
-		for ( var i = 0; i < n; i++) prefix += "  ";
-		
-		if( typeof o == "object" ) {
-			console.log(prefix + typeof o + ' {');
-			for ( var p in o) {
-				if (typeof o[p] == 'object' || typeof o[p] == 'function') {
-					console.log( prefix + "  " + p + ' (' + typeof o[p]+ ') = ' );
-					hotjs.log(o[p], n + 1);
-				} else {
-					console.log(prefix + "  " + p + ' (' + typeof o[p]+ ') = ' + o[p]);
-				}
-			}
-			console.log(prefix + '}');
-		} else {
-			console.log( o );
-		}
-	}
-	
-	// ---------------- test case -----------------
-	var A = function() {
-		console.log('A()');
-		this.x = 0;
-		this.y = 0.2;
-	}
-
-	A.prototype = {
-		f : function() {
-			console.log(this.x);
-			return this;
-		},
-		f1 : function() {
-			this.x = 1;
-			return this;
-		}
+	var F1 = function(x){
+		console.log("F1()");
+		this.v1 = x;
 	};
 
-	B = function() {
-		console.log('B()');
-		A.apply(this, arguments);
-		this.member3 = 'subMember3';
+	//F1.prototype.constructor = F1;
+	F1.prototype.f1 = function(){
+		console.log("F1->f1()");
+		return this;
+	};
+	
+	var F2 = function(x,y){
+		console.log("F2()");
+		hotjs.base(this,x);
+		this.v2 = y;
+	};
+	
+	var F3 = function(x,y,z){
+		console.log("F3()");
+		hotjs.base(this,x,y);
+		this.v3 = z;
 	}
 
-	hotjs.inherit(B, A, {
-		f2 : function() {
-			this.x = 2;
-			return this;
-		},
-		f1 : function() {
-			this.parent.f1.call(this);
-			this.x += 2;
-			return this;
-		} 
-	});
-
-	hotjs.log(B);
+	if(false) {
+		var F = function(){};
+		
+		F.prototype = F1.prototype;
+		F.constructor = F1;
+		F2.prototype = new F();
+		F2.prototype.constructor = F2;
+		F2.prototype.supClass = F1.prototype;
+		F2.prototype.f2 = function(){};	
 	
-	var o = new B().f1().f();
-	hotjs.log(o);
+		F.prototype = F2.prototype;
+		F.constructor = F2;
+		F3.prototype = new F();
+		F3.prototype.constructor = F3;
+		F3.prototype.supClass = F2.prototype;
+		F3.prototype.f3 = function(){};	
+	} else {
+		hotjs.inherit(F2, F1, {
+			f1 : function(){
+				console.log("F2->f1()");
+				//F1.prototype.f1.call(this);
+				F2.supClass.f1.call(this);
+				return this;
+			},
+			f2 : function(){}
+		});
+		
+		hotjs.inherit(F3, F2, {
+			f1 : function(){
+				console.log("F3->f1()");
+				F2.prototype.f1.call(this);
+				return this;
+			},
+			f3 : function(){}
+		});
+	}
+	
+	//var o1 = new F1(1000);
+	var o2 = new F2(100,200);
+	var o3 = new F3(10,20,30);
+	//console.log(o1);
+	//console.log(o2);
+	//console.log(o3);
+	//hotjs.log(o2);
+	//hotjs.log(o3);
+	o3.f1();
 
 	</script>
 </body>

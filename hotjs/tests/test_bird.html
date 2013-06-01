@@ -10,22 +10,45 @@
 <script type="text/javascript" src="../resource.js"></script>
 <script type="text/javascript" src="../sprite.js"></script>
 <script type="text/javascript" src="../hotjs.js"></script>
+<script type="text/javascript" src="../physics.js"></script>
 
 </head>
 <body>
 	<div id="view1" style="display: inline-block; margin: 0px;"></div>
 	<script>
-	var WIDTH = 480, HEIGHT = 320;
+
 	resources.load([
 		'redball.png',
 		'smallbird.png'
 	]);
+	
+	// -------------------- source code -----------------------
+	var balls = [];
 	resources.onReady(function(){
+		
 		var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
 		var room = (new hotjs.Scene('room')).setSize(WIDTH,HEIGHT).setColor("#eeeeee").showGrid(true);
+		var b = (new Ball('red')).setImage(resources.get('smallbird.png'));
+		b.setPos(b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
+		view1.addScene(room,'hello');
+		room.addNode(b);
+		
+		balls.push(b);
+		
 		var app = (new hotjs.App()).addView(view1).start();
 	});
+	
+	function kick_ball(i){
+		var b = balls[i];
+		if( b != undefined ) {
+			var vx = Math.random() * 40 - 20;  // range [-10,10] 
+			var vy = -10 - Math.random() * 10; // range [-10, -20] 
+			b.setVelocity(vx,vy);
+		}
+	}
 	</script>
+	<br>
+	<input type="button" value="Kick Bird" onClick="kick_ball(0);">
 </body>
 
 </html>
