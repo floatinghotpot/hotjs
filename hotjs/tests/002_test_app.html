@@ -13,22 +13,26 @@
 
 </head>
 <body>
-	<div id="view1" style="display: inline-block; margin: 0px;"></div>
-	<script>
-	var WIDTH = 480, HEIGHT = 320;
-	resources.load([
-		'redball.png',
-		'smallbird.png'
-	]);
-	resources.onReady(function(){
-		var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
+<div id="view1" style="display: inline-block; margin: 0px;"></div>
+<script>
 
-		var room = (new hotjs.Scene('room')).setSize(WIDTH,HEIGHT).setColor("#eeeeee").showGrid(true);
-		view1.addScene( room );
-		
-		var app = (new hotjs.App()).addView(view1).start();
-	});
-	</script>
+var WIDTH = 480, HEIGHT = 320;
+
+resources.load([
+	'redball.png',
+	'smallbird.png'
+]);
+
+resources.onReady(function(){
+	var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
+
+	var room = (new hotjs.Scene()).setSize(WIDTH,HEIGHT).setColor("blue").showGrid(true);
+	view1.addScene( room );
+	
+	var app = (new hotjs.App()).addView(view1).start();
+});
+
+</script>
 </body>
 
 </html>

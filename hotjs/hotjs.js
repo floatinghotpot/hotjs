@@ -1,6 +1,11 @@
 // name space
 var hotjs = hotjs || {};
 
+// default view size
+var WIDTH = 480, HEIGHT = 270;
+
+(function(){
+	
 // app -> view -> scene -> layer -> entity
 
 // event: mouse, touch, keyboard, userdefined
@@ -116,25 +121,6 @@ if (!Array.prototype.indexOf) {
 	};
 }
 
-// first, checks if it isn't implemented yet
-//if (!String.prototype.format) {
-//	String.prototype.format = function() {
-//		var args = arguments;
-//		return this.replace(/{(\d+)}/g, function(match, number) {
-//			return typeof args[number] != 'undefined' ? args[number] : match;
-//		});
-//	};
-//}
-
-//String.format("this is a {0}, {1}", v1, v2);
-//hotjs.format = function() {
-//	var args = arguments;
-//	return String.prototype.replace(/{(\d+)}/g, function(match, number) {
-//		return typeof args[number] != 'undefined' ? args[number] : match;
-//	});
-//};
-
-
 // A cross-browser requestAnimationFrame
 // See
 // https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
@@ -166,14 +152,14 @@ hotjs_main = function(){
 	requestAnimFrame(hotjs_main);
 };
 
-hotjs.App = function(){
+var App = function(){
 	hotjs_app = this;
 	this.upTime = 0;
 	
 	this.views = [];
 };
 
-hotjs.App.prototype = {
+App.prototype = {
 	addView : function(v) {
 		this.views.push(v);
 		return this;
@@ -209,7 +195,7 @@ hotjs.App.prototype = {
 
 //--------- hotjs.View ----------------
 
-hotjs.View = function(){
+var View = function(){
 	this.canvas = document.createElement("canvas");
 	this.ctx = this.canvas.getContext("2d");
 	this.canvas.width = 480;
@@ -231,7 +217,7 @@ hotjs.View = function(){
 	this.upTimeShow = ""; // h:m:s
 };
 
-hotjs.View.prototype = {
+View.prototype = {
 	setContainer : function(id){
 		this.container = document.getElementById(id);
 		if(this.container == undefined) {
@@ -245,11 +231,19 @@ hotjs.View.prototype = {
 		this.canvas.height = h;
 		return this;
 	},
+	width : function() {
+		return this.canvas.width;
+	},
+	height : function() {
+		return this.canvas.height;
+	},
 	addScene : function(s, id) {
 		this.scenes.push( s );
 		if(typeof id != 'undefined') {
 			this.sceneIndex[id] = s;
 		}
+		s.setContainer(this);
+		
 		this.curScene = s;
 		return this;
 	}, 
@@ -298,8 +292,10 @@ hotjs.View.prototype = {
 				var s = Math.floor(this.upTime);
 				var m = Math.floor( s / 60 );
 				s %= 60;
+				if(s<10) s="0"+s;
 				h = Math.floor( m / 60 );
 				m %= 60;
+				if(m<10) m="0"+m;
 				this.upTimeShow = h + " : " + m + " : " + s;
 				
 				this.fps = Math.floor( this.frames / this.dtSum + 0.5 );
@@ -333,40 +329,46 @@ hotjs.View.prototype = {
 // ------------- hotjs.Node -----------
 var hotjs_node_id = 0;
 
-hotjs.Node = function() {
-	
-	this.name = (hotjs_node_id ++) + "";
-
-	// geometry, 2D only
-	this.pos = [0,0];
-	this.size = [0,0];
-	this.scale = undefined; // default: [1,1]
-	this.rotation = undefined; // default: 0
-
-	this.color = undefined; // default: "black"
-	this.alpha = undefined; // default: 1, range: [0,1]
-	this.img = undefined;
-	
-	// physical
-	this.velocity = undefined; // default [0,0]
-	this.spin = undefined; // default: 0
-	this.shrink = undefined; // default: 1
-
-	this.accel = undefined; // default: [0,0]
-	this.fade = undefined; // default: 0
-	
-	this.mass = 1000; // default: 1000
-
+var Node = function() {
+	this.container = undefined;
+	this.name = "node_" + (hotjs_node_id ++);
 	this.subnodes = [];
 	this.index = {};
 	
-	this.container = undefined;
+	this.size = [40,40];
+	this.bgcolor = undefined; // default: "white"
+	this.color = undefined; // default: "black"
+	this.img = undefined;
+	this.sprite = undefined;
+
+	// geometry, 2D only
+	this.pos = [0,0];
+	this.velocity = undefined; // default [0,0]
+
+	this.rotation = undefined; // default: 0
+	this.spin = undefined; // default: 0
+
+	this.scale = undefined; // default: [1,1]
+	this.shrink = undefined; // default: 1
+
+	this.alpha = undefined; // default: 1, range: [0,1]
+	this.fade = undefined; // default: 0
+	
+	// physical
+	this.accel = undefined; // default: [0,0]
+	this.mass = 1600; // default: 1600
+	this.density = 1;
+
 };
 
-hotjs.Node.prototype = {
+Node.prototype = {
+	setContainer : function(c) {
+		this.container = c;
+		return this;
+	},
 	setName : function(n) {
 		this.name = n;
-		return true;
+		return this;
 	},
 	setPos : function(x,y) {
 		this.pos = [x,y];
@@ -375,6 +377,12 @@ hotjs.Node.prototype = {
 	setSize : function(w,h) {
 		this.size = [w,h];
 		return this;
+	},
+	width : function() {
+		return this.size[0];
+	},
+	height : function() {
+		return this.size[1];
 	},
 	setRotation : function(r) {
 		this.rotation = r;
@@ -402,8 +410,13 @@ hotjs.Node.prototype = {
 		this.shrink = [sx,sy];
 		return this;
 	},
-	setQuality : function(q) {
-		this.quality = q;
+	setMass : function(m) {
+		this.mass = m;
+		return this;
+	},
+	setDensity : function(d) {
+		this.density = d;
+		this.mass = this.size[0] * this.size[1] * d;
 		return this;
 	},
 	setAccel : function(ax,ay) {
@@ -415,6 +428,10 @@ hotjs.Node.prototype = {
 	},
 	setColor : function(c) {
 		this.color = c;
+		return this;
+	},
+	setBgColor : function(c) {
+		this.bgcolor = c;
 		return this;
 	},
 	// alpha, range [0,1]
@@ -430,7 +447,7 @@ hotjs.Node.prototype = {
 	},
 	setImage : function(img) {
 		this.img = img;
-		this.size = [img.width, img.height];
+		if(this.size == undefined) this.size = [img.width, img.height];
 		return this;
 	},
 	addNode : function(n, id) {
@@ -441,11 +458,15 @@ hotjs.Node.prototype = {
 		if(typeof id == 'string') {
 			this.index[id] = n;
 		}
+		n.setContainer(this);
+		
 		return this;
 	},
 	removeNode : function(n) {
 		var i = this.subnodes.indexOf(n);
 		if( i>=0 ) this.subnodes.splice(i, 1);
+		n.setContainer(undefined);
+		
 		return this;
 	},
 	update : function(dt) {
@@ -503,7 +524,9 @@ hotjs.Node.prototype = {
 	},
 	draw : function(c) {
 		if(this.img !== undefined) {
-			c.translate( - this.img.width/2, -this.img.height/2 );
+			//c.translate( - this.img.width/2, -this.img.height/2 );
+			c.translate( - this.size[0]/2, -this.size[1]/2 );
+			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
 			c.drawImage( this.img, 0, 0 );
 		}
 		
@@ -513,14 +536,17 @@ hotjs.Node.prototype = {
 
 //------------- hotjs.Scene -----------
 
-hotjs.Scene = function(){
+var Scene = function(){
 	hotjs.base(this);
 	
-	this.playing = false;
 	this.grid = false;
+	this.color = "black";
+	this.bgcolor = "white";
+
+	this.playing = false;
 };
 
-hotjs.inherit( hotjs.Scene, hotjs.Node, {
+hotjs.inherit( Scene, Node, {
 	showGrid : function(g) {
 		this.grid = g;
 		return this;
@@ -534,16 +560,17 @@ hotjs.inherit( hotjs.Scene, hotjs.Node, {
 		return this;
 	},
 	update : function(dt) {
-		hotjs.Scene.supClass.update.call(this, dt);
+		Scene.supClass.update.call(this, dt);
 		
 		// TODO: do what? 
 	},
 	draw : function(c) {
 		c.save();
-		c.fillStyle = this.color;
+		c.fillStyle = this.bgcolor;
 		c.fillRect(0, 0, this.size[0], this.size[1]);
+		
 		if( this.grid ) {
-			c.strokeStyle = "rgb(0,0,0)";			
+			c.strokeStyle = this.color;			
 			c.lineWidth = 0.1;
 			var m = 40, n = 40;
 			for( var i=0; i<this.size[0]; i+=m ) {
@@ -556,12 +583,20 @@ hotjs.inherit( hotjs.Scene, hotjs.Node, {
 				}
 			}		
 		}
+		
 		c.lineWidth = 2;
 		c.strokeRect(0,0, this.size[0], this.size[1]);
 		c.restore();
 		return this;
 	}
 });
+
+hotjs.Node = Node;
+hotjs.Scene = Scene;
+hotjs.View = View;
+hotjs.App = App;
+
+})(); 
 
 // ----------------------------------
 function init() {
@@ -828,3 +863,5 @@ function reset() {
 
 	player.pos = [ 50, canvas.height / 2 ];
 };
+
+

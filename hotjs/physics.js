@@ -1,25 +1,36 @@
 
-var WIDTH = 480, HEIGHT = 270;
-var COLLISION_LOSS_V = 0.2;
-var COLLISION_LOSS_H = 0.01;
-var AIR_RESISTANCE = 1/160;
-var GRAVITY = 9.8 / 60;
+(function(){
+	
+hotjs.Physics = hotjs.Physics || {};
+
+var Constant = {
+	RESTITUTION_V : 0.8,
+	RESTITUTION_H : 0.95,
+	AIR_RESISTANCE : 1/160,
+	GRAVITY : 9.8/60
+};
 
 // physics formula
-
-hotjs.Physics = {
+var Formula = {
 	velocityAfterCollision: function (m1,v1,m2,v2) {
 		return ((m1-m2)*v1 + 2*m2*v2) / (m1+m2);
 	}
 };
 
-var Ball = function(){
+// ----- Node in Physics world ---------
+
+var Node = function(){
 	hotjs.base(this);
 };
 
-hotjs.inherit(Ball, hotjs.Node, {
+hotjs.inherit(Node, hotjs.Node, {
+	interactWidth : function(another) {
+		return this;
+	},
 	update : function(dt) {
-		Ball.supClass.update.call(this, dt);
+		Node.supClass.update.call(this, dt);
+		
+		var w = this.container.width(), h = this.container.height();
 		
 		var px = this.pos[0], py = this.pos[1];
 		var rx = this.size[0] * 0.5, ry = this.size[1] * 0.5;
@@ -27,51 +38,61 @@ hotjs.inherit(Ball, hotjs.Node, {
 		var ax = this.accel[0], ay = this.accel[1];
 
 		// check boundary 
-		var bx = ((px + rx >= WIDTH) && (vx >0)) || ((px - rx <= 0) && (vx <0));
-		var by = ((py + ry >= HEIGHT) && (vy >0)) || ((py - ry <= 0) && (vy<0));
+		var bx = ((px + rx >= w) && (vx >0)) || ((px - rx <= 0) && (vx <0));
+		var by = ((py + ry >= h) && (vy >0)) || ((py - ry <= 0) && (vy<0));
 		
 		// bounce 
 		if(by) {
 			vy = - vy;
-			vy *= (1-COLLISION_LOSS_V);
-			vx *= (1-COLLISION_LOSS_H);
+			vy *= Constant.RESTITUTION_V;
+			vx *= Constant.RESTITUTION_H;
 		}
 		if(bx){
 			vx = - vx;
-			vx *= (1-COLLISION_LOSS_V);
-			vy *= (1-COLLISION_LOSS_H);
+			vx *= Constant.RESTITUTION_V;
+			vy *= Constant.RESTITUTION_H;
 		}
 		
-		// collission loss
+		// collision loss
 		if( bx || by ) {
 
-		} else {
-			ax = - vx * AIR_RESISTANCE / 5;
-			ay += - vy * AIR_RESISTANCE;
+		} else { // air resistance
+			ax = - vx * Constant.AIR_RESISTANCE / 5;
+			ay += - vy * Constant.AIR_RESISTANCE;
 		}
 		
 		// gravity
-		if(py + ry < HEIGHT-5) { // air 
-			ay = GRAVITY;
+		if(py + ry < HEIGHT-5) {  
+			ay = Constant.GRAVITY;
 		}
 		
 		// fix pos if out of boundary
-		px = Math.max( rx, Math.min(WIDTH-rx, px));
-		py = Math.max( ry, Math.min(HEIGHT-ry, py));
+		px = Math.max( rx, Math.min(w-rx, px));
+		py = Math.max( ry, Math.min(h-ry, py));
 		
 		this.pos = [px, py];
 		this.velocity = [vx, vy];
 		this.accel = [ax, ay];
 		
 		return this;
-	},
-	checkCollision : function(b) {
+	}
+});
+
+//-------------- Ball in Physics world -----------------
+
+var Ball = function(){
+	hotjs.base(this);
+
+};
+
+hotjs.inherit(Ball, Node, {
+	interactWith : function(b) {
 		var vectorAdd = hotjs.Math.vectorAdd;
 		var vectorSub = hotjs.Math.vectorSub;
 		var vectorMul = hotjs.Math.vectorMul;
 		var vectorProject = hotjs.Math.vectorProject;
 		
-		var velAfter = hotjs.Physics.velocityAfterCollision;
+		var velAfter = Formula.velocityAfterCollision;
 		
 		var r1 = (this.size[0] + this.size[1]) / 2 / 2;
 		var r2 = (b.size[0] + b.size[1]) / 2 / 2;
@@ -109,48 +130,36 @@ hotjs.inherit(Ball, hotjs.Node, {
 		return true;
 	}
 });
-	
-function drawVector(c, color, v1, v2) {
-	c.beginPath();
-	c.strokeStyle = color;
-	c.moveTo(v1[0], v1[1]);
-	c.lineTo(v2[0], v2[1]);
-	c.stroke();
-}
 
-var BallRoom = function(){
+// -------------- Scene in Physics world -----------------
+
+var Scene = function(){
 	hotjs.base(this);
-	
-	this.v1 = [40,-100];
-	this.v2 = [100,-50];
-	
-	this.v = hotjs.Math.vectorProject(this.v1, this.v2);
 };
 
-hotjs.inherit(BallRoom, hotjs.Scene, {
+hotjs.inherit(Scene, hotjs.Scene, {
 	update : function(dt) {
+		this.checkInteraction();
+		Scene.supClass.update.call(this, dt);
+		return this;
+	},
+	checkInteraction : function() {
 		for( var i=this.subnodes.length-1; i>=1; i-- ) {
 			var b1 = this.subnodes[i];
 			for( var j=0; j<i; j++ ) {
 				var b2 = this.subnodes[j];
-				b1.checkCollision(b2);
+				b1.interactWith(b2);
 			}
 		}
-		
-		BallRoom.supClass.update.call(this, dt);
-	},
-	draw : function(c) {
-		BallRoom.supClass.draw.call(this, c);
-
-		c.save();
-		c.translate(WIDTH / 2, HEIGHT / 2);
-		
-		drawVector(c, "black", [0,0], this.v1);
-		drawVector(c, "red", [0,0], this.v2);
-		drawVector(c, "blue", this.v1, this.v);
-		drawVector(c, "green", this.v, [this.v[0],0]);
-		drawVector(c, "green", [0,0], [this.v[0],0]);
-
-		c.restore();
 	}
 });
+
+hotjs.Physics.Constant = Constant;
+hotjs.Physics.Formula = Formula;
+
+hotjs.Physics.Node = Node;
+hotjs.Physics.Scene = Scene;
+hotjs.Physics.Ball = Ball;
+
+})();
+

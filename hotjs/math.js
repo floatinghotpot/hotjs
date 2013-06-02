@@ -1,8 +1,8 @@
-
+(function(){
+	
 hotjs.Math = {
 		
 	// extend random
-		
 	randomRange : function(min, max) {
 		return ((Math.random() * (max - min)) + min);
 	},
@@ -17,19 +17,18 @@ hotjs.Math = {
 	},
 	
 	// vector
-	
 	vectorAdd : function (v1, v2) {
 		return [ v1[0]+v2[0], v1[1]+v2[1] ];
 	},
-
 	vectorSub : function (v1, v2) {
 		return [ v1[0]-v2[0], v1[1]-v2[1] ];
 	},
-
 	vectorMul : function (v, n) {
 		return [v[0] * n, v[1] * n ];
 	},
-
+	vectorLength : function(v) {
+		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+	},
 	vectorProject : function (v1, v2) {
 		var v1x = v1[0], v1y = v1[1];
 		var v2x = v2[0], v2y = v2[1];
@@ -43,3 +42,5 @@ hotjs.Math = {
 	}
 	
 };
+
+})();
