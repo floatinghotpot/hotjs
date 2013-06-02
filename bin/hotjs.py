@@ -88,9 +88,10 @@ def build(name,options):
 
 def update():
     hotjs_path = join(basedir,'hotjs/')
-    hotjslist_path = join(hotjs_path,'hotjs-src.list')
+    hotjslist_path = join(hotjs_path,'files')
     hotjsbin_path = join(hotjs_path,'hotjs-bin.js')
 
+    print( "updating hotjsbin: " + hotjsbin_path )
     f = open(hotjsbin_path,'w')
         
     hotjslist = open(hotjslist_path,'r').readlines()
@@ -99,11 +100,15 @@ def update():
         if( len(name) > 0 ):
             jspath = os.path.join(hotjs_path, name)
             if( exists(jspath) ):
-                #print( jspath )
+                print( "adding " + jspath )
+                f.write('\n// ------- ' + name + ' ------------- \n\n')
                 jscontents = open(jspath, 'r').readlines()
                 f.write(''.join(jscontents))
-            
+            else:
+                print( jspath + " not found." );
     f.close()
+    
+    print( "hotjsbin updated." )
     
 def main():
     """The entrypoint for this script."""
@@ -122,6 +127,8 @@ Commands:
     
     if not (len(args) == 2 or (len(args)==1 and ['init','update'].count(args[0])==1 )) :
         parser.error('incorrect number of arguments')
+        
+    print( "welcome to hotjs." )
     
     if args[0]=='init' or args[0]=='update':
         update()
