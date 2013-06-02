@@ -4,7 +4,7 @@
 hotjs.Physics = hotjs.Physics || {};
 
 var Constant = {
-	RESTITUTION_V : 0.8,
+	RESTITUTION_V : 0.7,
 	RESTITUTION_H : 0.95,
 	AIR_RESISTANCE : 1/160,
 	GRAVITY : 9.8/60
