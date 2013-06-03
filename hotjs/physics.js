@@ -4,7 +4,7 @@
 hotjs.Physics = hotjs.Physics || {};
 
 var Constant = {
-	RESTITUTION_V : 0.7,
+	RESTITUTION_V : 0.8,
 	RESTITUTION_H : 0.95,
 	AIR_RESISTANCE : 1/160,
 	GRAVITY : 9.8/60
@@ -62,7 +62,7 @@ hotjs.inherit(Node, hotjs.Node, {
 		}
 		
 		// gravity
-		if(py + ry < HEIGHT-5) {  
+		if(py + ry < h-5) {  
 			ay = Constant.GRAVITY;
 		}
 		

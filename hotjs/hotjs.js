@@ -86,6 +86,7 @@ var number_of_objects = 0;
 
 hotjs.Class = function(){
 	number_of_objects ++;
+	this.oid = number_of_objects;
 };
 
 hotjs.Class.getObjectNumber = function(){
@@ -215,6 +216,8 @@ var View = function(){
 	this.ctx = this.canvas.getContext("2d");
 	this.canvas.width = 480;
 	this.canvas.height = 320;
+	
+	this.rect = this.canvas.getBoundingClientRect();
 
 	this.container = undefined;
 
@@ -244,6 +247,7 @@ hotjs.inherit(View, hotjs.Class, {
 	setSize : function(w,h) {
 		this.canvas.width = w;
 		this.canvas.height = h;
+		this.rect = this.canvas.getBoundingClientRect();
 		return this;
 	},
 	width : function() {
@@ -252,12 +256,20 @@ hotjs.inherit(View, hotjs.Class, {
 	height : function() {
 		return this.canvas.height;
 	},
+	zoom : function(f, posCenter) {
+		if(posCenter == undefined) posCenter = [this.width()/2, this.height()/2];
+
+		if( this.curScene != undefined ) {
+			var pos = this.curScene.posFromView( posCenter );
+			this.curScene.zoom( f, pos );
+		}
+	},
 	addScene : function(s, id) {
 		this.scenes.push( s );
-		if(typeof id != 'undefined') {
+		if(id != undefined) {
 			this.sceneIndex[id] = s;
 		}
-		s.setContainer(this);
+		s.setView(this);
 		
 		this.curScene = s;
 		return this;
@@ -321,19 +333,25 @@ hotjs.inherit(View, hotjs.Class, {
 		return this;
 	},
 	render : function() {
+		var c = this.ctx;
+		c.save();
+		
 		for(var i=0; i<this.scenes.length; i++) {
-			this.scenes[i].render(this.ctx);
+			this.scenes[i].render(c);
 		}
 		
 		if( this.fpsInfo ) {
-			var c = this.ctx;
-			c.save();
 			c.strokeStyle = "#000000";
 			c.fillText( this.upTimeShow, 10, 20 );
-			c.fillText( this.fps + ' fps', 10, 40 );
-			c.fillText( this.frames, 10, 60 );
-			c.restore();
+			c.fillText( this.fps + ' fps: ' + this.frames, 10, 40 );
+			c.fillText( this.canvas.width + " x " + this.canvas.height, 10, 60 ); 
+			var rectInfo = this.rect.left + "," + this.rect.top + " -> "
+			 + this.rect.right + ',' + this.rect.bottom 
+			 + ' ( ' + this.rect.width + ' x ' + this.rect.height + ' ) ';
+			c.fillText( rectInfo, 10, 80);
 		}
+		c.restore();
+		
 		return this;
 	}
 	
@@ -564,6 +582,62 @@ var Scene = function(){
 };
 
 hotjs.inherit( Scene, Node, {
+	setView : function(v) {
+		this.setContainer(v);
+		
+		// if scene < view, then scale & center scene to fit view
+		var fx = v.width() / this.size[0];
+		var fy = v.height() / this.size[1];
+		var f = Math.min(fx, fy);
+		if( f > 1 ) {
+			this.setScale(f,f);
+			this.pos = [ - this.size[0]/2 * (f-1), - this.size[1]/2 * (f-1) ];
+		}
+		
+		return this;
+	},
+	posFromView : function(p) {
+		var x = p[0] - this.pos[0], y = p[1] - this.pos[1];
+
+		if(this.scale != undefined) {
+			x /= this.scale[0];
+			y /= this.scale[1];
+		}
+		
+		return [ x, y ];
+	},
+	posToView : function(p) {
+		var x = p[0], y = p[1];
+
+		if(this.scale != undefined) {
+			x *= this.scale[0];
+			y *= this.scale[1];
+		}
+		
+		return [x + this.pos[0], y + this.pos[1]];
+	},
+	zoom : function(f, posCenter) {
+		if( this.scale == undefined ) this.scale = [1,1];
+		
+		var offset = [ posCenter[0] * this.scale[0] * (f-1), posCenter[1] * this.scale[1] * (f-1) ];
+		this.pos = hotjs.Math.vectorSub( this.pos, offset );
+
+		this.scale = hotjs.Math.vectorMul( this.scale, f );
+		
+		// ensure scene in view
+		if( this.scale[0] <=1 || this.scale[1] <= 1 ) {
+			this.scale = [1,1];
+		}
+		if( this.pos[0] >0 ) this.pos[0]=0;
+		if( this.pos[1] >0 ) this.pos[1]=0;
+		var w = this.container.width(), h = this.container.height();
+		var x = (w - this.size[0]*this.scale[0]), y = (h - this.size[1]*this.scale[1]);
+		if( this.pos[0] < x) this.pos[0] = x;
+		if( this.pos[1] < y) this.pos[1] = y;
+		
+		return this;
+	},
+	
 	showGrid : function(g) {
 		this.grid = g;
 		return this;
@@ -581,6 +655,7 @@ hotjs.inherit( Scene, Node, {
 		
 		// TODO: do what? 
 	},
+
 	draw : function(c) {
 		c.save();
 		c.fillStyle = this.bgcolor;
@@ -594,15 +669,11 @@ hotjs.inherit( Scene, Node, {
 				for( var j=0; j<this.size[1]; j+=n) {
 					c.save();
 					c.translate(i, j);
-	
 					c.strokeRect(0,0, m, n);
 					c.restore();
 				}
 			}		
 		}
-		
-		c.lineWidth = 2;
-		c.strokeRect(0,0, this.size[0], this.size[1]);
 		c.restore();
 		return this;
 	}

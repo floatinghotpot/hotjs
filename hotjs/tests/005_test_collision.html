@@ -22,7 +22,7 @@ html, body {
 }
 div#buttons {
 	position: absolute;
-	left: 480px;
+	right: 20px;
 	top: 20px;
 }
 input {
@@ -38,6 +38,8 @@ input {
 	<input type="button" value="Remove 1 Ball" onClick="remove_ball();"/><br/><br/>
 	<input type="button" value="Kick Ball #1" onClick="kick_ball(0);"/><br/><br/>
 	<input type="button" value="Kick Ball #2" onClick="kick_ball(1);"/><br/><br/>
+	<input type="button" value="Zoom In" onClick="zoom(1.2);"/><br/><br/>
+	<input type="button" value="Zoom Out" onClick="zoom(1/1.2);"/><br/><br/>
 </div>
 <script>
 	
@@ -56,7 +58,7 @@ hotjs.inherit(DemoRoom, hotjs.Physics.Scene, {
 
 		if( this.formula ) {
 			c.save();
-			c.translate( this.size[0] / 2, this.size[1] / 2);
+			c.translate( this.size[0] / 3, this.size[1] / 2);
 			
 			var v1 = [40,-70]; // velocity
 			var v2 = [100,-50]; // 2 ball center line
@@ -101,15 +103,28 @@ var balls = [];
 var add_ball = function(){};
 var remove_ball = function(){};
 
+var view1;
+var room;
+
+function zoom(f){
+	var pos = [view1.width()/3, view1.height()];
+	view1.zoom(f, pos);
+}
+
 resources.load([
     		'redball.png',
     		'smallbird.png'
     	]);
         	
 resources.onReady(function() {
-	var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
+	var w = window.innerWidth, h = window.innerHeight;
+	var v = document.getElementById('view1');
+	v.style.width = w;
+	v.style.height = h;
 
-	var room = (new DemoRoom()).setSize(WIDTH, HEIGHT).setColor("blue");
+	view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+
+	room = (new DemoRoom()).setSize(w, h).setColor("blue");
 	room.showGrid(true).showFormula(true);
 	view1.addScene(room);
 	
@@ -118,8 +133,8 @@ resources.onReady(function() {
 		b = new hotjs.Physics.Ball();
 		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);
 		
-		var x = WIDTH/5 + Math.random() * 100;
-		b.setPos(x + b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
+		var x = w/5 + Math.random() * 100;
+		b.setPos(x + b.size[0]/2, h-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
 		
 		room.addNode(b);
 		balls.push(b);			
