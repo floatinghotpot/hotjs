@@ -87,16 +87,13 @@ var Ball = function(){
 
 hotjs.inherit(Ball, Node, {
 	interactWith : function(b) {
-		var vectorAdd = hotjs.Math.vectorAdd;
-		var vectorSub = hotjs.Math.vectorSub;
-		var vectorMul = hotjs.Math.vectorMul;
-		var vectorProject = hotjs.Math.vectorProject;
+		var Vector = hotjs.Vector;
 		
 		var velAfter = Formula.velocityAfterCollision;
 		
 		var r1 = (this.size[0] + this.size[1]) / 2 / 2;
 		var r2 = (b.size[0] + b.size[1]) / 2 / 2;
-		var vectPos = vectorSub( this.pos, b.pos );
+		var vectPos = Vector.Sub( this.pos, b.pos );
 		
 		// no collision yet
 		var distance = Math.sqrt(vectPos[0] * vectPos[0] + vectPos[1] * vectPos[1]);
@@ -105,18 +102,18 @@ hotjs.inherit(Ball, Node, {
 		// distance cannot be small than r1 + r2
 		if( distance < r1+r2 ) {
 			var fix = 1 - distance/(r1+r2);
-			var vectPosFix = vectorMul( vectPos, fix );
-			this.pos = vectorAdd( this.pos, vectPosFix );
-			b.pos = vectorSub( b.pos, vectPosFix );
+			var vectPosFix = Vector.Mul( vectPos, fix );
+			this.pos = Vector.Add( this.pos, vectPosFix );
+			b.pos = Vector.Sub( b.pos, vectPosFix );
 		}
 		
 		var vectTangent = [ vectPos[1], - vectPos[0] ];
 		
-		var v1 = vectorProject(this.velocity, vectPos);
-		var v1T = vectorProject(this.velocity, vectTangent);
+		var v1 = Vector.Project(this.velocity, vectPos);
+		var v1T = Vector.Project(this.velocity, vectTangent);
 		
-		var v2 = vectorProject(b.velocity, vectPos);
-		var v2T = vectorProject(b.velocity, vectTangent);
+		var v2 = Vector.Project(b.velocity, vectPos);
+		var v2T = Vector.Project(b.velocity, vectTangent);
 		
 		var v1x = velAfter(this.mass, v1[0], b.mass, v2[0]);
 		var v1y = velAfter(this.mass, v1[1], b.mass, v2[1]);
@@ -124,8 +121,8 @@ hotjs.inherit(Ball, Node, {
 		var v2x = velAfter(b.mass, v2[0], this.mass, v1[0]);
 		var v2y = velAfter(b.mass, v2[1], this.mass, v1[1]);
 		
-		this.velocity = vectorAdd( v1T, [v1x, v1y] );
-		b.velocity = vectorAdd( v2T, [v2x, v2y] );
+		this.velocity = Vector.Add( v1T, [v1x, v1y] );
+		b.velocity = Vector.Add( v2T, [v2x, v2y] );
 		
 		return true;
 	}

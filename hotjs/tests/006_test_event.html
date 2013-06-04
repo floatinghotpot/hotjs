@@ -10,6 +10,7 @@
 <script type="text/javascript" src="../resource.js"></script>
 <script type="text/javascript" src="../sprite.js"></script>
 <script type="text/javascript" src="../hotjs.js"></script>
+<script type="text/javascript" src="../math.js"></script>
 <script type="text/javascript" src="../../lib/jquery-1.9.js"></script>
 <style type="text/css">
 html, body {
@@ -21,7 +22,7 @@ html, body {
 }
 div {
 	display: inline-block;
-	border: solid red 1px;
+	border: solid green 1px;
 	margin: 10px;
 	padding: 10px;
 }
@@ -31,8 +32,16 @@ div {
 <div>
 <div id="view1"></div>
 <div>
-<input type='button' value='+' onClick='zoom(1.2)'/><br>
-<input type='button' value='-' onClick='zoom(1/1.2)'/>
+<input type='button' value='up' onClick='shiftView(0, -1)'/>
+<input type='button' value='down' onClick='shiftView(0, 1)'/>
+<input type='button' value='left' onClick='shiftView(-1, 0)'/>
+<input type='button' value='right' onClick='shiftView(1, 0)'/>
+
+<input type='button' value='+' onClick='zoomView(1.2)'/>
+<input type='button' value='-' onClick='zoomView(1/1.2)'/>
+<input type='button' value='*' onClick='zoomView()'/>
+<input type='button' value='<>' onClick='zoomView("stretch")'/>
+<input type='button' value='X' onClick='zoomView("none")'/>
 </div>
 </div>
 <script>
@@ -45,12 +54,16 @@ v.style.height = h;
 
 var view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
 
-function zoom(f){
-	var pos = [view1.width()/3, view1.height()/2];
+function zoomView(f){
+
+	var pos = [view1.width()/2, view1.height()/2];
 	view1.zoom(f, pos);
 }
+function shiftView(x,y){
+	view1.shift( x * 20, y * 20 );
+}
 
-var room = (new hotjs.Scene()).setSize(w,h).setColor("black").showGrid(true);
+var room = (new hotjs.Scene()).setSize(w*2,h*1.5).setColor("black").showGrid(true);
 view1.addScene( room );
 
 resources.load([

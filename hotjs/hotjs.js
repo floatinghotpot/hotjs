@@ -1,16 +1,13 @@
 // name space
 var hotjs = hotjs || {};
 
-// default view size
-var WIDTH = 480, HEIGHT = 270;
-
 (function(){
 	
-// app -> view -> scene -> layer -> entity
+// app -> view -> scene -> node -> node -> ...
 
-// event: mouse, touch, keyboard, userdefined
+// event: mouse, touch, keyboard, user-defined
 
-// resource: audio, image, sprite, video
+// resource: image, sprite, audio, video
 
 // animation: move, rotate, scale, fade
 
@@ -143,7 +140,47 @@ var requestAnimFrame = (function() {
 			};
 })();
 
-
+var Vector = {
+	Copy : function(v) {
+		return [ v[0], v[1] ];
+	},
+	Vert : function(v) {
+		return [ v[1], -v[0] ];
+	},
+	Add : function (v1, v2) {
+		return [ v1[0]+v2[0], v1[1]+v2[1] ];
+	},
+	Sub : function (v1, v2) {
+		return [ v1[0]-v2[0], v1[1]-v2[1] ];
+	},
+	Mul : function (v, n) {
+		return [v[0] * n, v[1] * n ];
+	},
+	Scale : function (v, n) {
+		return [v[0] * n[0], v[1] * n[1] ];
+	},
+	ScaleDown : function(v, n) {
+		return [v[0] / n[0], v[1] / n[1] ];
+	},
+	Length : function(v) {
+		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+	},
+	Norm : function(v) {
+		var n = 1 / Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+		return [v[0] * n, v[1] * n ];
+	},
+	Project : function (v1, v2) {
+		var v1x = v1[0], v1y = v1[1];
+		var v2x = v2[0], v2y = v2[1];
+		var ang1 = Math.atan2(v1y,v1x);
+		var ang2 = Math.atan2(v2y,v2x);
+		var ang = ang1 - ang2;
+		var v = Math.sqrt( v1x * v1x + v1y * v1y ) * Math.cos(ang);
+		var vx = v * Math.cos(ang2);
+		var vy = v * Math.sin(ang2);
+		return [vx, vy];
+	}
+};
 
 // ----------- hotjs.App ----------------------
 var hotjs_app = undefined;
@@ -238,7 +275,7 @@ var View = function(){
 hotjs.inherit(View, hotjs.Class, {
 	setContainer : function(id){
 		this.container = document.getElementById(id);
-		if(this.container == undefined) {
+		if( ! this.container ) {
 			this.container = document.body;
 		}
 		this.container.appendChild(this.canvas);
@@ -259,13 +296,23 @@ hotjs.inherit(View, hotjs.Class, {
 	height : function() {
 		return this.canvas.height;
 	},
+	// shift view, then move scene in reverse direction
+	shift : function(x,y) {
+		if(!! this.curScene ) {
+			this.curScene.move( -x, -y );
+		}
+		return this;
+	},
 	zoom : function(f, posCenter) {
-		if(posCenter == undefined) posCenter = [this.width()/2, this.height()/2];
+		if(! posCenter) {
+			posCenter = [this.width()/2, this.height()/2];
+		}
 
-		if( this.curScene != undefined ) {
+		if(!! this.curScene ) {
 			var pos = this.curScene.posFromView( posCenter );
 			this.curScene.zoom( f, pos );
 		}
+		return this;
 	},
 	addScene : function(s, id) {
 		this.scenes.push( s );
@@ -278,8 +325,8 @@ hotjs.inherit(View, hotjs.Class, {
 		return this;
 	}, 
 	switchScene : function(s) {
-		if( s != undefined ) {
-			if( this.curScene != undefined ) {
+		if( !! s ) {
+			if(!! this.curScene ) {
 				//this.curScene.stop();
 			}
 			this.curScene = s;
@@ -289,7 +336,7 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	switchSceneById : function(id) {
 		var s = this.sceneIndex[id];
-		if(typeof s != 'undefined') {
+		if( !! s ) {
 			this.switchScene(s);
 		}
 		return this;
@@ -338,13 +385,14 @@ hotjs.inherit(View, hotjs.Class, {
 	render : function() {
 		var c = this.ctx;
 		c.save();
+		c.fillStyle = "white";
+		c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
 		
 		for(var i=0; i<this.scenes.length; i++) {
 			this.scenes[i].render(c);
 		}
 		
 		if( this.fpsInfo ) {
-			c.strokeStyle = "#000000";
 			c.fillText( this.upTimeShow, 10, 20 );
 			c.fillText( this.fps + ' fps: ' + this.frames, 10, 40 );
 			c.fillText( this.canvas.width + " x " + this.canvas.height, 10, 60 ); 
@@ -352,6 +400,9 @@ hotjs.inherit(View, hotjs.Class, {
 			 + this.rect.right + ',' + this.rect.bottom 
 			 + ' ( ' + this.rect.width + ' x ' + this.rect.height + ' ) ';
 			c.fillText( rectInfo, 10, 80);
+
+			c.strokeStyle = "black";
+			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
 		c.restore();
 		
@@ -438,14 +489,14 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	setSpin : function(s) {
-		if(this.rotation == undefined) {
+		if( ! this.rotation ) {
 			this.rotation = 0;
 		}
 		this.spin = s;
 		return this;
 	},
 	setShrink : function(sx,sy) {
-		if(this.scale == undefined) {
+		if( ! this.scale ) {
 			this.scale = [1,1];
 		}
 		this.shrink = [sx,sy];
@@ -461,7 +512,7 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	setAccel : function(ax,ay) {
-		if(this.velocity == undefined) {
+		if( ! this.velocity ) {
 			this.velocity = [0,0];
 		}
 		this.accel = [ax,ay];
@@ -488,7 +539,7 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	setImage : function(img) {
 		this.img = img;
-		if(this.size == undefined) this.size = [img.width, img.height];
+		if(! this.size) this.size = [img.width, img.height];
 		return this;
 	},
 	addNode : function(n, id) {
@@ -590,16 +641,7 @@ var Scene = function(){
 hotjs.inherit( Scene, Node, {
 	setView : function(v) {
 		this.setContainer(v);
-		
-		// if scene < view, then scale & center scene to fit view
-		var fx = v.width() / this.size[0];
-		var fy = v.height() / this.size[1];
-		var f = Math.min(fx, fy);
-		if( f > 1 ) {
-			this.setScale(f,f);
-			this.pos = hotjs.Math.vectorMul(this.size, (1-f)/2);
-		}
-		
+		this.zoom();
 		return this;
 	},
 	posFromView : function(p) {
@@ -623,27 +665,72 @@ hotjs.inherit( Scene, Node, {
 		
 		return [x + this.pos[0], y + this.pos[1]];
 	},
-	zoom : function(f, posCenter) {
-		var vectorMul = hotjs.Math.vectorMul,
-			vectorScale = hotjs.Math.vectorScale,
-			vectorSub = hotjs.Math.vectorSub;
-		
-		if( this.scale == undefined ) this.scale = [1,1];
-		
-		var offsetChange = vectorMul( vectorScale( posCenter, this.scale ), f-1 );
-		this.pos = vectorSub( this.pos, offsetChange );
-		this.scale = vectorMul( this.scale, f );
-		
-		// ensure scene in view
-		if( this.scale[0] <=1 || this.scale[1] <= 1 ) {
-			this.scale = [1,1];
-		}
+	// ensure the scene is always in view
+	fixView : function() {		
 		if( this.pos[0] >0 ) this.pos[0]=0;
 		if( this.pos[1] >0 ) this.pos[1]=0;
-		var sizeToView = vectorScale(this.size, this.scale);
-		var offsetRightBottom = vectorSub( this.container.size(), sizeToView );
-		if( this.pos[0] < offsetRightBottom[0]) this.pos[0] = offsetRightBottom[0];
-		if( this.pos[1] < offsetRightBottom[1]) this.pos[1] = offsetRightBottom[1];
+		
+		var posRightBottom = Vector.Add( Vector.Scale(this.size, this.scale), this.pos );
+		var offsetRB = Vector.Sub( this.container.getSize(), posRightBottom );
+		
+		if( offsetRB[0] >0) this.pos[0] += offsetRB[0];
+		if( offsetRB[1] >0) this.pos[1] += offsetRB[1];
+
+		return this;
+	},
+	move : function(x, y) {
+		this.pos[0] += x;
+		this.pos[1] += y;
+		
+		this.fixView();
+		
+		return this;
+	},
+	zoom : function(f, posCenter) {
+		var vSize = this.container.getSize();
+		var sXY = [ vSize[0] / this.size[0], vSize[1] / this.size[1] ];
+		var sMin = Math.max(sXY[0], sXY[1]);
+
+		if( f == 'none' ) {
+			this.scale = [1,1];
+			this.pos = [ (vSize[0]-this.size[0])/2, (vSize[1]-this.size[1])/2 ];
+			
+		} else if (f == 'stretch') {
+			this.scale = sXY;
+			this.pos = [0,0];
+			
+		} else if( f > 0 ) {
+			if(! this.scale) this.scale = [1,1];
+			
+			// no smaller than view (container) size
+			var fMin = [ sMin/this.scale[0], sMin/this.scale[1] ];
+			f = Math.max(fMin[0], Math.max(fMin[1], f));
+
+			// posCenter -> posInView -> offsetChange -> move
+			// code #1
+			//var posInView = Vector.Scale( posCenter, this.scale );
+			//var offsetChange = Vector.Mul( posInView, f-1 );
+			//this.pos = Vector.Sub( this.pos, offsetChange );
+
+			// code #2, optimized, no function call
+			this.pos = [ this.pos[0] - posCenter[0] * this.scale[0] * (f-1),
+			             this.pos[1] - posCenter[1] * this.scale[1] * (f-1)
+			            ];
+			
+			this.scale = Vector.Mul( this.scale, f );
+	
+			// ensure scene always in view
+			if( this.scale[0] <sMin || this.scale[1] < sMin ) {
+				this.scale = [sMin, sMin];
+			}
+			
+			this.fixView();
+
+		} else {
+			// by default, scale & center scene to fit view
+			this.scale = [sMin, sMin];
+			this.pos = [ (vSize[0] - this.size[0] * sMin) /2, (vSize[1] - this.size[1] * sMin)/2 ];
+		}
 		
 		return this;
 	},
@@ -663,7 +750,7 @@ hotjs.inherit( Scene, Node, {
 	update : function(dt) {
 		Scene.supClass.update.call(this, dt);
 		
-		// TODO: do what? 
+		// TODO: somethig to do here ?
 	},
 
 	draw : function(c) {
@@ -674,21 +761,30 @@ hotjs.inherit( Scene, Node, {
 		if( this.grid ) {
 			c.strokeStyle = this.color;			
 			c.lineWidth = 0.1;
-			var m = 40, n = 40;
-			for( var i=0; i<this.size[0]; i+=m ) {
-				for( var j=0; j<this.size[1]; j+=n) {
-					c.save();
-					c.translate(i, j);
-					c.strokeRect(0,0, m, n);
-					c.restore();
-				}
-			}		
+			var dx = 40, dy = 40, w = this.size[0], h = this.size[1];
+			c.beginPath();
+			for( var x=0; x<=w; x += dx ) {
+				c.moveTo(x, 0);
+				c.lineTo(x, h);
+			}
+			for( var y=0; y<=h; y += dy ) {
+				c.moveTo(0, y);
+				c.lineTo(w, y);
+			}
+			c.stroke();
+			
+			c.lineWidth = 1;
+			c.translate( this.size[0]/2, this.size[1]/2 );
+			c.beginPath();
+			c.arc(0, 0, 10, 0, Math.PI * 2);
+			c.stroke();
 		}
 		c.restore();
 		return this;
 	}
 });
 
+hotjs.Vector = Vector;
 hotjs.Node = Node;
 hotjs.Scene = Scene;
 hotjs.View = View;

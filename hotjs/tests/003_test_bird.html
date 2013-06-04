@@ -16,13 +16,13 @@
 html, body {
 	width: 100%;
 	height: 100%;
-	overflow: hidden;	
+	overflow: hidden;
 	margin: 0;
 	padding: 0;
 }
 div#buttons {
 	position: absolute;
-	left: 480px;
+	right: 20px;
 	top: 20px;
 }
 input {
@@ -43,19 +43,24 @@ resources.load([
 	'smallbird.png'
 ]);
 
-// -------------------- source code -----------------------
+var w = window.innerWidth, h = window.innerHeight;
+
+var v = document.getElementById('view1');
+v.style.width = w;
+v.style.height = h;
+
+var view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+
+var room = (new hotjs.Physics.Scene()).setSize(w,h).setColor("blue").showGrid(true);
+view1.addScene(room,'hello');
+
 var balls = [];
+
 resources.onReady(function(){
-	
-	var view1 = (new hotjs.View()).setContainer('view1').setSize(WIDTH,HEIGHT).showFPS(true);
-	
-	var room = (new hotjs.Physics.Scene()).setSize(WIDTH,HEIGHT).setColor("blue").showGrid(true);
-	view1.addScene(room,'hello');
-	
-	var b = (new hotjs.Physics.Ball()).setImage(resources.get('smallbird.png')).setSize(50,40);		
-	b.setPos(b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
+	var b = (new hotjs.Physics.Ball()).setImage(resources.get('smallbird.png')).setSize(50,40);	
+	var pos = [ hotjs.Random.Integer(room.width()*0.2,room.width()*0.8), room.height()-b.height()/2 ]; 
+	b.setPos(pos[0], pos[1]).setVelocity(0,0).setAccel(0,0);
 	room.addNode(b);
-	
 	balls.push(b);
 	
 	var app = (new hotjs.App()).addView(view1).start();
@@ -64,8 +69,8 @@ resources.onReady(function(){
 function kick_ball(i){
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * 40 - 20;  // range [-10,10] 
-		var vy = -10 - Math.random() * 10; // range [-10, -20] 
+		var vx = Math.random() * room.width() * 0.1;   
+		var vy = - Math.random() * room.height() * 0.1;
 		b.setVelocity(vx,vy);
 	}
 }
