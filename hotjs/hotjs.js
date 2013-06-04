@@ -146,6 +146,7 @@ var requestAnimFrame = (function() {
 			};
 })();
 
+// math: vector
 var Vector = {
 	Copy : function(v) {
 		return [ v[0], v[1] ];
@@ -192,7 +193,7 @@ var Vector = {
 var hotjs_app = undefined;
 var hotjs_lastTime = undefined;
 
-// The main game loop
+// The main game loop call back
 hotjs_main = function(){
 	var now = Date.now();
 	var dt = (now - hotjs_lastTime) / 1000.0;
@@ -370,6 +371,7 @@ hotjs.inherit(View, hotjs.Class, {
 			this.frames ++;
 			this.dtSum += dt;
 			if( this.dtSum > 1 ) {
+				this.rect = this.canvas.getBoundingClientRect();
 				this.upTime += this.dtSum;
 				
 				var s = Math.floor(this.upTime);
