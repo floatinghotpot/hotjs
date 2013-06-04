@@ -250,6 +250,9 @@ hotjs.inherit(View, hotjs.Class, {
 		this.rect = this.canvas.getBoundingClientRect();
 		return this;
 	},
+	getSize : function() {
+		return [this.canvas.width, this.canvas.height];
+	},
 	width : function() {
 		return this.canvas.width;
 	},
@@ -412,6 +415,9 @@ hotjs.inherit(Node, hotjs.Class, {
 	setSize : function(w,h) {
 		this.size = [w,h];
 		return this;
+	},
+	getSize : function() {
+		return this.size;
 	},
 	width : function() {
 		return this.size[0];
@@ -591,13 +597,14 @@ hotjs.inherit( Scene, Node, {
 		var f = Math.min(fx, fy);
 		if( f > 1 ) {
 			this.setScale(f,f);
-			this.pos = [ - this.size[0]/2 * (f-1), - this.size[1]/2 * (f-1) ];
+			this.pos = hotjs.Math.vectorMul(this.size, (1-f)/2);
 		}
 		
 		return this;
 	},
 	posFromView : function(p) {
-		var x = p[0] - this.pos[0], y = p[1] - this.pos[1];
+		var x = p[0] - this.pos[0], 
+			y = p[1] - this.pos[1];
 
 		if(this.scale != undefined) {
 			x /= this.scale[0];
@@ -617,12 +624,15 @@ hotjs.inherit( Scene, Node, {
 		return [x + this.pos[0], y + this.pos[1]];
 	},
 	zoom : function(f, posCenter) {
+		var vectorMul = hotjs.Math.vectorMul,
+			vectorScale = hotjs.Math.vectorScale,
+			vectorSub = hotjs.Math.vectorSub;
+		
 		if( this.scale == undefined ) this.scale = [1,1];
 		
-		var offset = [ posCenter[0] * this.scale[0] * (f-1), posCenter[1] * this.scale[1] * (f-1) ];
-		this.pos = hotjs.Math.vectorSub( this.pos, offset );
-
-		this.scale = hotjs.Math.vectorMul( this.scale, f );
+		var offsetChange = vectorMul( vectorScale( posCenter, this.scale ), f-1 );
+		this.pos = vectorSub( this.pos, offsetChange );
+		this.scale = vectorMul( this.scale, f );
 		
 		// ensure scene in view
 		if( this.scale[0] <=1 || this.scale[1] <= 1 ) {
@@ -630,10 +640,10 @@ hotjs.inherit( Scene, Node, {
 		}
 		if( this.pos[0] >0 ) this.pos[0]=0;
 		if( this.pos[1] >0 ) this.pos[1]=0;
-		var w = this.container.width(), h = this.container.height();
-		var x = (w - this.size[0]*this.scale[0]), y = (h - this.size[1]*this.scale[1]);
-		if( this.pos[0] < x) this.pos[0] = x;
-		if( this.pos[1] < y) this.pos[1] = y;
+		var sizeToView = vectorScale(this.size, this.scale);
+		var offsetRightBottom = vectorSub( this.container.size(), sizeToView );
+		if( this.pos[0] < offsetRightBottom[0]) this.pos[0] = offsetRightBottom[0];
+		if( this.pos[1] < offsetRightBottom[1]) this.pos[1] = offsetRightBottom[1];
 		
 		return this;
 	},

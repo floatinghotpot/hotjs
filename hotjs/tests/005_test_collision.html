@@ -53,49 +53,50 @@ hotjs.inherit(DemoRoom, hotjs.Physics.Scene, {
 		this.formula = f;
 		return this;
 	},
+	drawFormula : function(c) {
+		c.save();
+		c.translate( this.size[0] / 3, this.size[1] / 2);
+		
+		var v1 = [40,-70]; // velocity
+		var v2 = [100,-50]; // 2 ball center line
+		var v3 = [v2[1],-v2[0]]; // tangent
+		var v = hotjs.Math.vectorProject(v1, v2);
+		
+		var pos1 = hotjs.Math.vectorMul(v2, 0.4);
+		var pos2 = hotjs.Math.vectorMul(v2, -0.3);
+		c.strokeStyle = "black";
+		c.beginPath();
+		c.arc(pos1[0], pos1[1], hotjs.Math.vectorLength(pos1), 0, Math.PI * 2);
+		c.stroke();
+		c.beginPath();
+		c.arc(pos2[0], pos2[1], hotjs.Math.vectorLength(pos2), 0, Math.PI * 2);
+		c.stroke();
+		
+		var drawLine = function(c, color, line) {
+			c.beginPath();
+			c.strokeStyle = color;
+
+			var v1 = line[0], v2 = line[1];
+			c.moveTo(v1[0], v1[1]);
+			c.lineTo(v2[0], v2[1]);
+
+			c.stroke();
+		};
+
+		drawLine(c, "gray", [[-v2[0],-v2[1]], v2]);
+		drawLine(c, "gray", [[-v3[0],-v3[1]], v3]);
+		c.lineWidth = 3;
+		drawLine(c, "blue", [[0,0], v1]);
+		c.fillText("momentum", v1[0], v1[1]-5);
+		drawLine(c, "red", [v1, v]);
+		drawLine(c, "red", [[0,0], v]);
+		
+		c.restore();		
+	},
 	draw : function(c) {
 		DemoRoom.supClass.draw.call(this, c);
 
-		if( this.formula ) {
-			c.save();
-			c.translate( this.size[0] / 3, this.size[1] / 2);
-			
-			var v1 = [40,-70]; // velocity
-			var v2 = [100,-50]; // 2 ball center line
-			var v3 = [v2[1],-v2[0]]; // tangent
-			var v = hotjs.Math.vectorProject(v1, v2);
-			
-			var pos1 = hotjs.Math.vectorMul(v2, 0.4);
-			var pos2 = hotjs.Math.vectorMul(v2, -0.3);
-			c.strokeStyle = "black";
-			c.beginPath();
-			c.arc(pos1[0], pos1[1], hotjs.Math.vectorLength(pos1), 0, Math.PI * 2);
-			c.stroke();
-			c.beginPath();
-			c.arc(pos2[0], pos2[1], hotjs.Math.vectorLength(pos2), 0, Math.PI * 2);
-			c.stroke();
-			
-			var drawLine = function(c, color, line) {
-				c.beginPath();
-				c.strokeStyle = color;
-
-				var v1 = line[0], v2 = line[1];
-				c.moveTo(v1[0], v1[1]);
-				c.lineTo(v2[0], v2[1]);
-
-				c.stroke();
-			};
-
-			drawLine(c, "gray", [[-v2[0],-v2[1]], v2]);
-			drawLine(c, "gray", [[-v3[0],-v3[1]], v3]);
-			c.lineWidth = 3;
-			drawLine(c, "blue", [[0,0], v1]);
-			c.fillText("momentum", v1[0], v1[1]-5);
-			drawLine(c, "red", [v1, v]);
-			drawLine(c, "red", [[0,0], v]);
-			
-			c.restore();
-		}
+		if( this.formula ) this.drawFormula(c);
 	}		
 });
 
@@ -107,7 +108,7 @@ var view1;
 var room;
 
 function zoom(f){
-	var pos = [view1.width()/3, view1.height()];
+	var pos = [view1.width()/3, view1.height()/2];
 	view1.zoom(f, pos);
 }
 
@@ -118,6 +119,7 @@ resources.load([
         	
 resources.onReady(function() {
 	var w = window.innerWidth, h = window.innerHeight;
+	
 	var v = document.getElementById('view1');
 	v.style.width = w;
 	v.style.height = h;
@@ -133,8 +135,8 @@ resources.onReady(function() {
 		b = new hotjs.Physics.Ball();
 		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);
 		
-		var x = w/5 + Math.random() * 100;
-		b.setPos(x + b.size[0]/2, h-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
+		var x = w * 0.1 + Math.random() * w * 0.8;
+		b.setPos(x + b.size[0]/2, room.height()-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
 		
 		room.addNode(b);
 		balls.push(b);			
@@ -156,8 +158,8 @@ resources.onReady(function() {
 function kick_ball(i){
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * 40 - 20;  // range [-10,10] 
-		var vy = -10 - Math.random() * 10; // range [-10, -20] 
+		var vx = hotjs.Math.randomInteger( room.width()/8, room.width()/10 );   
+		var vy = - hotjs.Math.randomInteger( room.height()/8, room.height()/10 );
 		b.setVelocity(vx,vy);
 	}
 }	

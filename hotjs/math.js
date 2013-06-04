@@ -17,6 +17,9 @@ hotjs.Math = {
 	},
 	
 	// vector
+	vectorCopy : function(v) {
+		return [ v[0], v[1] ];
+	},
 	vectorAdd : function (v1, v2) {
 		return [ v1[0]+v2[0], v1[1]+v2[1] ];
 	},
@@ -25,6 +28,9 @@ hotjs.Math = {
 	},
 	vectorMul : function (v, n) {
 		return [v[0] * n, v[1] * n ];
+	},
+	vectorScale : function (v, n) {
+		return [v[0] * n[0], v[1] * n[1] ];
 	},
 	vectorLength : function(v) {
 		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);

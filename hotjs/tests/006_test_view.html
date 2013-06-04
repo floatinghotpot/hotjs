@@ -31,8 +31,8 @@ div {
 <div>
 <div id="view1"></div>
 <div>
-<input type='button' value='+' onClick='view1.zoom(1.2)'/><br>
-<input type='button' value='-' onClick='view1.zoom(1/1.2)'/>
+<input type='button' value='+' onClick='zoom(1.2)'/><br>
+<input type='button' value='-' onClick='zoom(1/1.2)'/>
 </div>
 </div>
 <script>
@@ -44,6 +44,11 @@ v.style.width = w;
 v.style.height = h;
 
 var view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+
+function zoom(f){
+	var pos = [view1.width()/3, view1.height()/2];
+	view1.zoom(f, pos);
+}
 
 var room = (new hotjs.Scene()).setSize(w,h).setColor("black").showGrid(true);
 view1.addScene( room );
