@@ -20,27 +20,58 @@ html, body {
 	margin: 0;
 	padding: 0;
 }
-div#buttons {
-	position: absolute;
-	right: 20px;
-	top: 20px;
+div#view1 {
+	display: inline-block;
+	border: solid green 0px;
+	margin: 0px;
+	padding: 0px;
 }
-input {
+div#btn_zoom {
+	display: inline-block;
 	position: absolute;
+	border: solid green 1px;
+	margin: 0px;
+	padding: 0px;
+	top: 10px;
+	right: 10px;
+	background-color: #eeeeee;
+}
+div#btn_act {
+	display: inline-block;
+	position: absolute;
+	border: solid green 1px;
+	margin: 0px;
+	padding: 0px;
+	top: 50px;
+	right: 10px;
+	background-color: #eeeeee;
+}
+input.act {
 	right: 0px;
 }
 </style>
 </head>
 <body>
-<div id="view1" style="display: inline-block; margin: 0px;"></div>
-<div id="buttons">
-	<input type="button" value="Add 1 Ball" onClick="add_ball();"/><br/><br/>
-	<input type="button" value="Remove 1 Ball" onClick="remove_ball();"/><br/><br/>
-	<input type="button" value="Kick Ball #1" onClick="kick_ball(0);"/><br/><br/>
-	<input type="button" value="Kick Ball #2" onClick="kick_ball(1);"/><br/><br/>
-	<input type="button" value="+" onClick="zoom(1.2);"/><br/><br/>
-	<input type="button" value="-" onClick="zoom(1/1.2);"/><br/><br/>
-	<input type="button" value="*" onClick="zoom();"/><br/><br/>
+<div>
+<div id="view1"></div>
+<div id="btn_zoom">
+<input type='button' value='^' onClick='viewX.shift(0, -20)'/>
+<input type='button' value='v' onClick='viewX.shift(0, 20)'/>
+<input type='button' value='<' onClick='viewX.shift(-20, 0)'/>
+<input type='button' value='>' onClick='viewX.shift(20, 0)'/>
+
+<input type='button' value='+' onClick='viewX.zoom(1.2)'/>
+<input type='button' value='-' onClick='viewX.zoom(1/1.2)'/>
+<input type='button' value='*' onClick='viewX.zoom()'/>
+<input type='button' value='<->' onClick='viewX.zoom("stretch")'/>
+<input type='button' value='1:1' onClick='viewX.zoom("none")'/>
+</div>
+<div id="btn_act">
+	<input class='act' type="button" value="Add" onClick="add_ball();"/><br/><br/>
+	<input class='act' type="button" value="Remove" onClick="remove_ball();"/><br/><br/>
+	<input class='act' type="button" value="#1" onClick="kick_ball(0);"/><br/><br/>
+	<input class='act' type="button" value="#2" onClick="kick_ball(1);"/>
+</div>
 </div>
 <script>
 	
@@ -108,7 +139,7 @@ var balls = [];
 var add_ball = function(){};
 var remove_ball = function(){};
 
-var view1;
+var viewX;
 var room;
 
 function zoom(f){
@@ -128,11 +159,11 @@ resources.onReady(function() {
 	v.style.width = w;
 	v.style.height = h;
 
-	view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+	viewX = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
 
 	room = (new DemoRoom()).setSize(w, h).setColor("blue");
 	room.showGrid(true).showFormula(true);
-	view1.addScene(room);
+	viewX.addScene(room);
 	
 	add_ball = function() {
 		r = hotjs.Random.Integer(30,90);
@@ -156,7 +187,7 @@ resources.onReady(function() {
 		add_ball();
 	}		
 	
-	var app = (new hotjs.App()).addView(view1).start();
+	var app = (new hotjs.App()).addView(viewX).start();
 });
 
 function kick_ball(i){

@@ -2,26 +2,32 @@
 var hotjs = hotjs || {};
 
 (function(){
+
+// object oriented (done)
 	
-// app -> view -> scene -> node -> node -> ...
+// app (done) -> view (done) -> scene (done) -> layer -> node (done) -> sub node ...
 
 // event: mouse, touch, keyboard, user-defined
 
-// resource: image, sprite, audio, video
+// resource: image (done), sprite, audio, video
 
 // animation: move, rotate, scale, fade
 
-// math: point, vector, matrix,
+// math: vector (done), matrix,
 
-// physics: collision, gravity, momentum,
+// physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
 
 // tool: UT, benchmark, debug, profiling,
 
 // AI: pathfinding
 
-// lang:
+// lang: i18n
 
-// addon:
+// effect: light, flash, explosion, fire, smoke, fireworks, magic
+
+// addon: 
+
+
 
 // -------------------------------------
 
@@ -393,6 +399,9 @@ hotjs.inherit(View, hotjs.Class, {
 		}
 		
 		if( this.fpsInfo ) {
+			c.strokeStyle = "black";
+			c.fillStyle = "black";
+			
 			c.fillText( this.upTimeShow, 10, 20 );
 			c.fillText( this.fps + ' fps: ' + this.frames, 10, 40 );
 			c.fillText( this.canvas.width + " x " + this.canvas.height, 10, 60 ); 
@@ -400,8 +409,13 @@ hotjs.inherit(View, hotjs.Class, {
 			 + this.rect.right + ',' + this.rect.bottom 
 			 + ' ( ' + this.rect.width + ' x ' + this.rect.height + ' ) ';
 			c.fillText( rectInfo, 10, 80);
+			
+			if( this.curScene ) {
+				var s = this.curScene.scale;
+				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
+				c.fillText( s, 10, 100 );
+			}
 
-			c.strokeStyle = "black";
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
 		c.restore();
@@ -760,7 +774,7 @@ hotjs.inherit( Scene, Node, {
 		
 		if( this.grid ) {
 			c.strokeStyle = this.color;			
-			c.lineWidth = 0.1;
+			c.lineWidth = 0.5;
 			var dx = 40, dy = 40, w = this.size[0], h = this.size[1];
 			c.beginPath();
 			for( var x=0; x<=w; x += dx ) {
