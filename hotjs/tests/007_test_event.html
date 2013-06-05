@@ -42,7 +42,7 @@ div#btn_zoom {
 <div id="mainView"></div>
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
-<input type='button' value='#' onClick='room.showGrid()'/>
+<input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
 
 <input type='button' value='^' onClick='viewX.shift(0, -20)'/>
 <input type='button' value='v' onClick='viewX.shift(0, 20)'/>
@@ -73,7 +73,7 @@ resources.load([
             ]);
 
 resources.onReady(function(){
-	room.setImage(resources.get('room.jpg')).showGrid(true);
+	room.setImage(resources.get('room.jpg')).showBgImg(true).showGrid(false);
 	room.setDraggable(true).setMoveable(true);
 	viewX.addScene( room );
 

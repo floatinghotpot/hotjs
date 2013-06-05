@@ -418,8 +418,8 @@ var View = function(){
 	this.dragItems = new hotjs.HashMap();
 	this.touches = new hotjs.HashMap();
 	
-	this.mouseInView = [0,0]; // for testing only
-	this.mouseInScene = [0,0];
+	this.mouseInView = [0,0,0]; // for testing only
+	this.mouseInScene = [0,0,0];
 	
 	this.canvas.hotjsView = this;
 	this.canvas.addEventListener('click',function(e){
@@ -585,8 +585,8 @@ hotjs.inherit(View, hotjs.Class, {
 				c.fillText( s, 10, 100 );
 			}
 			
-			c.fillText( this.mouseInView[0] + ', ' + this.mouseInView[1], 10, 120 );
-			c.fillText( this.mouseInScene[0] + ', ' + this.mouseInScene[1], 10, 140 );
+			c.fillText( this.mouseInView[2] + ': ' + this.mouseInView[0] + ', ' + this.mouseInView[1], 10, 120 );
+			c.fillText( this.mouseInScene[2] + ': ' + this.mouseInScene[0] + ', ' + this.mouseInScene[1], 10, 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
@@ -604,7 +604,7 @@ hotjs.inherit(View, hotjs.Class, {
 		var scrollY = elHtml.scrollTop || elBody.scrollTop;
 		
 		var id = e.identifier;
-		if (! id) id = 0;
+		if (e.identifier == undefined) id = 0;
 		return {
 			id : id,
 			x : Math.round( e.pageX - this.rect.left - scrollX ),
@@ -623,7 +623,7 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	onMouseDown : function(e) {
 		var t = this.touchFromEvent(e);
-		this.mouseInView = [t.x, t.y];
+		this.mouseInView = [t.x, t.y, t.id];
 
 		this.touches.put( t.id, [t.x, t.y] );
 		
@@ -631,7 +631,7 @@ hotjs.inherit(View, hotjs.Class, {
 		var s = this.curScene;
 		if( !! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
-			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]) ];
+			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 
 			this.dragItems.put( t.id, s );
 			s.dragStart( t ); 
@@ -650,9 +650,13 @@ hotjs.inherit(View, hotjs.Class, {
 	},	
 	onMouseUp : function(e) {
 		var t = this.touchFromEvent(e);
+		this.mouseInView = [t.x, t.y, t.id];
 
 		var s = this.dragItems.get( t.id );
 		if( !! s ) {
+			var xy = s.posFromView( [t.x, t.y] );
+			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
+
 			s.drop( t );
 			this.dragItems.remove( t.id );
 		}
@@ -681,21 +685,24 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	onMouseMove : function(e) {
 		var t = this.touchFromEvent(e);
-		this.mouseInView = [t.x, t.y];
-
+		this.mouseInView = [t.x, t.y, t.id];
+		
 		// if a scene is being dragged, then drag it
 		var s = this.dragItems.get( t.id );
-		if( s != null ) {
+		if( !! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
-			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]) ];
-
+			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
+			
 			s.drag( t );
 			return true;
 		}
-		
+
 		// pass to scene
 		var s = this.curScene;
 		if(!! s ) {
+			var xy = s.posFromView( [t.x, t.y] );
+			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
+			
 			var ts = { id: t.id, x: xy[0], y: xy[1] };
 			if( s.onTouchMove( ts ) ) return true;
 		}
@@ -984,6 +991,7 @@ var Scene = function(){
 	hotjs.base(this);
 	
 	this.grid = false;
+	this.bgimg = false;
 	this.color = "black";
 	this.bgcolor = "white";
 };
@@ -1104,6 +1112,11 @@ hotjs.inherit( Scene, Node, {
 		this.grid = g;
 		return this;
 	},
+	showBgImg : function(g) {
+		if(g == undefined) g = (! this.bgimg);
+		this.bgimg = g;
+		return this;
+	},
 	play : function() {
 		this.playing = true;
 		return this;
@@ -1121,7 +1134,7 @@ hotjs.inherit( Scene, Node, {
 	draw : function(c) {
 		c.save();
 
-		if(!! this.img) {
+		if( (!! this.img) && (this.bgimg) ) {
 			c.save();
 			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
 			c.drawImage( this.img, 0, 0 );
