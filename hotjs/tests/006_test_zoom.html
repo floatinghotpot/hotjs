@@ -21,11 +21,11 @@ html, body {
 	margin: 0;
 	padding: 0;
 }
-div {
+div#mainView {
 	display: inline-block;
 	border: solid green 1px;
-	margin: 10px;
-	padding: 10px;
+	margin: 20px;
+	padding: 20px;
 }
 div#btn_zoom {
 	position: absolute;
@@ -39,8 +39,7 @@ div#btn_zoom {
 </style>
 </head>
 <body>
-<div>
-<div id="view1"></div>
+<div id="mainView"></div>
 <div id="btn_zoom">
 <input type='button' value='^' onClick='viewX.shift(0, -20)'/>
 <input type='button' value='v' onClick='viewX.shift(0, 20)'/>
@@ -53,26 +52,27 @@ div#btn_zoom {
 <input type='button' value='<->' onClick='viewX.zoom("stretch")'/>
 <input type='button' value='1:1' onClick='viewX.zoom("none")'/>
 </div>
-</div>
 <script>
 
 //var w = window.innerWidth, h = window.innerHeight;
 var w = 480, h = 240;
-var v = document.getElementById('view1');
+var v = document.getElementById('mainView');
 v.style.width = w;
 v.style.height = h;
 
-var viewX = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
-
-var room = (new hotjs.Scene()).setSize(w*2,h*1.5).setColor("black").showGrid(true);
-viewX.addScene( room );
+var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(true);
 
 resources.load([
             	'redball.png',
-            	'smallbird.png'
+            	'smallbird.png',
+            	'room.jpg'
             ]);
 
 resources.onReady(function(){
+	var room = (new hotjs.Scene()).setSize(1900,1200).setColor("black").setImage(resources.get('room.jpg')).showGrid(true);
+	room.setDraggable(true).setMoveable(true);
+	viewX.addScene( room );
+
 	var app = (new hotjs.App()).addView(viewX).start();
 });
 

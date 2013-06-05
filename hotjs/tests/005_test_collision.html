@@ -149,7 +149,8 @@ function zoom(f){
 
 resources.load([
     		'redball.png',
-    		'smallbird.png'
+    		'smallbird.png',
+    		'room.jpg'
     	]);
         	
 resources.onReady(function() {
@@ -161,8 +162,7 @@ resources.onReady(function() {
 
 	viewX = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
 
-	room = (new DemoRoom()).setSize(w, h).setColor("blue");
-	room.showGrid(true).showFormula(true);
+	room = (new DemoRoom()).setSize(w, h).setColor("blue").showGrid(true).showFormula(true);
 	viewX.addScene(room);
 	
 	add_ball = function() {

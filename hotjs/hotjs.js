@@ -146,7 +146,7 @@ var requestAnimFrame = (function() {
 			};
 })();
 
-// math: vector
+// TODO: Vector functions
 var Vector = {
 	Copy : function(v) {
 		return [ v[0], v[1] ];
@@ -189,6 +189,120 @@ var Vector = {
 	}
 };
 
+// class HashMap
+var HashMap = function() {
+	this.elements = new Array();
+
+	this.size = function() {
+		return this.elements.length;
+	};
+
+	this.isEmpty = function() {
+		return (this.elements.length < 1);
+	};
+
+	this.clear = function() {
+		this.elements = new Array();
+	};
+
+	this.put = function(_key, _value) {
+		var isContainKey = false;
+		for ( var i = 0; i < this.elements.length; i++) {
+			if (this.elements[i].key == _key) {
+				isContainKey = true;
+				this.elements[i].value = _value;
+				break;
+			}
+		}
+		if (isContainKey == false) {
+			this.elements.push({
+				key : _key,
+				value : _value
+			});
+		}
+	};
+
+	this.remove = function(_key) {
+		var bln = false;
+		try {
+			for ( var i = 0; i < this.elements.length; i++) {
+				if (this.elements[i].key == _key) {
+					this.elements.splice(i, 1);
+					return true;
+				}
+			}
+		} catch (e) {
+			bln = false;
+		}
+		return bln;
+	};
+
+	this.get = function(_key) {
+		try {
+			for ( var i = 0; i < this.elements.length; i++) {
+				if (this.elements[i].key == _key) {
+					return this.elements[i].value;
+				}
+			}
+		} catch (e) {
+			return null;
+		}
+	};
+
+	this.element = function(_index) {
+		if (_index < 0 || _index >= this.elements.length) {
+			return null;
+		}
+		return this.elements[_index];
+	};
+
+	this.containsKey = function(_key) {
+		var bln = false;
+		try {
+			for ( var i = 0; i < this.elements.length; i++) {
+				if (this.elements[i].key == _key) {
+					bln = true;
+					break;
+				}
+			}
+		} catch (e) {
+			bln = false;
+		}
+		return bln;
+	};
+
+	this.containsValue = function(_value) {
+		var bln = false;
+		try {
+			for ( var i = 0; i < this.elements.length; i++) {
+				if (this.elements[i].value == _value) {
+					bln = true;
+					break;
+				}
+			}
+		} catch (e) {
+			bln = false;
+		}
+		return bln;
+	};
+
+	this.values = function() {
+		var arr = new Array();
+		for ( var i = 0; i < this.elements.length; i++) {
+			arr.push(this.elements[i].value);
+		}
+		return arr;
+	};
+
+	this.keys = function() {
+		var arr = new Array();
+		for ( var i = 0; i < this.elements.length; i++) {
+			arr.push(this.elements[i].key);
+		}
+		return arr;
+	};
+};
+
 // ----------- hotjs.App ----------------------
 var hotjs_app = undefined;
 var hotjs_lastTime = undefined;
@@ -207,6 +321,7 @@ hotjs_main = function(){
 	requestAnimFrame(hotjs_main);
 };
 
+// TODO: class App
 var App = function(){
 	hotjs.base(this);
 	
@@ -252,23 +367,28 @@ hotjs.inherit(App, hotjs.Class, {
 });
 
 //--------- hotjs.View ----------------
-
+// TODO: class View
 var View = function(){
 	hotjs.base(this);
 	
 	this.canvas = document.createElement("canvas");
 	this.ctx = this.canvas.getContext("2d");
+	
 	this.canvas.width = 480;
 	this.canvas.height = 320;
-	
 	this.rect = this.canvas.getBoundingClientRect();
 
 	this.container = undefined;
 
-	this.curScene = undefined;
+	// all scenes
 	this.scenes = [];
 	this.sceneIndex = {};
-	this.sceneStack = [];
+	
+	// visible scene
+	this.curScene = undefined;
+
+	// TODO: reserved, support layered scene for transition animation.
+	this.visibleScenes = [];
 	
 	this.fpsInfo = false;
 	this.dtSum = 0;
@@ -277,6 +397,35 @@ var View = function(){
 	
 	this.upTime = 0;
 	this.upTimeShow = ""; // h:m:s
+	
+	this.dragItems = new hotjs.HashMap();
+	this.touches = new hotjs.HashMap();
+	
+	this.mouseInView = [0,0]; // for testing only
+	this.mouseInScene = [0,0];
+	
+	this.canvas.hotjsView = this;
+	this.canvas.addEventListener('click',function(e){
+		this.hotjsView.onClick(e);
+	});
+	this.canvas.addEventListener('mousedown',function(e){
+		this.hotjsView.onMouseDown(e);
+	});
+	this.canvas.addEventListener('mouseup',function(e){
+		this.hotjsView.onMouseUp(e);
+	});
+	this.canvas.addEventListener('mousemove',function(e){
+		this.hotjsView.onMouseMove(e);
+	});
+	this.canvas.addEventListener('touchstart',function(e){
+		this.hotjsView.onTouchStart(e);
+	});
+	this.canvas.addEventListener('touchend',function(e){
+		this.hotjsView.onTouchEnd(e);
+	});
+	this.canvas.addEventListener('touchmove',function(e){
+		this.hotjsView.onTouchMove(e);
+	});	
 };
 
 hotjs.inherit(View, hotjs.Class, {
@@ -417,16 +566,150 @@ hotjs.inherit(View, hotjs.Class, {
 				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
 				c.fillText( s, 10, 100 );
 			}
+			
+			c.fillText( this.mouseInView[0] + ', ' + this.mouseInView[1], 10, 120 );
+			c.fillText( this.mouseInScene[0] + ', ' + this.mouseInScene[1], 10, 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
 		c.restore();
 		
 		return this;
+	},
+	// listen input events & forward
+	touchFromEvent : function(e) {
+		var el = this.canvas;
+		var elDocument = el.ownerDocument || el.document || document;
+		var elHtml = elDocument.documentElement;
+		var elBody = elDocument.body;
+		var scrollX = elHtml.scrollLeft || elBody.scrollLeft;
+		var scrollY = elHtml.scrollTop || elBody.scrollTop;
+		
+		var id = e.identifier;
+		if (! id) id = 0;
+		return {
+			id : id,
+			x : Math.round( e.pageX - this.rect.left - scrollX ),
+			y : Math.round( e.pageY - this.rect.top - scrollY )
+		};
+	},
+	click : function(pos) {
+		// TODO: impelment View.click()
+	},
+	onClick : function(e) {
+		// ignore, just fire the click event by ourselves.
+		return false;
+
+		var t = this.touchFromEvent(e);
+		this.click( t );
+	},
+	onMouseDown : function(e) {
+		var t = this.touchFromEvent(e);
+		this.mouseInView = [t.x, t.y];
+
+		this.touches.put( t.id, [t.x, t.y] );
+		
+		// pass to scene
+		var s = this.curScene;
+		if( !! s ) {
+			var xy = s.posFromView( [t.x, t.y] );
+			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]) ];
+
+			this.dragItems.put( t.id, s );
+			s.dragStart( t ); 
+			return true;
+
+			if( s.inRange(t.x, t.y) ) {
+				var ts = { id: t.id, x: xy[0], y: xy[1] };
+				if( s.onTouchStart( ts ) ) return true;
+				
+				// drag scene 
+				this.dragItems.put( t.id, s );
+				s.dragStart( t );
+			}
+		}
+		return true;
+	},	
+	onMouseUp : function(e) {
+		var t = this.touchFromEvent(e);
+
+		var s = this.dragItems.get( t.id );
+		if( !! s ) {
+			s.drop( t );
+			this.dragItems.remove( t.id );
+		}
+
+		var t0 = this.touches.get( t.id );
+		if( t0 != null ) {
+			this.touches.remove( t.id );
+			
+			// finger is not accurate, so range in 5 pixel is okay.
+			var vect = [ t.x - t0.x, t.y - t0.y ];
+			if( Vector.Length(vect) <= 25 ) {
+				this.click( t );
+			} else {
+				// pass to scene
+				var s = this.curScene;
+				if(!! s ) {
+					var xy = s.posFromView( [t.x, t.y] );
+					var ts = { id: t.id, x: xy[0], y: xy[1] };
+					if( s.onTouchEnd( ts ) ) return true;
+				}
+			}
+		}
+		
+		return true;
+	},
+	onMouseMove : function(e) {
+		var t = this.touchFromEvent(e);
+		//this.mouseInView = [t.x, t.y];
+
+		// if a scene is being dragged, then drag it
+		var s = this.dragItems.get( t.id );
+		if( s != null ) {
+			s.drag( t );
+			return true;
+		}
+		
+		// pass to scene
+		var s = this.curScene;
+		if(!! s ) {
+			var xy = s.posFromView( [t.x, t.y] );
+			//this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]) ];
+			
+			var ts = { id: t.id, x: xy[0], y: xy[1] };
+			if( s.onTouchMove( ts ) ) return true;
+		}
+		return true;
+	},	
+	
+	onTouchStart : function(e) {
+		//this.debugInfo =  "start: " + e.targetTouches.length + "/" + e.changedTouches.length+ "/" + e.touches.length + " (";
+		for ( var i = 0; i < e.targetTouches.length; i++) {
+			//this.debugInfo += e.targetTouches[i].identifier + "/";
+			this.onMouseDown(e.targetTouches[i]);
+		}
+		//this.debugInfo += ") drag/down:" + this.dragItems.size() + "/" + this.mousedown.size();
+		e.preventDefault();
+	},
+	onTouchEnd : function(e) {
+		//this.debugInfo =  "end: " + e.targetTouches.length + "/" + e.changedTouches.length+ "/" + e.touches.length + " (";
+		for ( var i = 0; i < e.changedTouches.length; i++) {
+			//this.debugInfo += e.changedTouches[i].identifier + "/";
+			this.onMouseUp(e.changedTouches[i]);
+		}
+		//this.debugInfo += ") drag/down:" + this.dragItems.size() + "/" + this.mousedown.size();
+		e.preventDefault();
+	},
+	onTouchMove : function(e) {
+		//this.debugInfo =  "move: " + e.targetTouches.length + "/" + e.changedTouches.length+ "/" + e.touches.length + " (";
+		for ( var i = 0; i < e.targetTouches.length; i++) {
+			//this.debugInfo += e.targetTouches[i].identifier + "/";
+			this.onMouseMove(e.targetTouches[i]);
+		}
+		//this.debugInfo += ") drag/down:" + this.dragItems.size() + "/" + this.mousedown.size();
+		e.preventDefault();
 	}
-	
-	// TODO: listen input events & forward
-	
 });
 
 // ------------- hotjs.Node -----------
@@ -441,7 +724,6 @@ var Node = function() {
 	this.index = {};
 	
 	this.size = [40,40];
-	this.bgcolor = undefined; // default: "white"
 	this.color = undefined; // default: "black"
 	this.img = undefined;
 	this.sprite = undefined;
@@ -466,6 +748,7 @@ var Node = function() {
 
 };
 
+// TODO: class Node
 hotjs.inherit(Node, hotjs.Class, {
 	setContainer : function(c) {
 		this.container = c;
@@ -485,6 +768,44 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	getSize : function() {
 		return this.size;
+	},
+	inRange : function(x,y) {
+//		var b1 = (x >= this.pos[0]);
+//		var b2 = (x <= this.pos[0] + this.size[0]);
+//		var b3 = (y >= this.pos[1]);
+//		var b4 = (y <= this.pos[1] + this.size[1]);
+//		return b1 && b2 && b3 && b4;
+		return ((x >= this.pos[0]) && (x <= this.pos[0] + this.size[0]) && (y >= this.pos[1]) && (y <= this.pos[1] + this.size[1]));
+	},
+	setDraggable : function(b) {
+		this.draggable = b;
+		return this;
+	},
+	setMoveable : function(b) {
+		this.moveable = b;
+		return this;
+	},
+	dragStart : function(t) {
+		this.pos0 = [ this.pos[0], this.pos[1] ];
+		this.t0 = { id: t.id, x: t.x, y: t.y };
+	},
+	drag : function(t) {
+		if(!! this.draggable) {
+			this.pos = Vector.Add( this.pos0, Vector.Sub([t[0],t[1]], [this.t0[0], this.t0[1]]) );
+		}
+	},
+	drop : function(t) {
+		if(!! this.moveable) {
+			this.pos = Vector.Add( this.pos0, Vector.Sub([t[0],t[1]], [this.t0[0], this.t0[1]]) );
+		} else {
+			this.pos = [ this.pos0[0], this.pos0[1] ];
+		}
+	},
+	onTouchStart : function(t) {
+	},
+	onTouchEnd : function(t) {
+	},
+	onTouchMove : function(t) {
 	},
 	width : function() {
 		return this.size[0];
@@ -538,16 +859,12 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.color = c;
 		return this;
 	},
-	setBgColor : function(c) {
-		this.bgcolor = c;
-		return this;
-	},
 	// alpha, range [0,1]
 	setAlpha : function(a) {
 		this.alpha = a;
 		return this;
 	},
-	// f can be a small like, like 1.0/60; or function: alpha = f(alpha)
+	// f can be a small number, like 1.0/60; or function: alpha = f(alpha)
 	setFade : function(f) {
 		if(this.alpha == undefined) this.alpha=1;
 		this.fade = f;
@@ -643,21 +960,23 @@ hotjs.inherit(Node, hotjs.Class, {
 });
 
 //------------- hotjs.Scene -----------
-
+// TODO: class Scene
 var Scene = function(){
 	hotjs.base(this);
 	
 	this.grid = false;
 	this.color = "black";
 	this.bgcolor = "white";
-
-	this.playing = false;
 };
 
 hotjs.inherit( Scene, Node, {
 	setView : function(v) {
 		this.setContainer(v);
 		this.zoom();
+		return this;
+	},
+	setBgColor : function(c) {
+		this.bgcolor = c;
 		return this;
 	},
 	posFromView : function(p) {
@@ -766,13 +1085,19 @@ hotjs.inherit( Scene, Node, {
 	update : function(dt) {
 		Scene.supClass.update.call(this, dt);
 		
-		// TODO: somethig to do here ?
+		// TODO: somethig to do for scene updating ?
 	},
 
 	draw : function(c) {
 		c.save();
-		c.fillStyle = this.bgcolor;
-		c.fillRect(0, 0, this.size[0], this.size[1]);
+
+		if(!! this.img) {
+			//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
+			//c.drawImage( this.img, 0, 0 );
+		} else {
+			c.fillStyle = this.bgcolor;
+			c.fillRect(0, 0, this.size[0], this.size[1]);
+		}
 		
 		if( this.grid ) {
 			c.strokeStyle = this.color;			
@@ -801,277 +1126,10 @@ hotjs.inherit( Scene, Node, {
 });
 
 hotjs.Vector = Vector;
+hotjs.HashMap = HashMap;
+hotjs.App = App;
+hotjs.View = View;
 hotjs.Node = Node;
 hotjs.Scene = Scene;
-hotjs.View = View;
-hotjs.App = App;
 
 })(); 
-
-// ----------------------------------
-function init() {
-	terrainPattern = ctx.createPattern(resources.get('img/terrain.png'),
-			'repeat');
-
-	document.getElementById('play-again').addEventListener('click', function() {
-		reset();
-	});
-
-	reset();
-	lastTime = Date.now();
-	main();
-}
-
-// Game state
-var player = {
-	pos : [ 0, 0 ],
-	sprite : new Sprite('img/sprites.png', [ 0, 0 ], [ 39, 39 ], 16, [ 0, 1 ])
-};
-
-var bullets = [];
-var enemies = [];
-var explosions = [];
-
-var lastFire = Date.now();
-var gameTime = 0;
-var isGameOver;
-var terrainPattern;
-
-var score = 0;
-//var scoreEl = document.getElementById('score');
-
-// Speed in pixels per second
-var playerSpeed = 200;
-var bulletSpeed = 500;
-var enemySpeed = 100;
-
-// Update game objects
-function update(dt) {
-	gameTime += dt;
-
-	handleInput(dt);
-	updateEntities(dt);
-
-	// It gets harder over time by adding enemies using this
-	// equation: 1-.993^gameTime
-	if (Math.random() < 1 - Math.pow(.993, gameTime)) {
-		enemies.push({
-			pos : [ canvas.width, Math.random() * (canvas.height - 39) ],
-			sprite : new Sprite('img/sprites.png', [ 0, 78 ], [ 80, 39 ], 6, [
-					0, 1, 2, 3, 2, 1 ])
-		});
-	}
-
-	checkCollisions();
-
-	//scoreEl.innerHTML = score;
-};
-
-function handleInput(dt) {
-	if (input.isDown('DOWN') || input.isDown('s')) {
-		player.pos[1] += playerSpeed * dt;
-	}
-
-	if (input.isDown('UP') || input.isDown('w')) {
-		player.pos[1] -= playerSpeed * dt;
-	}
-
-	if (input.isDown('LEFT') || input.isDown('a')) {
-		player.pos[0] -= playerSpeed * dt;
-	}
-
-	if (input.isDown('RIGHT') || input.isDown('d')) {
-		player.pos[0] += playerSpeed * dt;
-	}
-
-	if (input.isDown('SPACE') && !isGameOver && Date.now() - lastFire > 100) {
-		var x = player.pos[0] + player.sprite.size[0] / 2;
-		var y = player.pos[1] + player.sprite.size[1] / 2;
-
-		bullets.push({
-			pos : [ x, y ],
-			dir : 'forward',
-			sprite : new Sprite('img/sprites.png', [ 0, 39 ], [ 18, 8 ])
-		});
-		bullets.push({
-			pos : [ x, y ],
-			dir : 'up',
-			sprite : new Sprite('img/sprites.png', [ 0, 50 ], [ 9, 5 ])
-		});
-		bullets.push({
-			pos : [ x, y ],
-			dir : 'down',
-			sprite : new Sprite('img/sprites.png', [ 0, 60 ], [ 9, 5 ])
-		});
-
-		lastFire = Date.now();
-	}
-}
-
-function updateEntities(dt) {
-	// Update the player sprite animation
-	player.sprite.update(dt);
-
-	// Update all the bullets
-	for ( var i = 0; i < bullets.length; i++) {
-		var bullet = bullets[i];
-
-		switch (bullet.dir) {
-		case 'up':
-			bullet.pos[1] -= bulletSpeed * dt;
-			break;
-		case 'down':
-			bullet.pos[1] += bulletSpeed * dt;
-			break;
-		default:
-			bullet.pos[0] += bulletSpeed * dt;
-		}
-
-		// Remove the bullet if it goes offscreen
-		if (bullet.pos[1] < 0 || bullet.pos[1] > canvas.height
-				|| bullet.pos[0] > canvas.width) {
-			bullets.splice(i, 1);
-			i--;
-		}
-	}
-
-	// Update all the enemies
-	for ( var i = 0; i < enemies.length; i++) {
-		enemies[i].pos[0] -= enemySpeed * dt;
-		enemies[i].sprite.update(dt);
-
-		// Remove if offscreen
-		if (enemies[i].pos[0] + enemies[i].sprite.size[0] < 0) {
-			enemies.splice(i, 1);
-			i--;
-		}
-	}
-
-	// Update all the explosions
-	for ( var i = 0; i < explosions.length; i++) {
-		explosions[i].sprite.update(dt);
-
-		// Remove if animation is done
-		if (explosions[i].sprite.done) {
-			explosions.splice(i, 1);
-			i--;
-		}
-	}
-}
-
-// Collisions
-
-function collides(x, y, r, b, x2, y2, r2, b2) {
-	return !(r <= x2 || x > r2 || b <= y2 || y > b2);
-}
-
-function boxCollides(pos, size, pos2, size2) {
-	return collides(pos[0], pos[1], pos[0] + size[0], pos[1] + size[1],
-			pos2[0], pos2[1], pos2[0] + size2[0], pos2[1] + size2[1]);
-}
-
-function checkCollisions() {
-	checkPlayerBounds();
-
-	// Run collision detection for all enemies and bullets
-	for ( var i = 0; i < enemies.length; i++) {
-		var pos = enemies[i].pos;
-		var size = enemies[i].sprite.size;
-
-		for ( var j = 0; j < bullets.length; j++) {
-			var pos2 = bullets[j].pos;
-			var size2 = bullets[j].sprite.size;
-
-			if (boxCollides(pos, size, pos2, size2)) {
-				// Remove the enemy
-				enemies.splice(i, 1);
-				i--;
-
-				// Add score
-				score += 100;
-
-				// Add an explosion
-				explosions.push({
-					pos : pos,
-					sprite : new Sprite('img/sprites.png', [ 0, 117 ],
-							[ 39, 39 ], 16, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-									11, 12 ], null, true)
-				});
-
-				// Remove the bullet and stop this iteration
-				bullets.splice(j, 1);
-				break;
-			}
-		}
-
-		if (boxCollides(pos, size, player.pos, player.sprite.size)) {
-			gameOver();
-		}
-	}
-}
-
-function checkPlayerBounds() {
-	// Check bounds
-	if (player.pos[0] < 0) {
-		player.pos[0] = 0;
-	} else if (player.pos[0] > canvas.width - player.sprite.size[0]) {
-		player.pos[0] = canvas.width - player.sprite.size[0];
-	}
-
-	if (player.pos[1] < 0) {
-		player.pos[1] = 0;
-	} else if (player.pos[1] > canvas.height - player.sprite.size[1]) {
-		player.pos[1] = canvas.height - player.sprite.size[1];
-	}
-}
-
-// Draw everything
-function render() {
-	ctx.fillStyle = terrainPattern;
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-	// Render the player if the game isn't over
-	if (!isGameOver) {
-		renderEntity(player);
-	}
-
-	renderEntities(bullets);
-	renderEntities(enemies);
-	renderEntities(explosions);
-};
-
-function renderEntities(list) {
-	for ( var i = 0; i < list.length; i++) {
-		renderEntity(list[i]);
-	}
-}
-
-function renderEntity(entity) {
-	ctx.save();
-	ctx.translate(entity.pos[0], entity.pos[1]);
-	entity.sprite.render(ctx);
-	ctx.restore();
-}
-
-// Game over
-function gameOver() {
-	document.getElementById('game-over').style.display = 'block';
-	document.getElementById('game-over-overlay').style.display = 'block';
-	isGameOver = true;
-}
-
-// Reset game to original state
-function reset() {
-	document.getElementById('game-over').style.display = 'none';
-	document.getElementById('game-over-overlay').style.display = 'none';
-	isGameOver = false;
-	gameTime = 0;
-	score = 0;
-
-	enemies = [];
-	bullets = [];
-
-	player.pos = [ 50, canvas.height / 2 ];
-};
-
-

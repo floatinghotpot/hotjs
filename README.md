@@ -9,7 +9,7 @@ Using javascript & HTML5 Canvas.
 Road Map
 ========
 
-// app (done) -> view (done) -> scene (done) -> layer -> node (done) -> sub node ...
+// app (done) -> view (done) -> scene (done) -> node (layer -> node -> sub node ...) (done)
 
 // event: mouse, touch, keyboard, user-defined
 
@@ -17,9 +17,11 @@ Road Map
 
 // animation: move, rotate, scale, fade
 
-// math: point, vector (done), matrix,
+// math: point/vector (done), matrix,
 
 // physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
+
+// util: device info (done), 
 
 // tool: UT, benchmark, debug, profiling,
 
