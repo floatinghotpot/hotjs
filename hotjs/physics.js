@@ -38,9 +38,10 @@ hotjs.inherit(Node, hotjs.Node, {
 	gainSpeedFromDragDrop : function() {
 		var now = Date.now();
 		var dt = now - this.dragTime;
-		if( dt > 100 ) {
+		if( dt > 250 ) {
+			var f = 1000.0/60/dt;
 			var dp = [ this.pos[0] - this.pos1[0], this.pos[1] - this.pos1[1] ];
-			this.setVelocity(dp[0]/dt*1000/60, dp[1]/dt*1000/60);
+			this.setVelocity(dp[0] * f, dp[1] * f);
 			//this.setSpin(0,0);
 			
 			this.dragTime = now;
