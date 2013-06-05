@@ -681,7 +681,7 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	onMouseMove : function(e) {
 		var t = this.touchFromEvent(e);
-		//this.mouseInView = [t.x, t.y];
+		this.mouseInView = [t.x, t.y];
 
 		// if a scene is being dragged, then drag it
 		var s = this.dragItems.get( t.id );
@@ -694,7 +694,7 @@ hotjs.inherit(View, hotjs.Class, {
 		var s = this.curScene;
 		if(!! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
-			//this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]) ];
+			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]) ];
 			
 			var ts = { id: t.id, x: xy[0], y: xy[1] };
 			if( s.onTouchMove( ts ) ) return true;
