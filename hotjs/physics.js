@@ -27,6 +27,44 @@ hotjs.inherit(Node, hotjs.Node, {
 	interactWidth : function(another) {
 		return this;
 	},
+	dragStart : function(t) {
+		var ret = Node.supClass.dragStart.call(this, t);
+
+		this.dragTime = Date.now();
+		this.pos1 = [ this.pos[0], this.pos[1] ];
+		
+		return ret;
+	},
+	gainSpeedFromDragDrop : function() {
+		var now = Date.now();
+		var dt = now - this.dragTime;
+		if( dt > 100 ) {
+			var dp = [ this.pos[0] - this.pos1[0], this.pos[1] - this.pos1[1] ];
+			this.setVelocity(dp[0]/dt*1000/60, dp[1]/dt*1000/60);
+			//this.setSpin(0,0);
+			
+			this.dragTime = now;
+			this.pos1 = [ this.pos[0], this.pos[1] ];
+		}		
+	},
+	drag : function(t) {
+		var ret = Node.supClass.drag.call(this, t);
+
+		if(!! this.draggable) {
+			this.gainSpeedFromDragDrop();
+		}
+		
+		return ret;
+	},
+	drop : function(t) {
+		var ret = Node.supClass.drop.call(this, t);
+
+		if((!! this.draggable) && (!! this.moveable)) {
+			this.gainSpeedFromDragDrop();
+		}
+
+		return ret;
+	},	
 	update : function(dt) {
 		Node.supClass.update.call(this, dt);
 		

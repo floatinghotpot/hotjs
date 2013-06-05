@@ -56,7 +56,7 @@ input.act {
 <div id="view1"></div>
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
-<input type='button' value='#' onClick='room.showGrid()'/>
+<input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
 <input type='button' value='f' onClick='room.showFormula()'/>
 
 <input type='button' value='^' onClick='viewX.shift(0, -20)'/>
@@ -175,6 +175,7 @@ resources.onReady(function() {
 		r = hotjs.Random.Integer(30,90);
 		b = new hotjs.Physics.Ball();
 		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);
+		b.setDraggable(true).setMoveable(true);
 		
 		var x = w * 0.1 + Math.random() * w * 0.8;
 		b.setPos(x + b.size[0]/2, room.height()-b.size[1]/2).setVelocity(0,0).setAccel(0,0);

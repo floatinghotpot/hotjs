@@ -612,14 +612,27 @@ hotjs.inherit(View, hotjs.Class, {
 		};
 	},
 	click : function(pos) {
-		// TODO: impelment View.click()
+		// pass to scene
+		var s = this.curScene;
+		if( !! s ) {
+			var xy = s.posFromView( [t.x, t.y] );
+			if( s.inRange(t.x, t.y) ) {
+				var ts = { id: t.id, x: xy[0], y: xy[1] };
+				return s.onClick( ts );
+			}
+		}
+
+		return false;
 	},
 	onClick : function(e) {
 		// ignore, just fire the click event by ourselves.
 		return false;
 
-		var t = this.touchFromEvent(e);
-		this.click( t );
+		//var t = this.touchFromEvent(e);
+		//this.click( t );
+	},
+	inRange : function(x,y) {
+		
 	},
 	onMouseDown : function(e) {
 		var t = this.touchFromEvent(e);
@@ -633,9 +646,9 @@ hotjs.inherit(View, hotjs.Class, {
 			var xy = s.posFromView( [t.x, t.y] );
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 
-			this.dragItems.put( t.id, s );
-			s.dragStart( t ); 
-			return true;
+			//this.dragItems.put( t.id, s );
+			//s.dragStart( t ); 
+			//return true;
 
 			if( s.inRange(t.x, t.y) ) {
 				var ts = { id: t.id, x: xy[0], y: xy[1] };
@@ -643,10 +656,10 @@ hotjs.inherit(View, hotjs.Class, {
 				
 				// drag scene 
 				this.dragItems.put( t.id, s );
-				s.dragStart( t );
+				return s.dragStart( t );
 			}
 		}
-		return true;
+		return false;
 	},	
 	onMouseUp : function(e) {
 		var t = this.touchFromEvent(e);
@@ -659,8 +672,8 @@ hotjs.inherit(View, hotjs.Class, {
 
 			s.drop( t );
 			this.dragItems.remove( t.id );
+			return true;
 		}
-		return true;
 
 		var t0 = this.touches.get( t.id );
 		if( t0 != null ) {
@@ -675,13 +688,15 @@ hotjs.inherit(View, hotjs.Class, {
 				var s = this.curScene;
 				if(!! s ) {
 					var xy = s.posFromView( [t.x, t.y] );
+					this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
+					
 					var ts = { id: t.id, x: xy[0], y: xy[1] };
-					if( s.onTouchEnd( ts ) ) return true;
+					return s.onTouchEnd( ts );
 				}
 			}
 		}
 		
-		return true;
+		return false;
 	},
 	onMouseMove : function(e) {
 		var t = this.touchFromEvent(e);
@@ -704,36 +719,27 @@ hotjs.inherit(View, hotjs.Class, {
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 			
 			var ts = { id: t.id, x: xy[0], y: xy[1] };
-			if( s.onTouchMove( ts ) ) return true;
+			return s.onTouchMove( ts );
 		}
-		return true;
+		return false;
 	},	
 	
 	onTouchStart : function(e) {
-		//this.debugInfo =  "start: " + e.targetTouches.length + "/" + e.changedTouches.length+ "/" + e.touches.length + " (";
 		for ( var i = 0; i < e.targetTouches.length; i++) {
-			//this.debugInfo += e.targetTouches[i].identifier + "/";
 			this.onMouseDown(e.targetTouches[i]);
 		}
-		//this.debugInfo += ") drag/down:" + this.dragItems.size() + "/" + this.mousedown.size();
 		e.preventDefault();
 	},
 	onTouchEnd : function(e) {
-		//this.debugInfo =  "end: " + e.targetTouches.length + "/" + e.changedTouches.length+ "/" + e.touches.length + " (";
 		for ( var i = 0; i < e.changedTouches.length; i++) {
-			//this.debugInfo += e.changedTouches[i].identifier + "/";
 			this.onMouseUp(e.changedTouches[i]);
 		}
-		//this.debugInfo += ") drag/down:" + this.dragItems.size() + "/" + this.mousedown.size();
 		e.preventDefault();
 	},
 	onTouchMove : function(e) {
-		//this.debugInfo =  "move: " + e.targetTouches.length + "/" + e.changedTouches.length+ "/" + e.touches.length + " (";
 		for ( var i = 0; i < e.targetTouches.length; i++) {
-			//this.debugInfo += e.targetTouches[i].identifier + "/";
 			this.onMouseMove(e.targetTouches[i]);
 		}
-		//this.debugInfo += ") drag/down:" + this.dragItems.size() + "/" + this.mousedown.size();
 		e.preventDefault();
 	}
 });
@@ -772,6 +778,8 @@ var Node = function() {
 	this.mass = 1600; // default: 1600
 	this.density = 1;
 
+	this.draggable = undefined;
+	this.moveable = undefined;
 };
 
 // TODO: class Node
@@ -796,12 +804,9 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this.size;
 	},
 	inRange : function(x,y) {
-//		var b1 = (x >= this.pos[0]);
-//		var b2 = (x <= this.pos[0] + this.size[0]);
-//		var b3 = (y >= this.pos[1]);
-//		var b4 = (y <= this.pos[1] + this.size[1]);
-//		return b1 && b2 && b3 && b4;
-		return ((x >= this.pos[0]) && (x <= this.pos[0] + this.size[0]) && (y >= this.pos[1]) && (y <= this.pos[1] + this.size[1]));
+		var xc = this.pos[0], yc = this.pos[1];
+		var halfw = this.size[0]/2, halfh = this.size[1]/2;
+		return ((x >= (xc-halfw)) && (x <=(xc+halfw)) && (y >= (yc-halfh)) && (y <= (yc+halfh)));
 	},
 	setDraggable : function(b) {
 		this.draggable = b;
@@ -814,24 +819,84 @@ hotjs.inherit(Node, hotjs.Class, {
 	dragStart : function(t) {
 		this.pos0 = [ this.pos[0], this.pos[1] ];
 		this.t0 = { id: t.id, x: t.x, y: t.y };
+		return true;
 	},
 	drag : function(t) {
 		if(!! this.draggable) {
+			this.dragging = true;
 			this.pos = Vector.Add( this.pos0, Vector.Sub([t.x,t.y], [this.t0.x, this.t0.y]) );
+			//this.setVelocity(0, 0);
+			//this.setSpin(0,0);
+			
+			return true;
 		}
+		return false;
 	},
 	drop : function(t) {
+		this.dragging = false;
 		if(!! this.moveable) {
 			this.pos = Vector.Add( this.pos0, Vector.Sub([t.x,t.y], [this.t0.x, this.t0.y]) );
 		} else {
 			this.pos = [ this.pos0[0], this.pos0[1] ];
 		}
-	},
-	onTouchStart : function(t) {
-	},
-	onTouchEnd : function(t) {
+		return true;
 	},
 	onTouchMove : function(t) {
+		if( !! this.dragItems ) {
+			// if a sub node is being dragged, then drag it
+			var n = this.dragItems.get( t.id );
+			if( !! n ) {
+				return n.drag( t );
+			}
+		}
+		
+		if( !! this.subnodes ) {
+			// pass to subnodes
+			for(var i=this.subnodes.length-1; i>=0; i--) {
+				var n = this.subnodes[i];
+				if( n.inRange(t.x, t.y) ) {
+					return n.onTouchMove( t );
+				}
+			}
+		}
+		
+		return false;
+	},	
+	onTouchStart : function(t) {
+		if( !! this.touches ) {
+			this.touches.put( t.id, [t.x, t.y] );
+		}
+		
+		if(!! this.subnodes) {
+			for(var i=this.subnodes.length-1; i>=0; i--) {
+				var n = this.subnodes[i];
+				if( (!! n.draggable) && n.inRange(t.x, t.y) ) {
+					if(!! this.dragItems) {
+						// drag subnode 
+						this.dragItems.put( t.id, n );
+						return n.dragStart( t );
+					}
+				}
+			}
+		}
+		return false;
+	},	
+	onTouchEnd : function(t) {
+		if( !! this.touches ) {
+			var t0 = this.touches.get( t.id );
+			if( !! t0 ) {
+				this.touches.remove( t.id );
+			}
+		}
+		
+		if( !! this.dragItems ) {
+			var n = this.dragItems.get( t.id );
+			if( !! n ) {
+				this.dragItems.remove( t.id );
+				return n.drop( t );
+			}
+		}
+		return false;
 	},
 	width : function() {
 		return this.size[0];
@@ -904,6 +969,8 @@ hotjs.inherit(Node, hotjs.Class, {
 	addNode : function(n, id) {
 		if(this.subnodes == undefined) this.subnodes=[];
 		if(this.index == undefined) this.index={};
+		if(this.dragItems == undefined) this.dragItems = new hotjs.HashMap();
+		if(this.touches == undefined) this.touches = new hotjs.HashMap();	
 		
 		this.subnodes.push(n);
 		if(typeof id == 'string') {
@@ -921,6 +988,8 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	update : function(dt) {
+		if( this.dragging ) return this;
+		
 		// update pos / rotation / scale, according to velocity / spin / shrink
 		if(this.velocity !== undefined) {
 			this.pos[0] += this.velocity[0];
@@ -974,12 +1043,15 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	draw : function(c) {
-		if(this.img !== undefined) {
-			//c.translate( - this.img.width/2, -this.img.height/2 );
-			c.translate( - this.size[0]/2, -this.size[1]/2 );
+		c.save();
+		c.translate( - this.size[0]/2, -this.size[1]/2 );
+		if( !! this.img ) {
 			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
 			c.drawImage( this.img, 0, 0 );
+		} else {
+			c.strokeRect(0,0, this.size[0], this.size[1]);
 		}
+		c.restore();
 		
 		return this;
 	}
@@ -987,13 +1059,17 @@ hotjs.inherit(Node, hotjs.Class, {
 
 //------------- hotjs.Scene -----------
 // TODO: class Scene
+// Note: in a scene, this.pos is the [left,top]
 var Scene = function(){
 	hotjs.base(this);
 	
 	this.grid = false;
-	this.bgimg = false;
+	this.bgimg = true;
 	this.color = "black";
 	this.bgcolor = "white";
+	
+	this.draggable = true;
+	this.moveable = true;
 };
 
 hotjs.inherit( Scene, Node, {
@@ -1005,6 +1081,29 @@ hotjs.inherit( Scene, Node, {
 	setBgColor : function(c) {
 		this.bgcolor = c;
 		return this;
+	},
+	inRange : function(x,y) {
+		var b1 = (x >= this.pos[0]);
+		var b2 = (x <= this.pos[0] + this.size[0]);
+		var b3 = (y >= this.pos[1]);
+		var b4 = (y <= this.pos[1] + this.size[1]);
+		return b1 && b2 && b3 && b4;
+	},
+	drag : function(t) {
+		var ret = Scene.supClass.drag.call(this, t);
+		
+		this.setVelocity(0,0);
+		this.setSpin(0,0);
+		
+		return ret;
+	},
+	drop : function(t) {
+		var ret = Scene.supClass.drop.call(this, t);
+		
+		this.setVelocity(0,0);
+		this.setSpin(0,0);
+		
+		return ret;
 	},
 	posFromView : function(p) {
 		var x = p[0] - this.pos[0], 
