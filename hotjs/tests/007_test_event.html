@@ -41,6 +41,9 @@ div#btn_zoom {
 <body>
 <div id="mainView"></div>
 <div id="btn_zoom">
+<input type='button' value='?' onClick='viewX.showFPS()'/>
+<input type='button' value='#' onClick='room.showGrid()'/>
+
 <input type='button' value='^' onClick='viewX.shift(0, -20)'/>
 <input type='button' value='v' onClick='viewX.shift(0, 20)'/>
 <input type='button' value='<' onClick='viewX.shift(-20, 0)'/>
@@ -61,6 +64,7 @@ v.style.width = w;
 v.style.height = h;
 
 var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(true);
+var room = (new hotjs.Scene()).setSize(1900,1200).setColor("black");
 
 resources.load([
             	'redball.png',
@@ -69,7 +73,7 @@ resources.load([
             ]);
 
 resources.onReady(function(){
-	var room = (new hotjs.Scene()).setSize(1900,1200).setColor("black").setImage(resources.get('room.jpg')).showGrid(true);
+	room.setImage(resources.get('room.jpg')).showGrid(true);
 	room.setDraggable(true).setMoveable(true);
 	viewX.addScene( room );
 

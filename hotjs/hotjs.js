@@ -508,6 +508,7 @@ hotjs.inherit(View, hotjs.Class, {
 		return this;
 	},
 	showFPS : function(f) {
+		if(f == undefined) f = (! this.fpsInfo);
 		this.fpsInfo = f;
 		return this;
 	},
@@ -1071,6 +1072,7 @@ hotjs.inherit( Scene, Node, {
 	},
 	
 	showGrid : function(g) {
+		if(g == undefined) g = (! this.grid);
 		this.grid = g;
 		return this;
 	},
@@ -1092,8 +1094,10 @@ hotjs.inherit( Scene, Node, {
 		c.save();
 
 		if(!! this.img) {
-			//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
-			//c.drawImage( this.img, 0, 0 );
+			c.save();
+			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
+			c.drawImage( this.img, 0, 0 );
+			c.restore();
 		} else {
 			c.fillStyle = this.bgcolor;
 			c.fillRect(0, 0, this.size[0], this.size[1]);

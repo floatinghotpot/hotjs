@@ -55,6 +55,10 @@ input.act {
 <div>
 <div id="view1"></div>
 <div id="btn_zoom">
+<input type='button' value='?' onClick='viewX.showFPS()'/>
+<input type='button' value='#' onClick='room.showGrid()'/>
+<input type='button' value='f' onClick='room.showFormula()'/>
+
 <input type='button' value='^' onClick='viewX.shift(0, -20)'/>
 <input type='button' value='v' onClick='viewX.shift(0, 20)'/>
 <input type='button' value='<' onClick='viewX.shift(-20, 0)'/>
@@ -82,6 +86,7 @@ var DemoRoom = function(){
 
 hotjs.inherit(DemoRoom, hotjs.Physics.Scene, {
 	showFormula : function(f) {
+		if(f == undefined) f = (! this.formula);
 		this.formula = f;
 		return this;
 	},
@@ -160,9 +165,10 @@ resources.onReady(function() {
 	v.style.width = w;
 	v.style.height = h;
 
-	viewX = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+	viewX = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(false);
 
-	room = (new DemoRoom()).setSize(w, h).setColor("blue").showGrid(true).showFormula(true);
+	room = (new DemoRoom()).setSize(w, h).setColor("blue");
+	room.setImage(resources.get('room.jpg')).showGrid(false).showFormula(false);
 	viewX.addScene(room);
 	
 	add_ball = function() {
