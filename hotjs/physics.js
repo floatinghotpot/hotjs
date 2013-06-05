@@ -36,27 +36,25 @@ hotjs.inherit(Node, hotjs.Node, {
 		
 		return ret;
 	},
-	gainSpeedFromDragDrop : function() {
+	gainSpeedFromDrag : function() {
 		var now = Date.now();
 		var dt = now - this.dragTime;
 
-		if( dt > 250 ) {
-			var f = 1000.0/60/dt;
-			var dp = [ this.pos[0] - this.pos1[0], this.pos[1] - this.pos1[1] ];
-			this.setVelocity(dp[0] * f, dp[1] * f);
-			//this.setSpin(0,0);
-	
-			if( dt > 1000 ) {
-				this.dragTime = now;
-				this.pos1 = [ this.pos[0], this.pos[1] ];
-			}
+		var f = 1000.0/60/dt * 2;
+		var v = [ (this.pos[0] - this.pos1[0]) * f, (this.pos[1] - this.pos1[1]) * f ];
+		this.setVelocity(v[0], v[1]);
+		//this.setSpin(0,0);
+
+		if( dt > 1000 ) {
+			this.dragTime = now;
+			this.pos1 = [ this.pos[0], this.pos[1] ];
 		}
 	},
 	drag : function(t) {
 		var ret = Node.supClass.drag.call(this, t);
 
 		if(!! this.draggable) {
-			this.gainSpeedFromDragDrop();
+			this.gainSpeedFromDrag();
 		}
 		
 		return ret;
