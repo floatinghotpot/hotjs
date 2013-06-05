@@ -639,6 +639,7 @@ hotjs.inherit(View, hotjs.Class, {
 			s.drop( t );
 			this.dragItems.remove( t.id );
 		}
+		return true;
 
 		var t0 = this.touches.get( t.id );
 		if( t0 != null ) {
@@ -792,12 +793,12 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	drag : function(t) {
 		if(!! this.draggable) {
-			this.pos = Vector.Add( this.pos0, Vector.Sub([t[0],t[1]], [this.t0[0], this.t0[1]]) );
+			this.pos = Vector.Add( this.pos0, Vector.Sub([t.x,t.y], [this.t0.x, this.t0.y]) );
 		}
 	},
 	drop : function(t) {
 		if(!! this.moveable) {
-			this.pos = Vector.Add( this.pos0, Vector.Sub([t[0],t[1]], [this.t0[0], this.t0[1]]) );
+			this.pos = Vector.Add( this.pos0, Vector.Sub([t.x,t.y], [this.t0.x, this.t0.y]) );
 		} else {
 			this.pos = [ this.pos0[0], this.pos0[1] ];
 		}
