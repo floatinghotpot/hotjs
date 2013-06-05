@@ -1,6 +1,7 @@
+
 // -------------------------------------------------------
 // param : { id : 'id', width : w, height : h }
-rnj.Canvas = function(param) {
+hotjs.Canvas = function(param) {
 	this.canvas = undefined;
 	this.jcanvas = undefined;
 	this.debugInfo = "{}";
@@ -232,7 +233,7 @@ rnj.Canvas = function(param) {
 }
 
 // override 
-rnj.Canvas.prototype.click = function(pos) {
+hotjs.Canvas.prototype.click = function(pos) {
 	// pass to entities
 	for ( var i = this.entities.length - 1; i >= 0; i--) {
 		var entity = this.entities[i];
@@ -243,7 +244,7 @@ rnj.Canvas.prototype.click = function(pos) {
 	}
 
 	// create a new entity
-	var entity = new rnj.TestEntity();
+	var entity = new hotjs.TestEntity();
 	entity.init( pos );
 	this.entities.push( entity );;
 }
