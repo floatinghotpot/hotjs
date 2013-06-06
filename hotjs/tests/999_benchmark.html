@@ -110,7 +110,7 @@ hotjs.inherit(BenchLab, hotjs.Physics.Scene, {
 		
 		if( this.nCur < this.nMax ) {
 			this.dtSum += dt;
-			if( this.dtSum >= 500 ) {
+			if( this.dtSum >= 200 ) {
 				this.dtSum = 0;
 				
 				this.addBall();
@@ -125,12 +125,12 @@ hotjs.inherit(BenchLab, hotjs.Physics.Scene, {
 	},
 	addBall : function() {
 		var rmax = 30;
-		var vmax = this.width()/60/1;
+		var vmax = this.width()/60;
 		var r = hotjs.Random.Integer(20,rmax);
 		var x = PAD; //hotjs.Random.Integer(rmax, this.width()-rmax);
 		var y = PAD; // hotjs.Random.Integer(rmax, this.height()-rmax);
-		var vx = hotjs.Random.Float(vmax/2, vmax);
-		var vy = hotjs.Random.Float(-vmax/6, vmax/6);
+		var vx = hotjs.Random.Float(0, vmax);
+		var vy = hotjs.Random.Float(0, vmax/2);
 		
 		var b = new hotjs.Physics.Ball();
 		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);

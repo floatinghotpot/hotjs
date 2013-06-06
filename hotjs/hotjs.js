@@ -537,19 +537,19 @@ hotjs.inherit(View, hotjs.Class, {
 			this.scenes[i].update(dt);
 		}
 
-		if( this.bFps ) {
-			this.frames ++;
-			this.dtSum += dt;
-		
-			if( this.dtSum > 1000 ) {
-				this.rect = this.canvas.getBoundingClientRect();
+		this.frames ++;
+		this.dtSum += dt;
+	
+		if( this.dtSum > 1000 ) {
+			this.rect = this.canvas.getBoundingClientRect();
 
-				this.upTime += this.dtSum;
-				this.fps = Math.round( this.frames * 1000 / this.dtSum );
-				
-				this.dtSum = 0;
-				this.frames = 0;
+			this.upTime += this.dtSum;
+			this.fps = Math.round( this.frames * 1000 / this.dtSum );
+			
+			this.dtSum = 0;
+			this.frames = 0;
 
+			if(this.bFps) {
 				var s = Math.floor(this.upTime / 1000);
 				var m = Math.floor( s / 60 );
 				s %= 60;
@@ -560,6 +560,7 @@ hotjs.inherit(View, hotjs.Class, {
 				this.upTimeShow = h + " : " + m + " : " + s;
 			}
 		}
+
 		return this;
 	},
 	render : function() {
