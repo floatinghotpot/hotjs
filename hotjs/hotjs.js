@@ -573,6 +573,12 @@ hotjs.inherit(View, hotjs.Class, {
 			this.scenes[i].render(c);
 		}
 		
+		this.draw(c);
+		
+		c.restore();		
+		return this;
+	},
+	draw : function(c) {
 		if( this.bFps ) {
 			c.strokeStyle = "black";
 			c.fillStyle = "black";
@@ -595,9 +601,6 @@ hotjs.inherit(View, hotjs.Class, {
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
-		c.restore();
-		
-		return this;
 	},
 	// listen input events & forward
 	touchFromEvent : function(e) {
@@ -757,7 +760,7 @@ var Node = function() {
 	
 	this.container = undefined;
 	this.name = "node_" + (hotjs_node_id ++);
-	this.subnodes = [];
+	this.subnodes = undefined;
 	this.index = {};
 	
 	this.size = [40,40];
@@ -857,7 +860,7 @@ hotjs.inherit(Node, hotjs.Class, {
 			// if a sub node is being dragged, then drag it
 			var n = this.dragItems.get( t.id );
 			if( !! n ) {
-				return n.drag( t );
+				n.drag( t );
 			}
 		}
 		
@@ -992,14 +995,36 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	removeNode : function(n) {
-		var i = this.subnodes.indexOf(n);
-		if( i>=0 ) this.subnodes.splice(i, 1);
-		n.setContainer(undefined);
+		if(!! this.subnodes) {
+			var i = this.subnodes.indexOf(n);
+			if( i>=0 ) {
+				this.subnodes.splice(i, 1);
+				n.setContainer(undefined);
+			}
+		}
 		
 		return this;
 	},
+	removeAll : function() {
+		if(!! this.subnodes) {
+			while( this.subnodes.length > 0) {
+				n = this.subnodes.pop();
+				if("removeAll" in n) n.removeAll();
+			}
+			for( id in this.index ) {
+				delete this.index[id];
+			}
+		}
+		return this;
+	},
 	update : function(dt) {
-		if( this.dragging ) return this;
+		if(!! this.subnodes) {
+			for(var i=0; i<this.subnodes.length; i++) {
+				this.subnodes[i].update(dt);
+			}
+		}
+		
+		if( !! this.dragging ) 	return this;
 		
 		// update pos / rotation / scale, according to velocity / spin / shrink
 		if(this.velocity !== undefined) {
@@ -1028,10 +1053,6 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 		}
 
-		for(var i=0; i<this.subnodes.length; i++) {
-			this.subnodes[i].update(dt);
-		}
-		
 		return this;
 	},
 	render : function(c) {
@@ -1046,8 +1067,10 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		this.draw(c);
 		
-		for(var i=0; i<this.subnodes.length; i++) {
-			this.subnodes[i].render(c);
+		if(!! this.subnodes) {
+			for(var i=0; i<this.subnodes.length; i++) {
+				this.subnodes[i].render(c);
+			}
 		}
 		
 		c.restore();
@@ -1078,15 +1101,15 @@ var Scene = function(){
 	this.bgimg = true;
 	this.color = "black";
 	this.bgcolor = "white";
-	
-	this.draggable = true;
-	this.moveable = true;
 };
 
 hotjs.inherit( Scene, Node, {
 	setView : function(v) {
 		this.setContainer(v);
 		this.zoom();
+		this.setDraggable(true);
+		this.setMoveable(true);
+		
 		return this;
 	},
 	setBgColor : function(c) {
@@ -1103,6 +1126,7 @@ hotjs.inherit( Scene, Node, {
 	drag : function(t) {
 		var ret = Scene.supClass.drag.call(this, t);
 		
+		this.fixView();
 		this.setVelocity(0,0);
 		this.setSpin(0,0);
 		
@@ -1111,6 +1135,7 @@ hotjs.inherit( Scene, Node, {
 	drop : function(t) {
 		var ret = Scene.supClass.drop.call(this, t);
 		
+		this.fixView();
 		this.setVelocity(0,0);
 		this.setSpin(0,0);
 		
@@ -1157,16 +1182,6 @@ hotjs.inherit( Scene, Node, {
 		this.fixView();
 		
 		return this;
-	},
-	drag : function(t) {
-		Scene.supClass.drag.call(this, t);
-		
-		this.fixView();
-	},
-	drop : function(t) {
-		Scene.supClass.drop.call(this, t);
-		
-		this.fixView();
 	},
 	zoom : function(f, posCenter) {
 		var vSize = this.container.getSize();
@@ -1234,6 +1249,15 @@ hotjs.inherit( Scene, Node, {
 	stop : function() {
 		this.playing = false;
 		return this;
+	},
+	update : function(dt) {
+		Scene.supClass.update.call(this, dt);
+		
+		this.checkInteraction();
+		
+		return this;
+	},
+	checkInteraction : function() {
 	},
 	// override node.draw(), ignore all node.draw() content.
 	draw : function(c) { 

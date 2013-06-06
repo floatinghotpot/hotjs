@@ -4,16 +4,24 @@
 hotjs.Physics = hotjs.Physics || {};
 
 var Constant = {
-	RESTITUTION_V : 0.7,
+	RESTITUTION_V : 0.5,
 	RESTITUTION_H : 0.95,
-	AIR_RESISTANCE : 1/160,
-	GRAVITY : 9.8/60
+	AIR_RESISTANCE : 0.5,
+	AIR_DENSITY : 0.01293,
+	GRAVITY : 9.8,
+	METER : 100
 };
 
 // physics formula
 var Formula = {
 	velocityAfterCollision: function (m1,v1,m2,v2) {
-		return ((m1-m2)*v1 + 2*m2*v2) / (m1+m2);
+		return ((m1-m2)*v1 + 2*m2*v2) / (m1+m2) * Constant.RESTITUTION_V;
+	},
+	airResistance : function(w,h,velocity) {
+		return Constant.AIR_RESISTANCE * Constant.AIR_DENSITY * w * h * velocity * velocity ;
+	},
+	airFlotage : function(w,h) {
+		return (w * w * h * Constant.AIR_FLOTAGE);
 	}
 };
 
@@ -82,7 +90,7 @@ hotjs.inherit(Node, hotjs.Node, {
 		var bx = ((px + rx >= w) && (vx >0)) || ((px - rx <= 0) && (vx <0));
 		var by = ((py + ry >= h) && (vy >0)) || ((py - ry <= 0) && (vy<0));
 		
-		// bounce 
+		// bounce & collision loss
 		if(by) {
 			vy = - vy;
 			vy *= Constant.RESTITUTION_V;
@@ -94,18 +102,14 @@ hotjs.inherit(Node, hotjs.Node, {
 			vy *= Constant.RESTITUTION_H;
 		}
 		
-		// collision loss
-		if( bx || by ) {
-
-		} else { // air resistance
-			ax = - vx * Constant.AIR_RESISTANCE / 5;
-			ay += - vy * Constant.AIR_RESISTANCE;
-		}
+		ax = ay = 0;
 		
-		// gravity
-		if(py + ry < h-5) {  
-			ay = Constant.GRAVITY;
-		}
+		// air resistance
+		ax -= vx * Constant.AIR_RESISTANCE * Constant.AIR_DENSITY / rx;
+		ay -= vy * Constant.AIR_RESISTANCE * Constant.AIR_DENSITY / rx;
+		
+		// gravity / air buoyancy
+		ay += (1 - Constant.AIR_DENSITY/this.density)  * Constant.GRAVITY / Constant.METER;
 		
 		// fix pos if out of boundary
 		px = Math.max( rx, Math.min(w-rx, px));
@@ -127,7 +131,7 @@ var Ball = function(){
 };
 
 hotjs.inherit(Ball, Node, {
-	interactWith : function(b) {
+	collide : function(b) {
 
 		var Vector = hotjs.Vector;
 		
@@ -178,18 +182,20 @@ var Scene = function(){
 
 hotjs.inherit(Scene, hotjs.Scene, {
 	update : function(dt) {
-		this.checkInteraction();
 		Scene.supClass.update.call(this, dt);
+		
+		this.checkCollision();
+		
 		return this;
 	},
-	checkInteraction : function() {
-		//return this;
-		
-		for( var i=this.subnodes.length-1; i>=1; i-- ) {
-			var b1 = this.subnodes[i];
-			for( var j=0; j<i; j++ ) {
-				var b2 = this.subnodes[j];
-				b1.interactWith(b2);
+	checkCollision : function() {
+		if(!! this.subnodes) {
+			for( var i=this.subnodes.length-1; i>=1; i-- ) {
+				var b1 = this.subnodes[i];
+				for( var j=0; j<i; j++ ) {
+					var b2 = this.subnodes[j];
+					b1.collide(b2);
+				}
 			}
 		}
 		

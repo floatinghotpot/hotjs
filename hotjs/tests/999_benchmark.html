@@ -57,28 +57,28 @@ input.act {
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
 <input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
-<input type='button' value='f' onClick='room.showFormula()'/>
-<input type='button' value='start' onClick='room.benchFPS(1,500)'/>
-<input type='button' value='stop' onClick='room.benchStop()'/>
+<input type='button' value='start' onClick='viewX.benchFPS(1,500)'/>
+<input type='button' value='stop' onClick='viewX.benchStop()'/>
 </div>
 </div>
 <script>
 	
 var BenchLab = function(){
 	hotjs.base(this);
+	
 	this.formula = false;
 
 	this.nMin = 1;
 	this.nMax = 500;
 	this.fpsData = [];
 	
-	this.dtSum = 0;
+	this.dtSumB = 0;
 	this.nCur = this.nMax;
+	
+	this.margin = 40;
 };
 
-var PAD = 40;
-
-hotjs.inherit(BenchLab, hotjs.Physics.Scene, {
+hotjs.inherit(BenchLab, hotjs.View, {
 	showFormula : function(f) {
 		if(f == undefined) f = (! this.formula);
 		this.formula = f;
@@ -89,19 +89,20 @@ hotjs.inherit(BenchLab, hotjs.Physics.Scene, {
 		this.nMax = max;
 		this.fpsData = [];
 		
-		this.dtSum = 0;
+		this.dtSumB = 0;
 		this.nCur = this.nMin;
-		this.subnodes.length = 0;
+
+		this.removeAll();
 		
 		return true;
 	},
 	benchStop : function() {
 		this.nCur = this.nMax;
 
-		this.subnodes.length = 0;
-		this.showGrid(false);
-		this.showBgImg(false);
-		this.container.showFPS(false);
+		this.removeAll();
+		
+		this.curScene.showGrid(false);
+		this.curScene.showBgImg(false);
 		
 		return true;
 	},
@@ -109,60 +110,59 @@ hotjs.inherit(BenchLab, hotjs.Physics.Scene, {
 		BenchLab.supClass.update.call(this, dt);
 		
 		if( this.nCur < this.nMax ) {
-			this.dtSum += dt;
-			if( this.dtSum >= 200 ) {
-				this.dtSum = 0;
+			this.dtSumB += dt;
+			if( this.dtSumB >= 200 ) {
+				this.dtSumB = 0;
 				
-				this.addBall();
+				this.addItem();
 				this.nCur ++;
 				
-				var f = (this.height()-PAD*2) / 60;
-				this.fpsData.push( f * this.container.fps );
+				var f = (this.height()-this.margin*2) / 60;
+				this.fpsData.push( f * this.fps );
 			}
 		}
 		
 		return true;
 	},
-	addBall : function() {
+	addItem : function() {
 		var rmax = 30;
 		var vmax = this.width()/60;
 		var r = hotjs.Random.Integer(20,rmax);
-		var x = PAD; //hotjs.Random.Integer(rmax, this.width()-rmax);
-		var y = PAD; // hotjs.Random.Integer(rmax, this.height()-rmax);
+		var x = 0; // this.margin; //hotjs.Random.Integer(rmax, this.width()-rmax);
+		var y = 0; // this.margin; //hotjs.Random.Integer(rmax, this.height()-rmax);
 		var vx = hotjs.Random.Float(0, vmax);
 		var vy = hotjs.Random.Float(0, vmax/2);
 		
 		var b = new hotjs.Physics.Ball();
 		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);
-		//b.setDraggable(true).setMoveable(true);
-		
+		b.setDraggable(true).setMoveable(true);
 		b.setPos(x, y).setVelocity(vx,vy).setAccel(0,0);
-		this.addNode(b);
+		this.curScene.addNode(b);
 		
 		return this;
 	},
-	removeAllBalls : function(){
-		this.subnodes.length = 0;
+	removeAll : function(){
+		this.curScene.removeAll();
 		return this;
 	},
 	drawFormula : function(c) {
 		c.save();
 		
 		// draw x, y axis 
-		var x0 = PAD, y0 = this.height() -PAD;
+		var x0 = this.margin, y0 = this.height() -this.margin;
 		
 		c.beginPath();
 		c.strokeStyle = "black";
 		c.fillStyle = "black";
-		c.moveTo(x0,PAD); c.lineTo(x0,y0); c.lineTo(this.width()-PAD, y0);
-		c.fillText( "60 fps", x0-20, PAD-10 );
-		c.fillText( "" + this.nMax, this.width()-PAD-20, y0+20 );
+		c.moveTo(x0,this.margin); c.lineTo(x0,y0); c.lineTo(this.width()-this.margin, y0);
+		c.fillText( "60 fps", x0-20, this.margin-10 );
+		c.fillText( "" + this.nMax, this.width()-this.margin-20, y0+20 );
 		c.stroke();
 		
 		// draw graph
 		c.beginPath();
 		c.strokeStyle = "red";
-		var f = (this.width()-PAD*2) / (this.nMax-this.nMin);
+		var f = (this.width()-this.margin*2) / (this.nMax-this.nMin);
 		if( this.fpsData.length >0 ) {
 			c.moveTo( x0, y0-this.fpsData[0] );
 		}
@@ -180,10 +180,6 @@ hotjs.inherit(BenchLab, hotjs.Physics.Scene, {
 	}		
 });
 
-var balls = [];
-var add_ball = function(){};
-var remove_ball = function(){};
-
 var viewX;
 var room;
 
@@ -200,10 +196,11 @@ resources.onReady(function() {
 	v.style.width = w;
 	v.style.height = h;
 
-	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(true);
+	viewX = (new BenchLab()).setContainer('mainView').setSize(w,h);
+	viewX.showFPS(true).showFormula(true);
 
-	room = (new BenchLab()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('room.jpg')).showGrid(true).showBgImg(true).showFormula(true);
+	room = (new hotjs.Physics.Scene()).setSize(w, h).setColor("blue").setImage(resources.get('room.jpg'));
+	room.showGrid(true).showBgImg(true);
 	viewX.addScene(room);
 	
 	var app = (new hotjs.App()).addView(viewX).start();
