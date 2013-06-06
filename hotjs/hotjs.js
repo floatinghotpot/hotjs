@@ -320,7 +320,9 @@ var HashMap = function() {
 	};
 };
 
-// ----------- hotjs.App ----------------------
+// ----------------------
+// TODO: class App
+
 var hotjs_app = undefined;
 var hotjs_lastTime = undefined;
 
@@ -338,7 +340,6 @@ hotjs_main = function(){
 	requestAnimFrame(hotjs_main);
 };
 
-// TODO: class App
 var App = function(){
 	hotjs.base(this);
 	
@@ -383,7 +384,7 @@ hotjs.inherit(App, hotjs.Class, {
 	}
 });
 
-//--------- hotjs.View ----------------
+//------------------------
 // TODO: class View
 var View = function(){
 	hotjs.base(this);
@@ -413,14 +414,16 @@ var View = function(){
 	this.fps = 60;
 	
 	this.upTime = 0;
-	this.upTimeShow = ""; // h:m:s
+	this.upTimeShow = "0 : 00 : 00"; // h:m:s
 	
 	this.dragItems = new hotjs.HashMap();
 	this.touches = new hotjs.HashMap();
 	
-	this.mouseInView = [0,0,0]; // for testing only
+	// for testing only, [x,y,id]
+	this.mouseInView = [0,0,0]; 
 	this.mouseInScene = [0,0,0];
 	
+	// register mouse/touch events
 	this.canvas.hotjsView = this;
 	this.canvas.addEventListener('click',function(e){
 		this.hotjsView.onClick(e);
@@ -573,10 +576,9 @@ hotjs.inherit(View, hotjs.Class, {
 			
 			c.fillText( this.upTimeShow, 10, 20 );
 			c.fillText( this.fps + ' fps: ' + this.frames, 10, 40 );
-			c.fillText( this.canvas.width + " x " + this.canvas.height, 10, 60 ); 
-			var rectInfo = this.rect.left + "," + this.rect.top + " -> "
-			 + this.rect.right + ',' + this.rect.bottom 
-			 + ' ( ' + this.rect.width + ' x ' + this.rect.height + ' ) ';
+			c.fillText( '(' + this.canvas.width + " x " + this.canvas.height + ')', 10, 60 ); 
+			var rectInfo = '(' + this.rect.width + ' x ' + this.rect.height + ')' 
+			 + ': ('+this.rect.left + "," + this.rect.top + ") -> (" + this.rect.right + ',' + this.rect.bottom + ')';
 			c.fillText( rectInfo, 10, 80);
 			
 			if( this.curScene ) {
@@ -585,8 +587,8 @@ hotjs.inherit(View, hotjs.Class, {
 				c.fillText( s, 10, 100 );
 			}
 			
-			c.fillText( this.mouseInView[2] + ': ' + this.mouseInView[0] + ', ' + this.mouseInView[1], 10, 120 );
-			c.fillText( this.mouseInScene[2] + ': ' + this.mouseInScene[0] + ', ' + this.mouseInScene[1], 10, 140 );
+			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', 10, 120 );
+			c.fillText( this.mouseInScene[2] + ': (' + this.mouseInScene[0] + ', ' + this.mouseInScene[1] +')', 10, 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
@@ -782,6 +784,7 @@ var Node = function() {
 	this.moveable = undefined;
 };
 
+//-----------------------
 // TODO: class Node
 hotjs.inherit(Node, hotjs.Class, {
 	setContainer : function(c) {
@@ -819,6 +822,11 @@ hotjs.inherit(Node, hotjs.Class, {
 	dragStart : function(t) {
 		this.pos0 = [ this.pos[0], this.pos[1] ];
 		this.t0 = { id: t.id, x: t.x, y: t.y };
+
+		if(!! this.draggable) {
+			this.setVelocity(0, 0);
+			//this.setSpin(0,0);			
+		}
 		return true;
 	},
 	drag : function(t) {
@@ -1057,7 +1065,7 @@ hotjs.inherit(Node, hotjs.Class, {
 	}
 });
 
-//------------- hotjs.Scene -----------
+//-----------------------
 // TODO: class Scene
 // Note: in a scene, this.pos is the [left,top]
 var Scene = function(){
@@ -1224,13 +1232,8 @@ hotjs.inherit( Scene, Node, {
 		this.playing = false;
 		return this;
 	},
-	update : function(dt) {
-		Scene.supClass.update.call(this, dt);
-		
-		// TODO: somethig to do for scene updating ?
-	},
-
-	draw : function(c) {
+	// override node.draw(), ignore all node.draw() content.
+	draw : function(c) { 
 		c.save();
 
 		if( (!! this.img) && (this.bgimg) ) {
@@ -1269,6 +1272,8 @@ hotjs.inherit( Scene, Node, {
 	}
 });
 
+//-----------------------
+// TODO: all packages, classes, and function set
 hotjs.Random = Random;
 hotjs.Vector = Vector;
 hotjs.HashMap = HashMap;

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Expires" CONTENT="0">
+<meta http-equiv="Cache-Control" CONTENT="no-cache">
+<meta http-equiv="Pragma" CONTENT="no-cache">
+<meta name="viewport"
+	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<script type="text/javascript" src="../resource.js"></script>
+<script type="text/javascript" src="../sprite.js"></script>
+<script type="text/javascript" src="../hotjs.js"></script>
+<script type="text/javascript" src="../math.js"></script>
+<script type="text/javascript" src="../physics.js"></script>
+<style type="text/css">
+html, body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+}
+div#mainView {
+	display: inline-block;
+	border: solid green 0px;
+	margin: 0px;
+	padding: 0px;
+}
+div#btn_zoom {
+	display: inline-block;
+	position: absolute;
+	border: solid green 1px;
+	margin: 0px;
+	padding: 0px;
+	top: 10px;
+	right: 10px;
+	background-color: #eeeeee;
+}
+</style>
+</head>
+<body>
+<div>
+<div id="mainView"></div>
+<div id="btn_zoom">
+<input type='button' value='?' onClick='viewX.showFPS()'/>
+<input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
+<input type='button' value='f' onClick='room.showFormula()'/>
+
+<input type='button' value='^' onClick='viewX.shift(0, -20)'/>
+<input type='button' value='v' onClick='viewX.shift(0, 20)'/>
+<input type='button' value='<' onClick='viewX.shift(-20, 0)'/>
+<input type='button' value='>' onClick='viewX.shift(20, 0)'/>
+
+<input type='button' value='+' onClick='viewX.zoom(1.2)'/>
+<input type='button' value='-' onClick='viewX.zoom(1/1.2)'/>
+<input type='button' value='*' onClick='viewX.zoom()'/>
+<input type='button' value='<->' onClick='viewX.zoom("stretch")'/>
+<input type='button' value='1:1' onClick='viewX.zoom("none")'/>
+</div>
+</div>
+<script>
+	
+var balls = [];
+var add_ball = function(){};
+var remove_ball = function(){};
+
+var viewX;
+var room;
+
+resources.load([
+    		'redball.png',
+    		'smallbird.png',
+    		'room.jpg'
+    	]);
+        	
+resources.onReady(function() {
+	var w = window.innerWidth, h = window.innerHeight;
+	
+	var v = document.getElementById('mainView');
+	v.style.width = w;
+	v.style.height = h;
+
+	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
+
+	room = (new hotjs.Physics.Scene()).setSize(w, h).setColor("blue");
+	room.setImage(resources.get('room.jpg')).showGrid(false).showBgImg(true);
+	viewX.addScene(room);
+	
+	var app = (new hotjs.App()).addView(viewX).start();
+});
+
+</script>
+</body>
+
+</html>
