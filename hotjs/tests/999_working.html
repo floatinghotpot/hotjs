@@ -20,7 +20,7 @@ html, body {
 	margin: 0;
 	padding: 0;
 }
-div#view1 {
+div#mainView {
 	display: inline-block;
 	border: solid green 0px;
 	margin: 0px;
@@ -53,7 +53,7 @@ input.act {
 </head>
 <body>
 <div>
-<div id="view1"></div>
+<div id="mainView"></div>
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
 <input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
@@ -148,8 +148,8 @@ var viewX;
 var room;
 
 function zoom(f){
-	var pos = [view1.width()/3, view1.height()/2];
-	view1.zoom(f, pos);
+	var pos = [mainView.width()/3, mainView.height()/2];
+	mainView.zoom(f, pos);
 }
 
 resources.load([
@@ -161,11 +161,11 @@ resources.load([
 resources.onReady(function() {
 	var w = window.innerWidth, h = window.innerHeight;
 	
-	var v = document.getElementById('view1');
+	var v = document.getElementById('mainView');
 	v.style.width = w;
 	v.style.height = h;
 
-	viewX = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(false);
+	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
 
 	room = (new DemoRoom()).setSize(w, h).setColor("blue");
 	room.setImage(resources.get('room.jpg')).showGrid(false).showFormula(false);

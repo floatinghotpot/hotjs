@@ -11,15 +11,17 @@ Road Map
 
 // app (done) -> view (done) -> scene (done) -> node (layer -> node -> sub node ...) (done)
 
-// event: mouse, touch, keyboard, user-defined
+// event: mouse (done), touch (done), keyboard, user-defined
 
 // resource: image (done), sprite, audio, video
-
-// animation: move, rotate, scale, fade
 
 // math: point/vector (done), matrix,
 
 // physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
+
+// grid: board, 
+
+// animation: move, rotate, scale, fade
 
 // util: device info (done), 
 
@@ -29,8 +31,8 @@ Road Map
 
 // lang: i18n
 
-// effect: light, flash, explosion, fire, smoke, fireworks, magic
+// effect: f()
 
-// addon: 
+// addon: light, flash, explosion, fire, smoke, fireworks, magic
 
 // any other feature needed ?

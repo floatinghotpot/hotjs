@@ -45,7 +45,7 @@ hotjs.inherit(Node, hotjs.Node, {
 		this.setVelocity(v[0], v[1]);
 		//this.setSpin(0,0);
 
-		if( dt > 1000 ) {
+		if( dt > 500 ) {
 			this.dragTime = now;
 			this.pos1 = [ this.pos[0], this.pos[1] ];
 		}
@@ -128,6 +128,7 @@ var Ball = function(){
 
 hotjs.inherit(Ball, Node, {
 	interactWith : function(b) {
+
 		var Vector = hotjs.Vector;
 		
 		var velAfter = Formula.velocityAfterCollision;
@@ -182,6 +183,8 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		return this;
 	},
 	checkInteraction : function() {
+		//return this;
+		
 		for( var i=this.subnodes.length-1; i>=1; i-- ) {
 			var b1 = this.subnodes[i];
 			for( var j=0; j<i; j++ ) {
@@ -189,6 +192,8 @@ hotjs.inherit(Scene, hotjs.Scene, {
 				b1.interactWith(b2);
 			}
 		}
+		
+		return this;
 	}
 });
 

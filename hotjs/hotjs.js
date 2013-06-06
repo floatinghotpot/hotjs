@@ -329,7 +329,7 @@ var hotjs_lastTime = undefined;
 // The main game loop call back
 hotjs_main = function(){
 	var now = Date.now();
-	var dt = (now - hotjs_lastTime) / 1000.0;
+	var dt = (now - hotjs_lastTime); // / 1000.0;
 
 	if(hotjs_app != null) {
 		hotjs_app.update(dt);
@@ -408,7 +408,7 @@ var View = function(){
 	// TODO: reserved, support layered scene for transition animation.
 	this.visibleScenes = [];
 	
-	this.fpsInfo = false;
+	this.bFps = false;
 	this.dtSum = 0;
 	this.frames = 0;
 	this.fps = 60;
@@ -528,8 +528,8 @@ hotjs.inherit(View, hotjs.Class, {
 		return this;
 	},
 	showFPS : function(f) {
-		if(f == undefined) f = (! this.fpsInfo);
-		this.fpsInfo = f;
+		if(f == undefined) f = (! this.bFps);
+		this.bFps = f;
 		return this;
 	},
 	update : function(dt) {
@@ -537,14 +537,20 @@ hotjs.inherit(View, hotjs.Class, {
 			this.scenes[i].update(dt);
 		}
 
-		if( this.fpsInfo ) {
+		if( this.bFps ) {
 			this.frames ++;
 			this.dtSum += dt;
-			if( this.dtSum > 1 ) {
+		
+			if( this.dtSum > 1000 ) {
 				this.rect = this.canvas.getBoundingClientRect();
+
 				this.upTime += this.dtSum;
+				this.fps = Math.round( this.frames * 1000 / this.dtSum );
 				
-				var s = Math.floor(this.upTime);
+				this.dtSum = 0;
+				this.frames = 0;
+
+				var s = Math.floor(this.upTime / 1000);
 				var m = Math.floor( s / 60 );
 				s %= 60;
 				if(s<10) s="0"+s;
@@ -552,10 +558,6 @@ hotjs.inherit(View, hotjs.Class, {
 				m %= 60;
 				if(m<10) m="0"+m;
 				this.upTimeShow = h + " : " + m + " : " + s;
-				
-				this.fps = Math.floor( this.frames / this.dtSum + 0.5 );
-				this.dtSum = 0;
-				this.frames = 0;
 			}
 		}
 		return this;
@@ -570,7 +572,7 @@ hotjs.inherit(View, hotjs.Class, {
 			this.scenes[i].render(c);
 		}
 		
-		if( this.fpsInfo ) {
+		if( this.bFps ) {
 			c.strokeStyle = "black";
 			c.fillStyle = "black";
 			
