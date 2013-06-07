@@ -813,9 +813,7 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this.size;
 	},
 	inRange : function(x,y) {
-		var xc = this.pos[0], yc = this.pos[1];
-		var halfw = this.size[0]/2, halfh = this.size[1]/2;
-		return ((x >= (xc-halfw)) && (x <=(xc+halfw)) && (y >= (yc-halfh)) && (y <= (yc+halfh)));
+		return ((x >= this.pos[0]) && (x<this.pos[0]+this.size[0]) && (y>=this.pos[1]) && (y<=this.pos[1]+this.size[1]));
 	},
 	setDraggable : function(b) {
 		this.draggable = b;
@@ -1059,9 +1057,14 @@ hotjs.inherit(Node, hotjs.Class, {
 		c.save();
 		
 		// apply pos / scale / rotation
-		c.translate(this.pos[0], this.pos[1]);
+		if(! this.rotation) {
+			c.translate(this.pos[0], this.pos[1]);
+		} else {
+			c.translate(this.pos[0] + this.size[0]/2, this.pos[1] + this.size[1]/2);
+			c.rotate(this.rotation * Math.PI / 180);
+			c.translate( - this.size[0]/2, - this.size[1]/2 );
+		}
 		if(this.scale !== undefined) c.scale(this.scale[0],this.scale[1]);
-		if(this.rotation !== undefined) c.rotate(this.rotation * Math.PI / 180);
 		if(this.alpha !== undefined) c.globalAlpha = this.alpha;
 		//if(this.composite !== undefined) c.globalCompositeOperation = this.compositeOperation;
 		
@@ -1078,7 +1081,6 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	draw : function(c) {
 		c.save();
-		c.translate( - this.size[0]/2, -this.size[1]/2 );
 		if( !! this.img ) {
 			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
 			c.drawImage( this.img, 0, 0 );
@@ -1250,15 +1252,6 @@ hotjs.inherit( Scene, Node, {
 		this.playing = false;
 		return this;
 	},
-	update : function(dt) {
-		Scene.supClass.update.call(this, dt);
-		
-		this.checkInteraction();
-		
-		return this;
-	},
-	checkInteraction : function() {
-	},
 	// override node.draw(), ignore all node.draw() content.
 	draw : function(c) { 
 		c.save();
@@ -1268,7 +1261,7 @@ hotjs.inherit( Scene, Node, {
 			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
 			c.drawImage( this.img, 0, 0 );
 			c.restore();
-		} else {
+		} else if( !! this.bgcolor ){
 			c.fillStyle = this.bgcolor;
 			c.fillRect(0, 0, this.size[0], this.size[1]);
 		}

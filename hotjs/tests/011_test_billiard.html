@@ -56,30 +56,38 @@ input.act {
 <div id="mainView"></div>
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
-<input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
-<input type='button' value='f' onClick='room.showFormula()'/>
-
-<input class='act' type="button" value="Add Ball" onClick="add_ball();"/>
-<input class='act' type="button" value="Add Baloon" onClick="add_baloon();"/>
-<input class='act' type="button" value="Remove" onClick="remove_ball();"/>
-<input class='act' type="button" value="#1" onClick="kick_ball(0);"/>
-<input class='act' type="button" value="#2" onClick="kick_ball(1);"/>
-<input class='act' type="button" value="#3" onClick="kick_ball(2);"/>
+<input type='button' value='#' onClick='table.showGrid();table.showBgImg();'/>
+<input type='button' value='#' onClick='pool.showGrid();'/>
+<input class='act' type="button" value="new game" onClick="add_ball();"/>
+<input class='act' type="button" value="shoot!" onClick="kick_ball(0);"/>
 </div>
 </div>
 <script>
+
+var Billiard = function(){
+	Billiard.base(this);
+}
+
+hotjs.inherit(Billiard, hotjs.Physics.Ball, {
+	update : function(dt) {
+		Billiard.supClass.update.call(this,dt);
+		
+		
+	}
+});
 	
 var balls = [];
 var add_ball = function(){};
 var remove_ball = function(){};
 
 var viewX;
-var room;
+var table;
+var pool;
 
 resources.load([
+    		'redball.png',
     		'ball.png',
-    		'baloon.png',
-    		'room.jpg'
+    		'billiardtable.jpg'
     	]);
         	
 resources.onReady(function() {
@@ -91,45 +99,52 @@ resources.onReady(function() {
 
 	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
 
-	room = (new hotjs.Physics.Scene()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('room.jpg')).showGrid(false).showBgImg(true);
-	viewX.addScene(room);
+	table = (new hotjs.Scene()).setSize(w, h)
+	.setColor("blue")
+	.setImage(resources.get('billiardtable.jpg'))
+	.showGrid(false).showBgImg(true)
+	//.setGravity(0)
+	;
+
+	viewX.addScene( table );
+
+	var marginX = 58, marginY = 60;
+	pool = (new hotjs.Physics.Scene())
+		.setBgColor(null)
+		.setPos(marginX,marginY).setSize(w - marginX *2, h - marginY *2)
+		.showGrid(true)
+		.setGravity(0);
 	
-	add_baloon = function() { // Constant.AIR_DENSITY
-		r = hotjs.Random.Integer(40,100);
-		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('baloon.png')).setSize(r*0.75,r).setDensity(hotjs.Physics.Constant.AIR_DENSITY*0.7);
-		b.setDraggable(true).setMoveable(true);
-		
-		var x = w * 0.1 + Math.random() * w * 0.8;
-		b.setPos(x + b.size[0]/2, room.height()/2).setVelocity(0,0).setAccel(0,0);
-		
-		room.addNode(b);
-	}
+	table.addNode( pool );
 	
 	add_ball = function() {
-		r = hotjs.Random.Integer(20,50);
-		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('ball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.IRON_DENSITY);
-		b.setDraggable(true).setMoveable(true);
+		pool.removeAll();
+		balls.length = 0;
 		
-		var x = w * 0.1 + Math.random() * w * 0.8;
-		b.setPos(x + b.size[0]/2, room.height()/2).setVelocity(0,0).setAccel(0,0);
-		
-		room.addNode(b);
-		balls.push(b);			
-	};
-	
-	remove_ball = function() {
-		if(balls.length > 0) {
-			room.removeNode( balls.pop() );
+		var r = w * 22 / 1024;
+		var x0 = 650, y0 = 215;
+		for( var i=0; i<5; i++ ) {
+			for( var j=0; j<=i; j++ ) {
+				x = x0 + i * (r+6) * 0.707;
+				y = y0 + j * (r+5) * 0.707;
+				b = new hotjs.Physics.Ball();
+				b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.WOOD_DENSITY);
+				b.setPos(x,y).setVelocity(0,0).setAccel(0,0);
+				pool.addNode(b);
+			}
 		}
-	};
-
-	for( var i=0; i<3; i++ ) {
-		add_ball();
-		add_baloon();
-	}		
+		
+		x = 204, y = 200;
+		b = new hotjs.Physics.Ball();
+		b.setImage(resources.get('ball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.WOOD_DENSITY);
+		b.setPos(x,y).setVelocity(0,0).setAccel(0,0);
+		b.setDraggable(true).setMoveable(true);
+		pool.addNode(b);
+		
+		balls.push(b);
+	}
+	
+	add_ball();
 	
 	var app = (new hotjs.App()).addView(viewX).start();
 });
@@ -137,11 +152,11 @@ resources.onReady(function() {
 function kick_ball(i){
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * room.width() * 0.1;   
-		var vy = - Math.random() * room.height() * 0.1;
+		var vx = Math.random() * table.width() * 0.1;   
+		var vy = - Math.random() * table.height() * 0.1;
 		b.setVelocity(vx,vy);
 	}
-}	
+}
 </script>
 </body>
 
