@@ -96,9 +96,9 @@ resources.onReady(function() {
 	viewX.addScene(room);
 	
 	add_baloon = function() { // Constant.AIR_DENSITY
-		r = hotjs.Random.Integer(60,80);
+		r = hotjs.Random.Integer(40,100);
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('baloon.png')).setSize(r*0.75,r).setDensity(hotjs.Physics.Constant.AIR_DENSITY*0.5);
+		b.setImage(resources.get('baloon.png')).setSize(r*0.75,r).setDensity(hotjs.Physics.Constant.AIR_DENSITY*2/28.9);
 		b.setDraggable(true).setMoveable(true);
 		
 		var x = w * 0.1 + Math.random() * w * 0.8;

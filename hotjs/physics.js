@@ -6,7 +6,7 @@ hotjs.Physics = hotjs.Physics || {};
 var Constant = {
 	RESTITUTION_V : 0.5,
 	RESTITUTION_H : 0.95,
-	AIR_RESISTANCE : 0.5,
+	AIR_RESISTANCE : 0.2,
 	AIR_DENSITY : 0.01293,
 	GRAVITY : 9.8,
 	METER : 100
@@ -105,11 +105,11 @@ hotjs.inherit(Node, hotjs.Node, {
 		ax = ay = 0;
 		
 		// air resistance
-		ax -= vx * Constant.AIR_RESISTANCE * Constant.AIR_DENSITY / rx;
-		ay -= vy * Constant.AIR_RESISTANCE * Constant.AIR_DENSITY / rx;
+		ax -= vx * rx * Constant.AIR_RESISTANCE * Constant.AIR_DENSITY / this.density / 60;
+		ay -= vy * rx * Constant.AIR_RESISTANCE * Constant.AIR_DENSITY / this.density / 60;
 		
 		// gravity / air buoyancy
-		ay += (1 - Constant.AIR_DENSITY/this.density)  * Constant.GRAVITY / Constant.METER;
+		ay += (1 - Constant.AIR_DENSITY/this.density)  * Constant.GRAVITY / 60;
 		
 		// fix pos if out of boundary
 		px = Math.max( rx, Math.min(w-rx, px));
