@@ -97,22 +97,30 @@ resources.onReady(function() {
 	v.style.width = w;
 	v.style.height = h;
 
-	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
+	viewX = (new hotjs.View())
+		.setContainer('mainView')
+		.setSize(w,h)
+		.showFPS(false);
 
-	table = (new hotjs.Scene()).setSize(w, h)
-	.setColor("blue")
-	.setImage(resources.get('billiardtable.jpg'))
-	.showGrid(false).showBgImg(true)
-	//.setGravity(0)
-	;
+	table = (new hotjs.Scene())
+		.setSize(w, h)
+		.setColor("blue")
+		.setImage(resources.get('billiardtable.jpg'))
+		.showGrid(false)
+		.showBgImg(true);
 
 	viewX.addScene( table );
+	
+	var bgW = 1024, bgH = 576;
+	var fx = w / bgW, fy = h / bgH;
 
-	var marginX = 58, marginY = 60;
+	var marginX = 58 * fx, marginY = 60 * fx;
 	pool = (new hotjs.Physics.Scene())
 		.setBgColor(null)
-		.setPos(marginX,marginY).setSize(w - marginX *2, h - marginY *2)
+		.setPos(marginX,marginY)
+		.setSize(w - marginX *2, h - marginY *2)
 		.showGrid(true)
+		.setRestitution(0.8)
 		.setGravity(0);
 	
 	table.addNode( pool );
@@ -121,23 +129,34 @@ resources.onReady(function() {
 		pool.removeAll();
 		balls.length = 0;
 		
-		var r = w * 22 / 1024;
-		var x0 = 650, y0 = 215;
+		var r = 22 * fx;
+		var x0 = 650 * fx, y0 = pool.height()/2 - r/2;
 		for( var i=0; i<5; i++ ) {
 			for( var j=0; j<=i; j++ ) {
-				x = x0 + i * (r+6) * 0.707;
-				y = y0 + j * (r+5) * 0.707;
+				x = x0 + i * (r+2) * 0.707;
+				y = y0 + (j-2.5) * (r+2) * 0.707;
 				b = new hotjs.Physics.Ball();
-				b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.WOOD_DENSITY);
-				b.setPos(x,y).setVelocity(0,0).setAccel(0,0);
+				b.setImage(resources.get('redball.png'))
+				 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
+				 	.setRestitution(0.9)
+				 	.setSize(r,r)
+				 	.setPos(x,y)
+				 	.setVelocity(0,0)
+				 	.setAccel(0,0);
+				
 				pool.addNode(b);
 			}
 		}
 		
-		x = 204, y = 200;
+		x = 222 * fx - r/2, y = pool.height()/2 - r/2;
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('ball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.WOOD_DENSITY);
-		b.setPos(x,y).setVelocity(0,0).setAccel(0,0);
+		b.setImage(resources.get('ball.png'))
+		 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
+		 	.setRestitution(0.9)
+		 	.setSize(r,r)
+		 	.setPos(x,y)
+		 	.setVelocity(0,0)
+		 	.setAccel(0,0);
 		b.setDraggable(true).setMoveable(true);
 		pool.addNode(b);
 		

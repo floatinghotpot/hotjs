@@ -38,7 +38,7 @@ var Node = function(){
 
 hotjs.inherit(Node, hotjs.Node, {
 	setRestitution : function(r) {
-		r = Math.max(1, Math.min(0, f));
+		r = Math.min(1, Math.max(0, r));
 		this.restitution = r;
 
 		return this;
@@ -90,7 +90,7 @@ hotjs.inherit(Node, hotjs.Node, {
 
 		return ret;
 	},
-	checkBorder : function() {
+	checkBorderCollision : function() {
 		var w = this.container.width(), h = this.container.height();
 		var tution = this.container.getRestitution() * this.getRestitution();
 		
@@ -104,12 +104,13 @@ hotjs.inherit(Node, hotjs.Node, {
 		
 		// bounce & collision loss
 		if(by) {
-			vy *= - tution;
-			vx *= 0.9 + tution * 0.1;
+			console.log( tution );
+			vy *= (- tution);
+			vx *= (0.9 + tution * 0.1);
 		}
 		if(bx){
-			vx *= - tution;
-			vy *= 0.9 + tution * 0.1;
+			vx *= (- tution);
+			vy *= (0.9 + tution * 0.1);
 		}
 
 		this.velocity = [vx, vy];
@@ -123,18 +124,14 @@ hotjs.inherit(Node, hotjs.Node, {
 		return this;
 	},
 	checkForce : function() {
-		//var ax = this.accel[0], ay = this.accel[1];
-		var ax = 0, ay = 0;
-
 		var vx = this.velocity[0], vy = this.velocity[1];
-		
 		var stance = this.container.getResistance();
 
 		// air resistance
-		//ax -= vx / ry * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / this.density) / 60;
-		//ay -= vy / rx * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / this.density) / 60;
-		ax = - vx * stance / 60;
-		ay = - vy * stance / 60;
+		//var ax -= vx / ry * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / this.density) / 60;
+		//var ay -= vy / rx * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / this.density) / 60;
+		var ax = - vx * stance / 60;
+		var ay = - vy * stance / 60;
 		
 		// gravity / air buoyancy
 		ay += (1 - Constant.AIR_DENSITY/this.density)  * this.container.getGravity() / 60;
@@ -146,7 +143,7 @@ hotjs.inherit(Node, hotjs.Node, {
 	update : function(dt) {
 		Node.supClass.update.call(this, dt);
 		
-		this.checkBorder();
+		this.checkBorderCollision();
 		
 		this.checkForce();
 		
@@ -223,7 +220,7 @@ var Scene = function(){
 
 hotjs.inherit(Scene, hotjs.Scene, {
 	setRestitution : function(r) {
-		r = Math.max(1, Math.min(0, f));
+		r = Math.min(1, Math.max(0, r));
 		this.restitution = r;
 
 		return this;
