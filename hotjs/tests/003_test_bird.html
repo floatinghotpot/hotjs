@@ -39,8 +39,7 @@ input {
 <script>
 
 resources.load([
-	'redball.png',
-	'smallbird.png'
+	'img/bird.png'
 ]);
 
 var w = window.innerWidth, h = window.innerHeight;
@@ -57,7 +56,7 @@ view1.addScene(room,'hello');
 var balls = [];
 
 resources.onReady(function(){
-	var b = (new hotjs.Physics.Ball()).setImage(resources.get('smallbird.png')).setSize(50,40);	
+	var b = (new hotjs.Physics.Ball()).setImage(resources.get('img/bird.png')).setSize(50,40);	
 	var pos = [ hotjs.Random.Integer(room.width()*0.2,room.width()*0.8), room.height()-b.height()/2 ]; 
 	b.setPos(pos[0], pos[1]).setVelocity(0,0).setAccel(0,0);
 	room.addNode(b);

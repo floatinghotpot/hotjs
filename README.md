@@ -35,4 +35,6 @@ Road Map
 
 // addon: light, flash, explosion, fire, smoke, fireworks, magic
 
+// samples: billiard, 
+
 // any other feature needed ?

@@ -68,9 +68,7 @@ var viewX;
 var room;
 
 resources.load([
-    		'redball.png',
-    		'smallbird.png',
-    		'room.jpg'
+    		'img/room.jpg'
     	]);
         	
 resources.onReady(function() {
@@ -83,7 +81,7 @@ resources.onReady(function() {
 	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
 
 	room = (new hotjs.Physics.Scene()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('room.jpg')).showGrid(false).showBgImg(true);
+	room.setImage(resources.get('img/room.jpg')).showGrid(false).showBgImg(true);
 	viewX.addScene(room);
 	
 	var app = (new hotjs.App()).addView(viewX).start();

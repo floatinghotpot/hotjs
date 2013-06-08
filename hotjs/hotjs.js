@@ -416,6 +416,8 @@ var View = function(){
 	this.upTime = 0;
 	this.upTimeShow = "0 : 00 : 00"; // h:m:s
 	
+	this.infoPos = [100, 10];
+	
 	this.dragItems = new hotjs.HashMap();
 	this.touches = new hotjs.HashMap();
 	
@@ -578,26 +580,30 @@ hotjs.inherit(View, hotjs.Class, {
 		c.restore();		
 		return this;
 	},
+	setInfoPos : function(x,y) {
+		this.infoPos = [x, y];
+		return this;
+	},
 	draw : function(c) {
 		if( this.bFps ) {
 			c.strokeStyle = "black";
 			c.fillStyle = "black";
 			
-			c.fillText( this.upTimeShow, 10, 20 );
-			c.fillText( this.fps + ' fps: ' + this.frames, 10, 40 );
-			c.fillText( '(' + this.canvas.width + " x " + this.canvas.height + ')', 10, 60 ); 
+			c.fillText( this.upTimeShow, this.infoPos[0], this.infoPos[1] + 20 );
+			c.fillText( this.fps + ' fps: ' + this.frames, this.infoPos[0], this.infoPos[1] + 40 );
+			c.fillText( '(' + this.canvas.width + " x " + this.canvas.height + ')', this.infoPos[0], this.infoPos[1] + 60 ); 
 			var rectInfo = '(' + this.rect.width + ' x ' + this.rect.height + ')' 
 			 + ': ('+this.rect.left + "," + this.rect.top + ") -> (" + this.rect.right + ',' + this.rect.bottom + ')';
-			c.fillText( rectInfo, 10, 80);
+			c.fillText( rectInfo, this.infoPos[0], this.infoPos[1] + 80);
 			
 			if( this.curScene ) {
 				var s = this.curScene.scale;
 				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
-				c.fillText( s, 10, 100 );
+				c.fillText( s, this.infoPos[0], this.infoPos[1] + 100 );
 			}
 			
-			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', 10, 120 );
-			c.fillText( this.mouseInScene[2] + ': (' + this.mouseInScene[0] + ', ' + this.mouseInScene[1] +')', 10, 140 );
+			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', this.infoPos[0], this.infoPos[1] + 120 );
+			c.fillText( this.mouseInScene[2] + ': (' + this.mouseInScene[0] + ', ' + this.mouseInScene[1] +')', this.infoPos[0], this.infoPos[1] + 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
@@ -766,6 +772,7 @@ var Node = function() {
 	this.size = [40,40];
 	this.color = undefined; // default: "black"
 	this.img = undefined;
+	this.imgrect = undefined; // [x,y,w,h]
 	this.sprite = undefined;
 
 	// geometry, 2D only
@@ -973,9 +980,14 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.fade = f;
 		return this;
 	},
-	setImage : function(img) {
+	setImage : function(img, rect) {
 		this.img = img;
-		if(! this.size) this.size = [img.width, img.height];
+		if(!! rect) {
+			this.imgrect = rect;
+			if(! this.size) this.size = [rect[2], rect[3]];
+		} else {
+			if(! this.size) this.size = [img.width, img.height];
+		}
 		return this;
 	},
 	addNode : function(n, id) {
@@ -1082,8 +1094,15 @@ hotjs.inherit(Node, hotjs.Class, {
 	draw : function(c) {
 		c.save();
 		if( !! this.img ) {
-			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
-			c.drawImage( this.img, 0, 0 );
+			if( !! this.imgrect ) {
+				c.drawImage( this.img, 
+						this.imgrect[0], this.imgrect[1], this.imgrect[2], this.imgrect[3], 
+						0, 0, this.size[0], this.size[1] );
+			} else {
+				c.drawImage( this.img, 0, 0, this.size[0], this.size[1] );
+				//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
+				//c.drawImage( this.img, 0, 0 );
+			}
 		} else {
 			c.strokeRect(0,0, this.size[0], this.size[1]);
 		}
@@ -1289,6 +1308,9 @@ hotjs.inherit( Scene, Node, {
 		}
 		c.restore();
 		return this;
+	},
+	addItem : function() { // interface for benchmark purpose
+		
 	}
 });
 

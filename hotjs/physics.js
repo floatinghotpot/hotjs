@@ -104,7 +104,6 @@ hotjs.inherit(Node, hotjs.Node, {
 		
 		// bounce & collision loss
 		if(by) {
-			console.log( tution );
 			vy *= (- tution);
 			vx *= (0.9 + tution * 0.1);
 		}

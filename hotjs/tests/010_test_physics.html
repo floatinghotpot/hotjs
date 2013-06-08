@@ -77,9 +77,9 @@ var viewX;
 var room;
 
 resources.load([
-    		'ball.png',
-    		'baloon.png',
-    		'room.jpg'
+    		'img/ball.png',
+    		'img/baloon.png',
+    		'img/room.jpg'
     	]);
         	
 resources.onReady(function() {
@@ -92,13 +92,13 @@ resources.onReady(function() {
 	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
 
 	room = (new hotjs.Physics.Scene()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('room.jpg')).showGrid(false).showBgImg(true);
+	room.setImage(resources.get('img/room.jpg')).showGrid(false).showBgImg(true);
 	viewX.addScene(room);
 	
 	add_baloon = function() { // Constant.AIR_DENSITY
 		r = hotjs.Random.Integer(40,100);
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('baloon.png')).setSize(r*0.75,r).setDensity(hotjs.Physics.Constant.AIR_DENSITY*0.7);
+		b.setImage(resources.get('img/baloon.png')).setSize(r*0.75,r).setDensity(hotjs.Physics.Constant.AIR_DENSITY*0.7);
 		b.setDraggable(true).setMoveable(true);
 		
 		var x = w * 0.1 + Math.random() * w * 0.8;
@@ -110,7 +110,7 @@ resources.onReady(function() {
 	add_ball = function() {
 		r = hotjs.Random.Integer(20,50);
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('ball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.IRON_DENSITY);
+		b.setImage(resources.get('img/ball.png')).setSize(r,r).setDensity(hotjs.Physics.Constant.IRON_DENSITY);
 		b.setDraggable(true).setMoveable(true);
 		
 		var x = w * 0.1 + Math.random() * w * 0.8;

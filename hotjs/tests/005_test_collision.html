@@ -137,8 +137,7 @@ var viewX;
 var room;
 
 resources.load([
-    		'redball.png',
-    		'smallbird.png'
+    		'img/ball.png'
     	]);
         	
 resources.onReady(function() {
@@ -156,7 +155,7 @@ resources.onReady(function() {
 	add_ball = function() {
 		r = hotjs.Random.Integer(30,90);
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);
+		b.setImage(resources.get('img/ball.png')).setSize(r,r).setDensity(1);
 		
 		var x = w * 0.1 + Math.random() * w * 0.8;
 		b.setPos(x + b.size[0]/2, room.height()-b.size[1]/2).setVelocity(0,0).setAccel(0,0);

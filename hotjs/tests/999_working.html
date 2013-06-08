@@ -153,9 +153,8 @@ function zoom(f){
 }
 
 resources.load([
-    		'redball.png',
-    		'smallbird.png',
-    		'room.jpg'
+    		'img/ball.png',
+    		'img/room.jpg'
     	]);
         	
 resources.onReady(function() {
@@ -168,13 +167,13 @@ resources.onReady(function() {
 	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
 
 	room = (new DemoRoom()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('room.jpg')).showGrid(false).showFormula(false);
+	room.setImage(resources.get('img/room.jpg')).showGrid(false).showFormula(false);
 	viewX.addScene(room);
 	
 	add_ball = function() {
 		r = hotjs.Random.Integer(30,90);
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('redball.png')).setSize(r,r).setDensity(1);
+		b.setImage(resources.get('img/ball.png')).setSize(r,r).setDensity(1);
 		b.setDraggable(true).setMoveable(true);
 		
 		var x = w * 0.1 + Math.random() * w * 0.8;

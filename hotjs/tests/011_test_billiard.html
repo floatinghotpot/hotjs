@@ -12,6 +12,7 @@
 <script type="text/javascript" src="../hotjs.js"></script>
 <script type="text/javascript" src="../math.js"></script>
 <script type="text/javascript" src="../physics.js"></script>
+<script type="text/javascript" src="../util.js"></script>
 <style type="text/css">
 html, body {
 	width: 100%;
@@ -55,7 +56,8 @@ input.act {
 <div>
 <div id="mainView"></div>
 <div id="btn_zoom">
-<input type='button' value='?' onClick='viewX.showFPS()'/>
+<input type='button' value='?' onClick='viewX.showFPS();'/>
+<input type='button' value='~' onClick='viewX.benchFPS(1,300,true);'/>
 <input type='button' value='#' onClick='table.showGrid();table.showBgImg();'/>
 <input type='button' value='#' onClick='pool.showGrid();'/>
 <input class='act' type="button" value="new game" onClick="add_ball();"/>
@@ -85,9 +87,9 @@ var table;
 var pool;
 
 resources.load([
-    		'redball.png',
-    		'ball.png',
-    		'billiardtable.jpg'
+    		'img/balls.png',
+    		'img/billiardpole.png',
+    		'img/billiardtable.jpg'
     	]);
         	
 resources.onReady(function() {
@@ -97,7 +99,7 @@ resources.onReady(function() {
 	v.style.width = w;
 	v.style.height = h;
 
-	viewX = (new hotjs.View())
+	viewX = (new hotjs.Util.BenchLab())
 		.setContainer('mainView')
 		.setSize(w,h)
 		.showFPS(false);
@@ -105,7 +107,7 @@ resources.onReady(function() {
 	table = (new hotjs.Scene())
 		.setSize(w, h)
 		.setColor("blue")
-		.setImage(resources.get('billiardtable.jpg'))
+		.setImage(resources.get('img/billiardtable.jpg'))
 		.showGrid(false)
 		.showBgImg(true);
 
@@ -117,11 +119,12 @@ resources.onReady(function() {
 	var marginX = 58 * fx, marginY = 60 * fx;
 	pool = (new hotjs.Physics.Scene())
 		.setBgColor(null)
-		.setPos(marginX,marginY)
+		.setPos( marginX, marginY )
 		.setSize(w - marginX *2, h - marginY *2)
-		.showGrid(true)
 		.setRestitution(0.8)
-		.setGravity(0);
+		.setGravity(0)
+		.showGrid(true)
+		;
 	
 	table.addNode( pool );
 	
@@ -136,7 +139,7 @@ resources.onReady(function() {
 				x = x0 + i * (r+2) * 0.707;
 				y = y0 + (j-2.5) * (r+2) * 0.707;
 				b = new hotjs.Physics.Ball();
-				b.setImage(resources.get('redball.png'))
+				b.setImage( resources.get('img/balls.png'), [42,0,42,42] )
 				 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
 				 	.setRestitution(0.9)
 				 	.setSize(r,r)
@@ -150,7 +153,7 @@ resources.onReady(function() {
 		
 		x = 222 * fx - r/2, y = pool.height()/2 - r/2;
 		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('ball.png'))
+		b.setImage( resources.get('img/balls.png'), [0,0,42,42] )
 		 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
 		 	.setRestitution(0.9)
 		 	.setSize(r,r)

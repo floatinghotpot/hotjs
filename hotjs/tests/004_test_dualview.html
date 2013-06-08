@@ -41,19 +41,19 @@ var room2 = (new hotjs.Physics.Scene()).setSize(WIDTH,HEIGHT).setBgColor("#eeeee
 view2.addScene(room2,'room2');
 
 resources.load([
-            	'redball.png',
-            	'smallbird.png'
+            	'img/ball.png',
+            	'img/bird.png'
             ]);
 
 var balls = [];
 resources.onReady(function(){
 	
-	var b = (new hotjs.Physics.Ball()).setImage(resources.get('smallbird.png')).setSize(50,40);
+	var b = (new hotjs.Physics.Ball()).setImage(resources.get('img/bird.png')).setSize(50,40);
 	b.setPos(b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
 	room1.addNode(b);
 	balls.push(b);
 	
-	b = (new hotjs.Physics.Ball()).setImage(resources.get('redball.png')).setSize(60,60);
+	b = (new hotjs.Physics.Ball()).setImage(resources.get('img/ball.png')).setSize(60,60);
 	b.setPos(WIDTH-b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
 	room2.addNode(b);
 	balls.push(b);

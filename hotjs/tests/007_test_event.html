@@ -67,13 +67,11 @@ var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(tru
 var room = (new hotjs.Scene()).setSize(1900,1200).setColor("black");
 
 resources.load([
-            	'redball.png',
-            	'smallbird.png',
-            	'room.jpg'
+            	'img/room.jpg'
             ]);
 
 resources.onReady(function(){
-	room.setImage(resources.get('room.jpg')).showBgImg(true).showGrid(false);
+	room.setImage(resources.get('img/room.jpg')).showBgImg(true).showGrid(false);
 	room.setDraggable(true).setMoveable(true);
 	viewX.addScene( room );
 

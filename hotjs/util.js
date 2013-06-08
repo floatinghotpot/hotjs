@@ -203,8 +203,111 @@ if (!Function.prototype.bind) {
 }
 
 
+var BenchLab = function(){
+	hotjs.base(this);
+	
+	this.nMin = 1;
+	this.nMax = 500;
+	this.loopBench = false;
+	
+	this.fpsData = [];
+	this.dtSumB = 0;
+	this.nCur = this.nMax;
+	
+	this.marginFormula = 40;
+	this.formula = true;
+};
 
+hotjs.inherit(BenchLab, hotjs.View, {
+	setBenchmarkRange : function(n1, n2) {
+		this.nMin = Math.min( n1, n2 );
+		this.nMax = Math.max( n1, n2 );
+		this.nCur = this.nMax;
+		return this;
+	},
+	showFormula : function(f) {
+		if(f == undefined) f = (! this.formula);
+		this.formula = f;
+		return this;
+	},
+	benchFPS: function(min, max, boop) {
+		this.nMin = min;
+		this.nMax = max;
+		this.fpsData = [];
+		
+		this.dtSumB = 0;
+		this.nCur = this.nMin;
+		
+		this.loopBench = (!! loop);
+		
+		return true;
+	},
+	benchStop : function() {
+		this.nCur = this.nMax;
 
+		return true;
+	},
+	update : function(dt) {
+		BenchLab.supClass.update.call(this, dt);
+		
+		if( this.nCur < this.nMax ) {
+			this.dtSumB += dt;
+			if( this.dtSumB >= 200 ) {
+				this.dtSumB = 0;
+				
+				this.curScene.addItem();
+				this.nCur ++;
+				
+				var f = (this.height()-this.marginFormula*2) / 60;
+				this.fpsData.push( f * this.fps );
+
+				if( this.nCur >= this.nMax ) {
+					if (!! this.loopBench ) {
+						this.nCur = this.nMin;
+						this.fpsData.length = 0;
+					}
+				}
+			}
+		} 
+		
+		return true;
+	},
+	drawFormula : function(c) {
+		c.save();
+		
+		// draw x, y axis 
+		var x0 = this.marginFormula, y0 = this.height() -this.marginFormula;
+		
+		c.beginPath();
+		c.strokeStyle = "black";
+		c.fillStyle = "black";
+		c.moveTo(x0,this.marginFormula); c.lineTo(x0,y0); c.lineTo(this.width()-this.marginFormula, y0);
+		c.fillText( "60 fps", x0-20, this.marginFormula-10 );
+		c.fillText( "" + this.nMax, this.width()-this.marginFormula-20, y0+20 );
+		c.stroke();
+		
+		// draw graph
+		c.beginPath();
+		c.strokeStyle = "red";
+		var f = (this.width()-this.marginFormula*2) / (this.nMax-this.nMin);
+		if( this.fpsData.length >0 ) {
+			c.moveTo( x0, y0-this.fpsData[0] );
+		}
+		for( var i=1; i<this.fpsData.length; i++) {
+			c.lineTo( x0 + i * f, y0-this.fpsData[i] );
+		}
+		c.stroke();
+		
+		c.restore();		
+	},
+	draw : function(c) {
+		BenchLab.supClass.draw.call(this, c);
+
+		if( this.formula ) this.drawFormula(c);
+	}		
+});
+
+hotjs.Util.BenchLab = BenchLab;
 
 })();
 
