@@ -89,64 +89,6 @@ hotjs.inherit(Node, hotjs.Node, {
 		}
 
 		return ret;
-	},
-	checkBorderCollision : function() {
-		var w = this.container.width(), h = this.container.height();
-		var tution = this.container.getRestitution() * this.getRestitution();
-		
-		var px = this.pos[0], py = this.pos[1];
-		var rx = this.size[0], ry = this.size[1];
-		var vx = this.velocity[0], vy = this.velocity[1];
-
-		// check boundary 
-		var bx = ((px + rx > w) && (vx >0)) || ((px <= 0) && (vx <0));
-		var by = ((py + ry > h) && (vy >0)) || ((py <= 0) && (vy <0));
-		
-		// bounce & collision loss
-		if(by) {
-			vy *= (- tution);
-			vx *= (0.9 + tution * 0.1);
-		}
-		if(bx){
-			vx *= (- tution);
-			vy *= (0.9 + tution * 0.1);
-		}
-
-		this.velocity = [vx, vy];
-		
-		// fix pos if out of boundary
-		px = Math.max( 0, Math.min(w-rx, px));
-		py = Math.max( 0, Math.min(h-ry, py));
-		
-		this.pos = [px, py];
-	
-		return this;
-	},
-	checkForce : function() {
-		var vx = this.velocity[0], vy = this.velocity[1];
-		var stance = this.container.getResistance();
-
-		// air resistance
-		//var ax -= vx / ry * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / this.density) / 60;
-		//var ay -= vy / rx * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / this.density) / 60;
-		var ax = - vx * stance / 60;
-		var ay = - vy * stance / 60;
-		
-		// gravity / air buoyancy
-		ay += (1 - Constant.AIR_DENSITY/this.density)  * this.container.getGravity() / 60;
-		
-		this.accel = [ax, ay];
-		
-		return this;
-	},
-	update : function(dt) {
-		Node.supClass.update.call(this, dt);
-		
-		this.checkBorderCollision();
-		
-		this.checkForce();
-		
-		return this;
 	}
 });
 
@@ -215,9 +157,24 @@ var Scene = function(){
 	this.restitution = 0.5;
 	this.gravity = Constant.g;
 	this.resistance = 1/6;
+	
+	// left, top, right, bottom
+	this.boundary = undefined;
+	this.holes = [];
 };
 
 hotjs.inherit(Scene, hotjs.Scene, {
+	setBoundary : function(x,y,w,h) {
+		this.boundary = [x, y, x+w, y+h];
+		return this;
+	},
+	getBoundary : function() {
+		if(! this.boundary) {
+			return [this.pos[0], this.pos[1], this.pos[0]+this.size[0], this.pos[1]+this.size[1]];
+		}
+		
+		return this.boundary;
+	},
 	setRestitution : function(r) {
 		r = Math.min(1, Math.max(0, r));
 		this.restitution = r;
@@ -242,22 +199,136 @@ hotjs.inherit(Scene, hotjs.Scene, {
 	getResistance : function() {
 		return this.resistance;
 	},
-	update : function(dt) {
-		if(!! this.subnodes) {
-			for( var i=this.subnodes.length-1; i>=0; i-- ) {
-				this.subnodes[i].update(dt);
-			}
+	applyEnvForce : function() {
+		for( var i=this.subnodes.length-1; i>=0; i-- ) {
+			var b = this.subnodes[i];
+			var vx = b.velocity[0], vy = b.velocity[1];
 
-			for( var i=this.subnodes.length-1; i>=1; i-- ) {
-				var b1 = this.subnodes[i];
-				for( var j=i-1; j>=0; j-- ) {
-					var b2 = this.subnodes[j];
-					b1.collide(b2);
-				}
-			}
+			// media resistance (like air, water, floor, etc.)
+			var ax = - vx * this.resistance / 60;
+			var ay = - vy * this.resistance / 60;
+			//var ax -= vx / ry * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / b.density) / 60;
+			//var ay -= vy / rx * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / b.density) / 60;
+			
+			// gravity / air buoyancy
+			ay += (1 - Constant.AIR_DENSITY/b.density)  * this.gravity / 60;
+			
+			b.accel = [ax, ay];
 		}
 		
 		return this;
+	},
+	addHole : function( x,y,w,h ) {
+		this.holes.push( [x,y,w,h] );
+		return this;
+	},
+	rectOverlap : function(x1,y1,w1,h1, x2,y2,w2,h2) {
+		return (Math.abs((x1-x2)*2 + (w1-w2)) <= (w1+w2)) && (Math.abs((y1-y2)*2 + (h1-h2)) <= (h1+h2));
+	},
+	checkBorderCollision : function() {
+		var ltrb = this.getBoundary();
+		
+		for( var i=this.subnodes.length-1; i>=0; i-- ) {
+			var b = this.subnodes[i];
+			var px = b.pos[0], py = b.pos[1];
+			var rx = b.size[0], ry = b.size[1];
+			
+			// if ball in hole, then no collision needed
+			var in_hole = false;
+			for( var j=0; j<this.holes.length; j++ ) {
+				var r = this.holes[j];
+				if( this.rectOverlap(px,py,rx,ry, r[0],r[1],r[2]-r[0],r[3]-r[1]) ) {
+					in_hole = true;
+					break;
+				}
+			}
+			if( in_hole ) continue;
+			
+			var vx = b.velocity[0], vy = b.velocity[1];
+	
+			// check boundary 
+			var x_hit = ((px + rx > ltrb[2]) && (vx >0)) || ((px <= ltrb[0]) && (vx <0));
+			var y_hit = ((py + ry > ltrb[3]) && (vy >0)) || ((py <= ltrb[1]) && (vy <0));
+			
+			// bounce & collision loss
+			var tution = this.restitution * b.getRestitution();
+			if( x_hit ){
+				vx *= (- tution);
+				vy *= (0.9 + tution * 0.1);
+			}
+			if( y_hit ) {
+				vy *= (- tution);
+				vx *= (0.9 + tution * 0.1);
+			}
+	
+			b.velocity = [vx, vy];
+		}
+		
+		return this;
+	},
+	validatePos : function() {
+		var ltrb = this.getBoundary();
+		
+		for( var i=this.subnodes.length-1; i>=0; i-- ) {
+			var b = this.subnodes[i];
+			var px = b.pos[0], py = b.pos[1];
+			var rx = b.size[0], ry = b.size[1];
+
+			// if ball in hole, then remove it
+			var in_hole = false;
+			for( var j=0; j<this.holes.length; j++ ) {
+				var r = this.holes[j];
+				if( this.rectOverlap(px,py,rx,ry, r[0],r[1],r[2],r[3]) ) {
+					in_hole = true;
+					this.subnodes.splice(i,1);
+					break;
+				}
+			}
+			if( in_hole ) continue;
+
+			// fix pos if out of boundary
+			px = Math.max( ltrb[0], Math.min(ltrb[2]-b.size[0], b.pos[0]));
+			py = Math.max( ltrb[1], Math.min(ltrb[3]-b.size[1], py = b.pos[1]));
+			
+			b.pos = [px, py];			
+		}
+		
+		return this;
+	},
+	update : function(dt) {
+		if(!! this.subnodes) {
+			for( var i=this.subnodes.length-1; i>=0; i-- ) {
+				var b = this.subnodes[i];
+				b.update(dt);
+			}
+
+			for( var i=this.subnodes.length-1; i>=1; i-- ) {
+				var b = this.subnodes[i];
+				for( var j=i-1; j>=0; j-- ) {
+					var another = this.subnodes[j];
+					b.collide( another );
+				}
+			}
+
+			this.applyEnvForce();
+			
+			this.checkBorderCollision();
+
+			this.validatePos();
+		}
+		
+		return this;
+	},
+	draw : function(c) {
+		Scene.supClass.draw.call(this, c);
+		
+		c.save();
+		c.strokeStyle = 'red';
+		for( var j=0; j<this.holes.length; j++ ) {
+			var r = this.holes[j];
+			c.strokeRect(r[0], r[1], r[2], r[3]);
+		}
+		c.restore();
 	}
 });
 

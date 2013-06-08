@@ -192,6 +192,12 @@ var Vector = {
 		var vx = v * Math.cos(ang2);
 		var vy = v * Math.sin(ang2);
 		return [vx, vy];
+	},
+	InRect : function(v, r) {
+		return ((v[0]>=r[0]) && (v[0]<r[0]+r[2])) && ((v[1]>=r[1]) && (v[1]<r[1]+r[3]));
+	},
+	InRange : function(v1, v2, r) {
+		return ((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]) <= (r*r));
 	}
 };
 
@@ -1284,10 +1290,9 @@ hotjs.inherit( Scene, Node, {
 		c.save();
 
 		if( (!! this.img) && (this.bgimg) ) {
-			c.save();
-			c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
-			c.drawImage( this.img, 0, 0 );
-			c.restore();
+			//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
+			//c.drawImage( this.img, 0, 0 );
+			c.drawImage(this.img, 0,0, this.img.width, this.img.height, 0,0, this.size[0], this.size[1]);
 		} else if( !! this.bgcolor ){
 			c.fillStyle = this.bgcolor;
 			c.fillRect(0, 0, this.size[0], this.size[1]);
