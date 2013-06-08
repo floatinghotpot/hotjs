@@ -85,17 +85,6 @@ hotjs.base = function(me, opt_methodName, var_args) {
 	}
 };
 
-var number_of_objects = 0;
-
-hotjs.Class = function(){
-	number_of_objects ++;
-	this.oid = number_of_objects;
-};
-
-hotjs.Class.getObjectNumber = function(){
-	return number_of_objects;
-};
-		
 // tool to print variable value in console
 hotjs.log = function(o, n) {
 	if (typeof n == 'undefined' ) n = 0;
@@ -320,6 +309,28 @@ var HashMap = function() {
 	};
 };
 
+// -----------------------------------
+// TODO: hotjs.Class, the root class
+var number_of_objects = 0;
+
+hotjs.Class = function(){
+	number_of_objects ++;
+	this.oid = number_of_objects;
+};
+
+hotjs.Class.prototype = {
+	getObjectNumber : function(){
+		return number_of_objects;
+	},
+	addNode : function(subnode, id){
+		return this;
+	},
+	addTo : function(container, id) {
+		container.addNode(this, id);
+		return this;
+	}	
+};
+		
 // ----------------------
 // TODO: class App
 
@@ -351,7 +362,7 @@ var App = function(){
 };
 
 hotjs.inherit(App, hotjs.Class, {
-	addView : function(v) {
+	addNode : function(v) {
 		this.views.push(v);
 		return this;
 	},
@@ -416,7 +427,7 @@ var View = function(){
 	this.upTime = 0;
 	this.upTimeShow = "0 : 00 : 00"; // h:m:s
 	
-	this.infoPos = [100, 10];
+	this.infoPos = [40, 40];
 	
 	this.dragItems = new hotjs.HashMap();
 	this.touches = new hotjs.HashMap();
@@ -492,7 +503,7 @@ hotjs.inherit(View, hotjs.Class, {
 		}
 		return this;
 	},
-	addScene : function(s, id) {
+	addNode : function(s, id) {
 		this.scenes.push( s );
 		if(id != undefined) {
 			this.sceneIndex[id] = s;
@@ -659,10 +670,6 @@ hotjs.inherit(View, hotjs.Class, {
 		if( !! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
-
-			//this.dragItems.put( t.id, s );
-			//s.dragStart( t ); 
-			//return true;
 
 			if( s.inRange(t.x, t.y) ) {
 				var ts = { id: t.id, x: xy[0], y: xy[1] };
@@ -996,11 +1003,12 @@ hotjs.inherit(Node, hotjs.Class, {
 		if(this.dragItems == undefined) this.dragItems = new hotjs.HashMap();
 		if(this.touches == undefined) this.touches = new hotjs.HashMap();	
 		
+		n.setContainer(this);
+		
 		this.subnodes.push(n);
 		if(typeof id == 'string') {
 			this.index[id] = n;
 		}
-		n.setContainer(this);
 		
 		return this;
 	},

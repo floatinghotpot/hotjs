@@ -27,22 +27,26 @@ html, body {
 <script>
 
 resources.load([
-	'img/ball.png',
-	'img/bird.png'
+	'img/ball.png'
 ]);
 
 resources.onReady(function(){
+	
 	var w = window.innerWidth, h = window.innerHeight;
 	var v = document.getElementById('view1');
 	v.style.width = w;
 	v.style.height = h;
 	
-	var view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+	var view1 = (new hotjs.View())
+		.setContainer('view1').setSize(w,h)
+		.showFPS(true);
 
-	var room = (new hotjs.Scene()).setSize(w,h).setColor("blue").showGrid(true);
-	view1.addScene( room );
+	var room = (new hotjs.Scene())
+		.setSize(w,h)
+		.setColor("blue").showGrid(true)
+		.addTo( view1 );
 	
-	var app = (new hotjs.App()).addView(view1).start();
+	var app = (new hotjs.App()).addNode( view1 ).start();
 });
 
 </script>

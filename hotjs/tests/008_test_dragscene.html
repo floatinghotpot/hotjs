@@ -44,7 +44,6 @@ div#btn_zoom {
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
 <input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
-<input type='button' value='f' onClick='room.showFormula()'/>
 
 <input type='button' value='^' onClick='viewX.shift(0, -20)'/>
 <input type='button' value='v' onClick='viewX.shift(0, 20)'/>
@@ -59,32 +58,26 @@ div#btn_zoom {
 </div>
 </div>
 <script>
-	
-var balls = [];
-var add_ball = function(){};
-var remove_ball = function(){};
 
-var viewX;
-var room;
+var viewX, room;
 
 resources.load([
     		'img/room.jpg'
     	]);
         	
 resources.onReady(function() {
-	var w = window.innerWidth, h = window.innerHeight;
-	
-	var v = document.getElementById('mainView');
-	v.style.width = w;
-	v.style.height = h;
 
-	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
+	viewX = (new hotjs.View())
+		.setContainer('mainView').setSize(640,320)
+		.showFPS(false);
 
-	room = (new hotjs.Physics.Scene()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('img/room.jpg')).showGrid(false).showBgImg(true);
-	viewX.addScene(room);
+	room = (new hotjs.Scene())
+		.setSize(1920, 960)
+		.setColor("blue").showGrid(false)
+		.setImage(resources.get('img/room.jpg')).showBgImg(true)
+		.addTo( viewX );
 	
-	var app = (new hotjs.App()).addView(viewX).start();
+	var app = (new hotjs.App()).addNode( viewX ).start();
 });
 
 </script>

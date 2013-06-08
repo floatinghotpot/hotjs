@@ -166,20 +166,23 @@ resources.onReady(function() {
 
 	viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
 
-	room = (new DemoRoom()).setSize(w, h).setColor("blue");
-	room.setImage(resources.get('img/room.jpg')).showGrid(false).showFormula(false);
-	viewX.addScene(room);
+	room = (new DemoRoom())
+		.setSize(w, h)
+		.setColor("blue").showGrid(false)
+		.setImage(resources.get('img/room.jpg'))
+		.showFormula(false)
+		.addTo( viewX );
 	
 	add_ball = function() {
 		r = hotjs.Random.Integer(30,90);
-		b = new hotjs.Physics.Ball();
-		b.setImage(resources.get('img/ball.png')).setSize(r,r).setDensity(1);
-		b.setDraggable(true).setMoveable(true);
-		
 		var x = w * 0.1 + Math.random() * w * 0.8;
-		b.setPos(x + b.size[0]/2, room.height()-b.size[1]/2).setVelocity(0,0).setAccel(0,0);
 		
-		room.addNode(b);
+		b = new hotjs.Physics.Ball()
+			.setImage(resources.get('img/ball.png')).setSize(r,r).setDensity(1)
+			.setDraggable(true).setMoveable(true)
+			.setPos(x, room.height()-r).setVelocity(0,0).setAccel(0,0)
+			.addTo( room );
+
 		balls.push(b);			
 	};
 	
@@ -193,7 +196,7 @@ resources.onReady(function() {
 		add_ball();
 	}		
 	
-	var app = (new hotjs.App()).addView(viewX).start();
+	var app = (new hotjs.App()).addNode( viewX ).start();
 });
 
 function kick_ball(i){

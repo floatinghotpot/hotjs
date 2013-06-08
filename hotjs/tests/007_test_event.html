@@ -63,19 +63,20 @@ var v = document.getElementById('mainView');
 v.style.width = w;
 v.style.height = h;
 
-var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(true);
-var room = (new hotjs.Scene()).setSize(1900,1200).setColor("black");
-
 resources.load([
             	'img/room.jpg'
             ]);
 
 resources.onReady(function(){
-	room.setImage(resources.get('img/room.jpg')).showBgImg(true).showGrid(false);
-	room.setDraggable(true).setMoveable(true);
-	viewX.addScene( room );
+	var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(true);
 
-	var app = (new hotjs.App()).addView(viewX).start();
+	var room = (new hotjs.Scene())
+		.setSize(1900,1200).setColor("black").showGrid(false)
+		.setImage(resources.get('img/room.jpg')).showBgImg(true)
+		.setDraggable(true).setMoveable(true)
+		.addTo( viewX );
+
+	var app = (new hotjs.App()).addNode( viewX ).start();
 });
 
 </script>

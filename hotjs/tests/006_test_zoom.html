@@ -63,13 +63,19 @@ var v = document.getElementById('mainView');
 v.style.width = w;
 v.style.height = h;
 
-var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(true);
+var viewX = (new hotjs.View())
+	.setContainer('mainView')
+	.setSize(w,h)
+	.showFPS(true);
 
-var room = (new hotjs.Scene()).setSize(1900,1200).setColor("black").showGrid(true);
+var room = (new hotjs.Scene())
+	.setSize(1900,1200)
+	.setColor("black").showGrid(true)
+	.addTo( viewX );
 
-viewX.addScene( room );
-
-var app = (new hotjs.App()).addView(viewX).start();
+var app = (new hotjs.App())
+	.addNode( viewX )
+	.start();
 
 </script>
 </body>

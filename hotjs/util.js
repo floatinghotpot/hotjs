@@ -230,7 +230,7 @@ hotjs.inherit(BenchLab, hotjs.View, {
 		this.formula = f;
 		return this;
 	},
-	benchFPS: function(min, max, boop) {
+	benchFPS: function(min, max, loop) {
 		this.nMin = min;
 		this.nMax = max;
 		this.fpsData = [];
@@ -276,25 +276,37 @@ hotjs.inherit(BenchLab, hotjs.View, {
 		c.save();
 		
 		// draw x, y axis 
-		var x0 = this.marginFormula, y0 = this.height() -this.marginFormula;
+		var x0 = this.marginFormula, 
+			y0 = this.height() - this.marginFormula;
+		var w = this.width() - this.marginFormula * 2, 
+			h = this.height() - this.marginFormula * 2;
 		
 		c.beginPath();
 		c.strokeStyle = "black";
 		c.fillStyle = "black";
-		c.moveTo(x0,this.marginFormula); c.lineTo(x0,y0); c.lineTo(this.width()-this.marginFormula, y0);
+		for(var i=0; i<6; i++) {
+			c.beginPath();
+			c.moveTo(x0, this.marginFormula + i * h / 6);
+			c.lineTo(x0 + w, this.marginFormula + i * h / 6);
+			c.stroke();
+		}
+		c.beginPath();
+		c.moveTo(x0,this.marginFormula); 
+		c.lineTo(x0,y0); 
+		c.lineTo(this.width()-this.marginFormula, y0);
+		c.stroke();
 		c.fillText( "60 fps", x0-20, this.marginFormula-10 );
 		c.fillText( "" + this.nMax, this.width()-this.marginFormula-20, y0+20 );
-		c.stroke();
 		
 		// draw graph
 		c.beginPath();
 		c.strokeStyle = "red";
-		var f = (this.width()-this.marginFormula*2) / (this.nMax-this.nMin);
+		var f = w / (this.nMax-this.nMin);
 		if( this.fpsData.length >0 ) {
 			c.moveTo( x0, y0-this.fpsData[0] );
-		}
-		for( var i=1; i<this.fpsData.length; i++) {
-			c.lineTo( x0 + i * f, y0-this.fpsData[i] );
+			for( var i=1; i<this.fpsData.length; i++) {
+				c.lineTo( x0 + i * f, y0-this.fpsData[i] );
+			}
 		}
 		c.stroke();
 		

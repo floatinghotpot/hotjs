@@ -50,19 +50,21 @@ v.style.height = h;
 
 var view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
 
-var room = (new hotjs.Physics.Scene()).setSize(w,h).setColor("blue").showGrid(true);
-view1.addScene(room,'hello');
+var room = (new hotjs.Physics.Scene()).setSize(w,h).setColor("blue").showGrid(true).addTo(view1,'hello');
 
 var balls = [];
 
 resources.onReady(function(){
-	var b = (new hotjs.Physics.Ball()).setImage(resources.get('img/bird.png')).setSize(50,40);	
 	var pos = [ hotjs.Random.Integer(room.width()*0.2,room.width()*0.8), room.height()-b.height()/2 ]; 
-	b.setPos(pos[0], pos[1]).setVelocity(0,0).setAccel(0,0);
-	room.addNode(b);
+
+	var b = (new hotjs.Physics.Ball())
+		.setImage(resources.get('img/bird.png')).setSize(50,40)
+		.setPos(pos[0], pos[1]).setVelocity(0,0).setAccel(0,0)
+		.addTo( view1 );
+	
 	balls.push(b);
 	
-	var app = (new hotjs.App()).addView(view1).start();
+	var app = (new hotjs.App()).addNode( view1 ).start();
 });
 
 function kick_ball(i){

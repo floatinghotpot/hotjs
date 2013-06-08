@@ -56,30 +56,18 @@ input.act {
 <div>
 <div id="mainView"></div>
 <div id="btn_zoom">
+<input type='button' value='bg' onClick='table.showBgImg();'/>
 <input type='button' value='?' onClick='viewX.showFPS();'/>
-<input type='button' value='~' onClick='viewX.benchFPS(1,300,true);'/>
-<input type='button' value='#' onClick='table.showGrid();table.showBgImg();'/>
+<input type='button' value='~' onClick='viewX.showFormula().benchFPS(1,300,true);'/>
 <input type='button' value='#' onClick='pool.showGrid();'/>
-<input class='act' type="button" value="new game" onClick="add_ball();"/>
+<input class='act' type="button" value="new game" onClick="reset_game();"/>
 <input class='act' type="button" value="shoot!" onClick="kick_ball(0);"/>
 </div>
 </div>
 <script>
 
-var Billiard = function(){
-	Billiard.base(this);
-}
-
-hotjs.inherit(Billiard, hotjs.Physics.Ball, {
-	update : function(dt) {
-		Billiard.supClass.update.call(this,dt);
-		
-		
-	}
-});
-	
 var balls = [];
-var add_ball = function(){};
+var reset_game = function(){};
 var remove_ball = function(){};
 
 var viewX;
@@ -102,17 +90,17 @@ resources.onReady(function() {
 	viewX = (new hotjs.Util.BenchLab())
 		.setContainer('mainView')
 		.setSize(w,h)
+		.setInfoPos(50,50)
+		.showFormula(false)
 		.showFPS(false);
 
 	table = (new hotjs.Scene())
 		.setSize(w, h)
-		.setColor("blue")
-		.setImage(resources.get('img/billiardtable.jpg'))
-		.showGrid(false)
-		.showBgImg(true);
+		.setColor("blue").showGrid(false)
+		//.setImage(resources.get('img/billiardtable.jpg')).showBgImg(true)
+		.addTo( viewX )
+		;
 
-	viewX.addScene( table );
-	
 	var bgW = 1024, bgH = 576;
 	var fx = w / bgW, fy = h / bgH;
 
@@ -124,30 +112,28 @@ resources.onReady(function() {
 		.setRestitution(0.8)
 		.setGravity(0)
 		.showGrid(true)
-		;
+		.addTo( table );
 	
-	table.addNode( pool );
-	
-	add_ball = function() {
+	reset_game = function() {
 		pool.removeAll();
 		balls.length = 0;
 		
 		var r = 22 * fx;
 		var x0 = 650 * fx, y0 = pool.height()/2 - r/2;
+		
 		for( var i=0; i<5; i++ ) {
 			for( var j=0; j<=i; j++ ) {
-				x = x0 + i * (r+2) * 0.707;
-				y = y0 + (j-2.5) * (r+2) * 0.707;
+				x = x0 + i * r * 0.866;
+				y = y0 + j * r - i * 0.5 * r;
 				b = new hotjs.Physics.Ball();
-				b.setImage( resources.get('img/balls.png'), [42,0,42,42] )
+				b.setImage( resources.get('img/balls.png'), [0,0,42,42] )
 				 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
 				 	.setRestitution(0.9)
 				 	.setSize(r,r)
 				 	.setPos(x,y)
 				 	.setVelocity(0,0)
-				 	.setAccel(0,0);
-				
-				pool.addNode(b);
+				 	.setAccel(0,0)
+					.addTo( pool );
 			}
 		}
 		
@@ -158,17 +144,16 @@ resources.onReady(function() {
 		 	.setRestitution(0.9)
 		 	.setSize(r,r)
 		 	.setPos(x,y)
-		 	.setVelocity(0,0)
-		 	.setAccel(0,0);
-		b.setDraggable(true).setMoveable(true);
-		pool.addNode(b);
+		 	.setVelocity(0,0).setAccel(0,0)
+		 	.setDraggable(true).setMoveable(true)
+			.addTo( pool );
 		
 		balls.push(b);
 	}
 	
-	add_ball();
+	reset_game();
 	
-	var app = (new hotjs.App()).addView(viewX).start();
+	var app = (new hotjs.App()).addNode( viewX ).start();
 });
 
 function kick_ball(i){
