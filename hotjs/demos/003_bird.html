@@ -39,7 +39,7 @@ input {
 <script>
 
 resources.load([
-	'img/bird.png'
+	'img/angrybird.png'
 ]);
 
 var w = window.innerWidth, h = window.innerHeight;
@@ -48,17 +48,22 @@ var v = document.getElementById('view1');
 v.style.width = w;
 v.style.height = h;
 
-var view1 = (new hotjs.View()).setContainer('view1').setSize(w,h).showFPS(true);
+var view1 = (new hotjs.View())
+	.setContainer('view1').setSize(w,h)
+	.showFPS(true);
 
-var room = (new hotjs.Physics.Scene()).setSize(w,h).setColor("blue").showGrid(true).addTo(view1,'hello');
+var room = (new hotjs.Physics.Scene())
+	.setSize(w,h)
+	.setColor("blue").showGrid(true)
+	.addTo(view1,'hello');
 
 var balls = [];
 
 resources.onReady(function(){
-	var pos = [ hotjs.Random.Integer(room.width()*0.2,room.width()*0.8), room.height()-b.height()/2 ]; 
+	var pos = [ hotjs.Random.Integer(room.width()*0.2,room.width()*0.8), room.height()/2 ]; 
 
 	var b = (new hotjs.Physics.Ball())
-		.setImage(resources.get('img/bird.png')).setSize(50,40)
+		.setImage(resources.get('img/angrybird.png')).setSize(64,64)
 		.setPos(pos[0], pos[1]).setVelocity(0,0).setAccel(0,0)
 		.addTo( room );
 	

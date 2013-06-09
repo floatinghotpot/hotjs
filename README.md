@@ -13,7 +13,9 @@ Road Map
 
 // event: mouse (done), touch (done), keyboard, user-defined
 
-// resource: image (done), sprite, audio, video
+// touch: move scene (done), zoom scene, move entity  
+
+// resource: image (done), sprite (done), audio, video
 
 // math: point/vector (done), matrix,
 
@@ -25,7 +27,7 @@ Road Map
 
 // util: device info (done), 
 
-// tool: UT, benchmark, debug, profiling,
+// tool: UT (done), benchmark (done), debug, profiling,
 
 // AI: pathfinding
 

@@ -175,12 +175,17 @@ var Vector = {
 	scaleDown : function(v, n) {
 		return [v[0] / n[0], v[1] / n[1] ];
 	},
-	length : function(v) {
+	getLength : function(v) {
 		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);
 	},
 	norm : function(v) {
 		var n = 1 / Math.sqrt(v[0]*v[0] + v[1]*v[1]);
 		return [v[0] * n, v[1] * n ];
+	},
+	angle : function(v) {
+		var a = Math.acos( v[0] / Math.sqrt(v[0]*v[0] + v[1]*v[1]) );
+		if( v[1] < 0 ) a = - a; 
+		return a;
 	},
 	project : function (v1, v2) {
 		var v1x = v1[0], v1y = v1[1];
@@ -642,7 +647,7 @@ hotjs.inherit(View, hotjs.Class, {
 			y : Math.round( e.pageY - this.rect.top - scrollY )
 		};
 	},
-	click : function(pos) {
+	click : function( t ) {
 		// pass to scene
 		var s = this.curScene;
 		if( !! s ) {
@@ -699,7 +704,7 @@ hotjs.inherit(View, hotjs.Class, {
 
 			s.drop( t );
 			this.dragItems.remove( t.id );
-			return true;
+			//return true;
 		}
 
 		var t0 = this.touches.get( t.id );
@@ -707,8 +712,8 @@ hotjs.inherit(View, hotjs.Class, {
 			this.touches.remove( t.id );
 			
 			// finger is not accurate, so range in 5 pixel is okay.
-			var vect = [ t.x - t0.x, t.y - t0.y ];
-			if( Vector.length(vect) <= 25 ) {
+			var vect = [ t.x - t0[0], t.y - t0[1] ];
+			if( Vector.getLength(vect) <= 25 ) {
 				this.click( t );
 			} else {
 				// pass to scene

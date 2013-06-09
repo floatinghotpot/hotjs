@@ -61,14 +61,158 @@ input.act {
 <input type='button' value='bg' onClick='pool.showBgImg();'/>
 <input type='button' value='#' onClick='pool.showGrid();'/>
 <input class='act' type="button" value="new game" onClick="reset_game();"/>
-<input class='act' type="button" value="shoot!" onClick="kick_ball(0);"/>
+<input class='act' type="button" value="shoot!" onClick="pool.shootBall();"/>
 </div>
 </div>
 <script>
 
+var BilliardPool = function(){
+	hotjs.base(this);
 
+	this.dtHead = 0;
+	this.poleHead = [0,0];
 
-var balls = [];
+	this.poleVector = [-1,0];
+	
+	this.poleImg = undefined;
+	this.poleSize = [780,17];
+	
+	this.hitBall = undefined;
+};
+
+hotjs.inherit(BilliardPool, hotjs.Physics.Scene, {
+	setHitBall : function(b) {
+		this.hitBall = b;
+		return this;
+	},
+	setPole : function(img, s) {
+		this.poleImg = img;
+		this.poleSize = s;
+		return this;
+	},
+	setPoleAngle : function(v) {
+		this.poleVector = [ v[0], v[1] ];
+		return this;
+	},
+	shootBall : function() {
+		if( this.hitBall != undefined ) {
+			var v_len = this.width() * hotjs.Random.Float(0.03, 0.1);   
+			var hit_dir = hotjs.Vector.norm( this.poleVector );
+			this.hitBall.setVelocity( - hit_dir[0] * v_len, - hit_dir[1] * v_len );
+		}
+	},
+	onClick : function(ts) {
+		var xy = [this.hitBall.pos[0] + this.hitBall.size[0]/2, 
+		          this.hitBall.pos[1] + this.hitBall.size[1]/2 ];
+		
+		this.poleVector = [ xy[0] - ts.x, xy[1] - ts.y ];
+		
+		return true;
+	},
+	dragStart : function(t) {
+		var ret = BilliardPool.supClass.dragStart.call(this, t);
+
+		this.dragTime = Date.now();
+		this.t1 = [ t.x, t.y ];
+		this.maxVel = [0, 0];
+		
+		return ret;
+	},	
+	drag : function(t) {
+		var ret = BilliardPool.supClass.drag.call(this, t);
+		
+		var now = Date.now();
+		var dt = now - this.dragTime;
+		if( dt > 500 ) {
+			this.dragTime = now;
+			this.t1 = [ t.x, t.y ];
+		}
+		
+		return true;
+	},
+	drop : function(t) {
+		var ret = BilliardPool.supClass.drop.call(this, t);
+
+		var now = Date.now();
+		var dt = now - this.dragTime;
+
+		var f = 1000.0/dt/60;
+		var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
+		
+		var v_len = hotjs.Vector.getLength(v);
+		var hit_dir = hotjs.Vector.norm( this.poleVector );
+		this.hitBall.setVelocity( - hit_dir[0] * v_len, - hit_dir[1] * v_len );
+
+		return ret;
+	},	
+	update : function(dt) {
+		BilliardPool.supClass.update.call(this, dt);
+		
+		// check hit ball still on table
+		if(!! this.hitBall ) {
+			var hitball_ontable = false;
+			for( var i=this.subnodes.length-1; i>=0; i-- ) {
+				if( this.subnodes[i].is_hitball == true ) {
+					hitball_ontable = true;
+					break;
+				}
+			}
+			if( hitball_ontable == false ) {
+				this.subnodes.push( this.hitBall );
+				this.hitBall.pos = hotjs.Vector.copy( this.hitBall.home_pos );
+				this.hitBall.velocity = [0,0];
+				this.hitBall.accel = [0,0];
+			}
+		}
+		
+		// show animation 
+		this.dtHead += dt;
+		var len = Math.sin( this.dtHead / 1000 * Math.PI * 2 );
+		this.poleHead[0] = 10 + len * 10;
+	},
+	render : function(c) {
+		BilliardPool.supClass.render.call(this, c);
+		
+		if( this.allBallStill() ) {
+			this.drawPole( c );
+		}
+		
+		// draw holes 
+		if( this.grid ) {
+			c.save();
+			c.strokeStyle = 'red';
+			for( var j=0; j<this.holes.length; j++ ) {
+				var r = this.holes[j];
+				c.beginPath();
+				c.arc(r[0], r[1], r[2], 0, Math.PI *2);
+				c.stroke();
+			}
+			c.restore();
+		}
+	},
+	allBallStill : function() {
+		for( var i=this.subnodes.length-1; i>=0; i-- ) {
+			var b = this.subnodes[i];
+			if( hotjs.Vector.getLength(b.velocity) > 0.5 ) return false;
+		}
+		return true;
+	},
+	drawPole : function(c) {
+		if( !! this.hitBall ) {
+			c.save();
+			var x = this.hitBall.pos[0] + this.hitBall.size[0]/2;
+			var y = this.hitBall.pos[1] + this.hitBall.size[1]/2;
+			c.translate( x, y );
+			c.rotate( hotjs.Vector.angle( this.poleVector ) );
+			c.translate( this.poleHead[0], -  this.poleImg.height/2 );
+			c.drawImage( this.poleImg, 
+					0, 0, this.poleImg.width, this.poleImg.height,
+					0, 0, this.poleSize[0], this.poleSize[1]);
+			c.restore();
+		}
+	}	
+});
+
 var reset_game = function(){};
 var remove_ball = function(){};
 
@@ -97,22 +241,23 @@ resources.onReady(function() {
 		.showFPS(false);
 
 	var bgW = 1024, bgH = 576;
-	var holes = [ [34,40, 45,45],
-	              [34,bgH-40-45, 45,45],
-	              [bgW-34-45,40, 45,45],
-	              [bgW-34-45,bgH-40-45, 45,45],
-	              [512-25,24, 50,40],
-	              [512-25,bgH-24-40, 50,40]
+	var holes = [ [55,60, 40,40],
+	              [55,bgH-60, 40,40],
+	              [bgW-55,60, 40,40],
+	              [bgW-55,bgH-60, 40,40],
+	              [512,40, 40,40],
+	              [512,bgH-40, 40,40]
 	             ];
 	var fx = w / bgW, fy = h / bgH;
 
 	var marginX = 60 * fx, marginY = 64 * fy;
-	pool = (new hotjs.Physics.Scene())
+	pool = (new BilliardPool())
 		.setSize(w, h)
 		.setColor("blue").showGrid(false)
 		.setImage(resources.get('img/billiardtable.jpg')).showBgImg(true)
 		.setRestitution(0.8)
 		.setGravity(0)
+		.setDraggable(true)
 		.addTo( viewX )
 		;
 
@@ -124,15 +269,15 @@ resources.onReady(function() {
 	
 	reset_game = function() {
 		pool.removeAll();
-		balls.length = 0;
 		
-		var r = 22 * fx;
+		var r = 1.5 * 22 * fx;
 		var x0 = 710 * fx, y0 = pool.height()/2 - r/2;
 		
 		for( var i=0; i<5; i++ ) {
 			for( var j=0; j<=i; j++ ) {
 				x = x0 + i * r * 0.866;
 				y = y0 + j * r - i * 0.5 * r;
+				
 				b = new hotjs.Physics.Ball();
 				b.setImage( resources.get('img/balls.png'), [42,0,42,42] )
 				 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
@@ -143,6 +288,9 @@ resources.onReady(function() {
 				 	.setAccel(0,0)
 				 	.setDraggable(true).setMoveable(true)
 					.addTo( pool );
+				
+				b.is_hitball = false;
+				b.home_pos = [x,y];
 			}
 		}
 		
@@ -157,7 +305,12 @@ resources.onReady(function() {
 		 	.setDraggable(true).setMoveable(true)
 			.addTo( pool );
 		
-		balls.push(b);
+		b.is_hitball = true;
+		b.home_pos = [x,y];
+		
+		pool.setHitBall( b );
+		pool.setPole( resources.get('img/billiardpole.png'), [660*fx, 14*fx] );
+		pool.setPoleAngle( [-1,0] );
 	}
 	
 	reset_game();
@@ -165,14 +318,6 @@ resources.onReady(function() {
 	var app = (new hotjs.App()).addNode( viewX ).start();
 });
 
-function kick_ball(i){
-	var b = balls[i];
-	if( b != undefined ) {
-		var vx = pool.width() * hotjs.Random.Float(0.03, 0.1);   
-		var vy = 0; //- Math.random() * pool.height() * 0.1;
-		b.setVelocity(vx,vy);
-	}
-}
 </script>
 </body>
 

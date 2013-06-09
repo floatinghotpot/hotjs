@@ -53,30 +53,27 @@ hotjs.inherit(Node, hotjs.Node, {
 		var ret = Node.supClass.dragStart.call(this, t);
 
 		this.dragTime = Date.now();
-		this.pos1 = [ this.pos[0], this.pos[1] ];
+		this.t1 = [ t.x, t.y ];
 		this.maxVel = [0, 0];
 		
 		return ret;
-	},
-	gainSpeedFromDrag : function() {
-		var now = Date.now();
-		var dt = now - this.dragTime;
-
-		var f = 1000.0/60/dt * 2;
-		var v = [ (this.pos[0] - this.pos1[0]) * f, (this.pos[1] - this.pos1[1]) * f ];
-		this.setVelocity(v[0], v[1]);
-		//this.setSpin(0,0);
-
-		if( dt > 500 ) {
-			this.dragTime = now;
-			this.pos1 = [ this.pos[0], this.pos[1] ];
-		}
 	},
 	drag : function(t) {
 		var ret = Node.supClass.drag.call(this, t);
 
 		if(!! this.draggable) {
-			this.gainSpeedFromDrag();
+			var now = Date.now();
+			var dt = now - this.dragTime;
+
+			var f = 1000.0/60/dt;
+			var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
+			this.setVelocity(v[0], v[1]);
+			//this.setSpin(0,0);
+
+			if( dt > 500 ) {
+				this.dragTime = now;
+				this.t1 = [ t.x, t.y ];
+			}
 		}
 		
 		return ret;
@@ -160,6 +157,8 @@ var Scene = function(){
 	
 	// left, top, right, bottom
 	this.boundary = undefined;
+	// x,y,w,h
+	// x,y,r
 	this.holes = [];
 };
 
@@ -222,9 +221,6 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		this.holes.push( [x,y,w,h] );
 		return this;
 	},
-	rectOverlap : function(x1,y1,w1,h1, x2,y2,w2,h2) {
-		return (Math.abs((x1-x2)*2 + (w1-w2)) <= (w1+w2)) && (Math.abs((y1-y2)*2 + (h1-h2)) <= (h1+h2));
-	},
 	checkBorderCollision : function() {
 		var ltrb = this.getBoundary();
 		
@@ -237,7 +233,7 @@ hotjs.inherit(Scene, hotjs.Scene, {
 			var in_hole = false;
 			for( var j=0; j<this.holes.length; j++ ) {
 				var r = this.holes[j];
-				if( this.rectOverlap(px,py,rx,ry, r[0],r[1],r[2]-r[0],r[3]-r[1]) ) {
+				if( hotjs.Vector.inRange([b.pos[0]+b.size[0]/2, b.pos[1]+b.size[1]/2], [r[0],r[1]], r[3]) ) {
 					in_hole = true;
 					break;
 				}
@@ -272,13 +268,12 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
 			var px = b.pos[0], py = b.pos[1];
-			var rx = b.size[0], ry = b.size[1];
 
 			// if ball in hole, then remove it
 			var in_hole = false;
 			for( var j=0; j<this.holes.length; j++ ) {
 				var r = this.holes[j];
-				if( this.rectOverlap(px,py,rx,ry, r[0],r[1],r[2],r[3]) ) {
+				if( hotjs.Vector.inRange([b.pos[0]+b.size[0]/2, b.pos[1]+b.size[1]/2], [r[0],r[1]], r[3]) ) {
 					in_hole = true;
 					this.subnodes.splice(i,1);
 					break;
@@ -318,17 +313,6 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		}
 		
 		return this;
-	},
-	draw : function(c) {
-		Scene.supClass.draw.call(this, c);
-		
-		c.save();
-		c.strokeStyle = 'red';
-		for( var j=0; j<this.holes.length; j++ ) {
-			var r = this.holes[j];
-			c.strokeRect(r[0], r[1], r[2], r[3]);
-		}
-		c.restore();
 	}
 });
 

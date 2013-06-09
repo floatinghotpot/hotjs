@@ -43,7 +43,8 @@ var room1 = (new hotjs.Physics.Scene())
 
 var view2 = (new hotjs.View())
 	.setContainer('view2')
-	.setSize(WIDTH,HEIGHT);//.showFPS(true);
+	.setSize(WIDTH,HEIGHT)
+	.showFPS(true);
 	
 var room2 = (new hotjs.Physics.Scene())
 	.setSize(WIDTH,HEIGHT)
@@ -53,14 +54,14 @@ var room2 = (new hotjs.Physics.Scene())
 
 resources.load([
             	'img/ball.png',
-            	'img/bird.png'
+            	'img/angrybird.png'
             ]);
 
 var balls = [];
 resources.onReady(function(){
 	
 	var b = (new hotjs.Physics.Ball())
-		.setImage(resources.get('img/bird.png')).setSize(50,40);
+		.setImage(resources.get('img/angrybird.png')).setSize(64,64);
 	
 	b.setPos(b.size[0]/2,HEIGHT-b.size[1]/2).setVelocity(0,0).setAccel(0,0)
 		.addTo( room1 );
