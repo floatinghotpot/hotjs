@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Expires" CONTENT="0">
+<meta http-equiv="Cache-Control" CONTENT="no-cache">
+<meta http-equiv="Pragma" CONTENT="no-cache">
+<meta name="viewport"
+	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<script type="text/javascript" src="../resource.js"></script>
+<script type="text/javascript" src="../sprite.js"></script>
+<script type="text/javascript" src="../hotjs.js"></script>
+<script type="text/javascript" src="../math.js"></script>
+<script type="text/javascript" src="../physics.js"></script>
+<script type="text/javascript" src="../util.js"></script>
+<style type="text/css">
+html, body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+}
+div#mainView {
+	display: inline-block;
+	border: solid green 0px;
+	margin: 0px;
+	padding: 0px;
+}
+div#btn_zoom {
+	display: inline-block;
+	position: absolute;
+	border: solid green 1px;
+	margin: 0px;
+	padding: 0px;
+	top: 10px;
+	right: 10px;
+	background-color: #eeeeee;
+}
+div#btn_act {
+	display: inline-block;
+	position: absolute;
+	border: solid green 1px;
+	margin: 0px;
+	padding: 0px;
+	top: 50px;
+	right: 10px;
+	background-color: #eeeeee;
+}
+input.act {
+	right: 0px;
+}
+</style>
+</head>
+<body>
+<div>
+<div id="mainView"></div>
+<div id="btn_zoom">
+<input type='button' value='?' onClick='viewX.showFPS()'/>
+<input type='button' value='#' onClick='room.showGrid();'/>
+<input type='button' value='bg' onClick='room.showBgImg();'/>
+<input type='button' value='f' onClick='viewX.showFormula();'/>
+<input type='button' value='start' onClick='room.removeAll();viewX.benchFPS(1,500,false)'/>
+<input type='button' value='stop' onClick='room.removeAll();viewX.benchStop();'/>
+</div>
+</div>
+<script>
+	
+var BenchScene = function(){
+	hotjs.base( this );	
+};
+
+hotjs.inherit(BenchScene, hotjs.Physics.Scene, {
+	addItem : function() {
+		var rmax = 30;
+		var vmax = this.width()/60;
+		
+		var r = hotjs.Random.Integer(20,rmax);
+		var x = this.width()/2;
+		var y = 0;
+		var vx = hotjs.Random.Float(-vmax, vmax);
+		var vy = vmax/6;
+		
+		var b = new hotjs.Physics.Ball()
+			.setImage(resources.get('img/balls.png'),[0,0,42,42])
+			.setSize(r,r)
+			.setDensity(hotjs.Physics.Constant.WATER_DENSITY)
+			.setPos(x, y)
+			.setVelocity(vx,vy)
+			.setAccel(0,0)
+			.addTo( this );
+		
+		return this;
+	}
+});
+
+
+
+var viewX;
+var room;
+
+resources.load([
+    		'img/balls.png',
+    		'img/room.jpg'
+    	]);
+        	
+resources.onReady(function() {
+	var w = window.innerWidth, h = window.innerHeight;
+	
+	var v = document.getElementById('mainView');
+	v.style.width = w;
+	v.style.height = h;
+
+	viewX = (new hotjs.Util.BenchLab())
+		.setContainer('mainView')
+		.setSize(w,h)
+		.showFPS(true)
+		.showFormula(false);
+
+	room = (new BenchScene())
+		.setSize(w, h)
+		.setColor("blue").showGrid(false)
+		.setImage(resources.get('img/room.jpg')).showBgImg(false)
+		.addTo( viewX );
+	
+	var app = (new hotjs.App()).addNode(viewX).start();
+});
+</script>
+</body>
+
+</html>
