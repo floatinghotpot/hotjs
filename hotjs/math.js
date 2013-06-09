@@ -8,16 +8,16 @@ hotjs = hotjs || {};
 
 // TODO: to implement 
 var Matrix = {
-	Copy : function(){
+	copy : function(){
 		
 	},
-	Add : function() {
+	add : function() {
 		
 	},
-	Sub : function() {
+	sub : function() {
 		
 	},
-	Mul : function() {
+	mul : function() {
 		
 	}
 };

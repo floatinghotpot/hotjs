@@ -154,35 +154,35 @@ var Random = {
 
 // TODO: Vector functions
 var Vector = {
-	Copy : function(v) {
+	copy : function(v) {
 		return [ v[0], v[1] ];
 	},
-	Vert : function(v) {
+	vert : function(v) {
 		return [ v[1], -v[0] ];
 	},
-	Add : function (v1, v2) {
+	add : function (v1, v2) {
 		return [ v1[0]+v2[0], v1[1]+v2[1] ];
 	},
-	Sub : function (v1, v2) {
+	sub : function (v1, v2) {
 		return [ v1[0]-v2[0], v1[1]-v2[1] ];
 	},
-	Mul : function (v, n) {
+	mul : function (v, n) {
 		return [v[0] * n, v[1] * n ];
 	},
-	Scale : function (v, n) {
+	scale : function (v, n) {
 		return [v[0] * n[0], v[1] * n[1] ];
 	},
-	ScaleDown : function(v, n) {
+	scaleDown : function(v, n) {
 		return [v[0] / n[0], v[1] / n[1] ];
 	},
-	Length : function(v) {
+	length : function(v) {
 		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);
 	},
-	Norm : function(v) {
+	norm : function(v) {
 		var n = 1 / Math.sqrt(v[0]*v[0] + v[1]*v[1]);
 		return [v[0] * n, v[1] * n ];
 	},
-	Project : function (v1, v2) {
+	project : function (v1, v2) {
 		var v1x = v1[0], v1y = v1[1];
 		var v2x = v2[0], v2y = v2[1];
 		var ang1 = Math.atan2(v1y,v1x);
@@ -193,10 +193,10 @@ var Vector = {
 		var vy = v * Math.sin(ang2);
 		return [vx, vy];
 	},
-	InRect : function(v, r) {
+	inRect : function(v, r) { // [x,y,w,h]
 		return ((v[0]>=r[0]) && (v[0]<r[0]+r[2])) && ((v[1]>=r[1]) && (v[1]<r[1]+r[3]));
 	},
-	InRange : function(v1, v2, r) {
+	inRange : function(v1, v2, r) {
 		return ((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]) <= (r*r));
 	}
 };
@@ -708,7 +708,7 @@ hotjs.inherit(View, hotjs.Class, {
 			
 			// finger is not accurate, so range in 5 pixel is okay.
 			var vect = [ t.x - t0.x, t.y - t0.y ];
-			if( Vector.Length(vect) <= 25 ) {
+			if( Vector.length(vect) <= 25 ) {
 				this.click( t );
 			} else {
 				// pass to scene
@@ -856,7 +856,7 @@ hotjs.inherit(Node, hotjs.Class, {
 	drag : function(t) {
 		if(!! this.draggable) {
 			this.dragging = true;
-			this.pos = Vector.Add( this.pos0, Vector.Sub([t.x,t.y], [this.t0.x, this.t0.y]) );
+			this.pos = Vector.add( this.pos0, Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]) );
 			//this.setVelocity(0, 0);
 			//this.setSpin(0,0);
 			
@@ -867,7 +867,7 @@ hotjs.inherit(Node, hotjs.Class, {
 	drop : function(t) {
 		this.dragging = false;
 		if(!! this.moveable) {
-			this.pos = Vector.Add( this.pos0, Vector.Sub([t.x,t.y], [this.t0.x, this.t0.y]) );
+			this.pos = Vector.add( this.pos0, Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]) );
 		} else {
 			this.pos = [ this.pos0[0], this.pos0[1] ];
 		}
@@ -1202,8 +1202,8 @@ hotjs.inherit( Scene, Node, {
 		if( this.pos[0] >0 ) this.pos[0]=0;
 		if( this.pos[1] >0 ) this.pos[1]=0;
 		
-		var posRightBottom = Vector.Add( Vector.Scale(this.size, this.scale), this.pos );
-		var offsetRB = Vector.Sub( this.container.getSize(), posRightBottom );
+		var posRightBottom = Vector.add( Vector.scale(this.size, this.scale), this.pos );
+		var offsetRB = Vector.sub( this.container.getSize(), posRightBottom );
 		
 		if( offsetRB[0] >0) this.pos[0] += offsetRB[0];
 		if( offsetRB[1] >0) this.pos[1] += offsetRB[1];
@@ -1240,16 +1240,16 @@ hotjs.inherit( Scene, Node, {
 
 			// posCenter -> posInView -> offsetChange -> move
 			// code #1
-			//var posInView = Vector.Scale( posCenter, this.scale );
-			//var offsetChange = Vector.Mul( posInView, f-1 );
-			//this.pos = Vector.Sub( this.pos, offsetChange );
+			//var posInView = Vector.scale( posCenter, this.scale );
+			//var offsetChange = Vector.mul( posInView, f-1 );
+			//this.pos = Vector.sub( this.pos, offsetChange );
 
 			// code #2, optimized, no function call
 			this.pos = [ this.pos[0] - posCenter[0] * this.scale[0] * (f-1),
 			             this.pos[1] - posCenter[1] * this.scale[1] * (f-1)
 			            ];
 			
-			this.scale = Vector.Mul( this.scale, f );
+			this.scale = Vector.mul( this.scale, f );
 	
 			// ensure scene always in view
 			if( this.scale[0] <sMin || this.scale[1] < sMin ) {

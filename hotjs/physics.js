@@ -112,7 +112,7 @@ hotjs.inherit(Ball, Node, {
 		var c2 = [ b.pos[0]+rx2, b.pos[1]+ry2 ];
 		var r1 = (rx1 + ry1) / 2;
 		var r2 = (rx2 + ry2) / 2;
-		var vectPos = Vector.Sub( c1, c2 );
+		var vectPos = Vector.sub( c1, c2 );
 		
 		var tution = this.getRestitution() * b.getRestitution();
 		
@@ -123,18 +123,18 @@ hotjs.inherit(Ball, Node, {
 		// distance cannot be small than r1 + r2
 		if( distance < r1+r2 ) {
 			var fix = 1 - distance/(r1+r2);
-			var vectPosFix = Vector.Mul( vectPos, fix );
-			this.pos = Vector.Add( this.pos, vectPosFix );
-			b.pos = Vector.Sub( b.pos, vectPosFix );
+			var vectPosFix = Vector.mul( vectPos, fix );
+			this.pos = Vector.add( this.pos, vectPosFix );
+			b.pos = Vector.sub( b.pos, vectPosFix );
 		}
 		
 		var vectTangent = [ vectPos[1], - vectPos[0] ];
 		
-		var v1 = Vector.Project(this.velocity, vectPos);
-		var v1T = Vector.Project(this.velocity, vectTangent);
+		var v1 = Vector.project(this.velocity, vectPos);
+		var v1T = Vector.project(this.velocity, vectTangent);
 		
-		var v2 = Vector.Project(b.velocity, vectPos);
-		var v2T = Vector.Project(b.velocity, vectTangent);
+		var v2 = Vector.project(b.velocity, vectPos);
+		var v2T = Vector.project(b.velocity, vectTangent);
 		
 		var v1x = velAfter(this.mass, v1[0], b.mass, v2[0]) * tution;
 		var v1y = velAfter(this.mass, v1[1], b.mass, v2[1]) * tution;
@@ -142,8 +142,8 @@ hotjs.inherit(Ball, Node, {
 		var v2x = velAfter(b.mass, v2[0], this.mass, v1[0]) * tution;
 		var v2y = velAfter(b.mass, v2[1], this.mass, v1[1]) * tution;
 		
-		this.velocity = Vector.Add( v1T, [v1x, v1y] );
-		b.velocity = Vector.Add( v2T, [v2x, v2y] );
+		this.velocity = Vector.add( v1T, [v1x, v1y] );
+		b.velocity = Vector.add( v2T, [v2x, v2y] );
 		
 		return true;
 	}
