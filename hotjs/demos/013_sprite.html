@@ -34,12 +34,28 @@ input {
 <body>
 <div id="view1" style="display: inline-block; margin: 0px;"></div>
 <div id="buttons">
-<input type="button" id="kick" value="Kick Bird" onClick="kick_ball(0);">
 </div>
 <script>
 
+var WalkingRoom = function(){
+	hotjs.base(this);
+}
+
+hotjs.inherit(WalkingRoom, hotjs.Scene,{
+	update : function(dt) {
+		WalkingRoom.supClass.update.call(this, dt);
+		
+		for( var i = this.subnodes.length-1; i >= 0; i -- ) {
+			var b = this.subnodes[i];
+			if( b.pos[0] < 0 - b.size[0] ) {
+				b.pos[0] = this.width();
+			}
+		}
+	}
+});
+
 resources.load([
-	'img/angrybird.png',
+	'img/flyingbird.png',
 	'img/walkingboy.png'
 ]);
 
@@ -53,25 +69,29 @@ var view1 = (new hotjs.View())
 	.setContainer('view1').setSize(w,h)
 	.showFPS(true);
 
-var room = (new hotjs.Scene())
+var room = (new WalkingRoom())
 	.setSize(w,h)
-	.setColor("blue").showGrid(true)
+	.setColor("blue").showGrid(false)
+	//.setGravity(0).setResistance(0).setRestitution(1)
 	.addTo(view1,'hello');
 
 var balls = [];
 
 resources.onReady(function(){
 	var boy = (new hotjs.Physics.Node())
-		.setSize(60,80)
-		.setSprite( new Sprite('img/walkingboy.png', [0,0], [120,180], 10, [0,1,2,3,4,5,6,7,8,9], null, false) )
-		.setPos(room.width()-60, room.height()-80).setVelocity(-1,0).setAccel(0,0)
-		.setDraggable(true).setMoveable(true)
+		.setName('boy')
+		.setSize(90,120)
+		.setSprite( new Sprite('img/walkingboy.png', [0,0], [120,160], 8, [0,1,2,3,4,5,6,7,8,9], null, false) )
+		.setPos(room.width(), room.height()-120)
+		.setVelocity(-1,0).setAccel(0,0)
 		.addTo( room );
 
-	var b = (new hotjs.Physics.Ball())
-		.setImage(resources.get('img/angrybird.png')).setSize(64,64)
-		.setPos(100, room.height()/2).setVelocity(0,0).setAccel(0,0)
-		.setDraggable(true).setMoveable(true)
+	var b = (new hotjs.Physics.Node())
+		.setName('bird')
+		.setSize(120,160)
+		.setSprite( new Sprite('img/flyingbird.png', [0,0], [120,160], 22, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21], null, false) )
+		.setPos(room.width(), room.height()/2)
+		.setVelocity(-3,0).setAccel(0,0)
 		.addTo( room );
 	
 	balls.push(b);

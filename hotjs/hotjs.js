@@ -826,6 +826,9 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.name = n;
 		return this;
 	},
+	getName : function() {
+		return this.name;
+	},
 	setPos : function(x,y) {
 		this.pos = [x,y];
 		return this;
@@ -1137,9 +1140,7 @@ hotjs.inherit(Node, hotjs.Class, {
 				//c.drawImage( this.img, 0, 0 );
 			}
 			
-		} 
-		//else 
-		{
+		} else {
 			c.strokeRect(0,0, this.size[0], this.size[1]);
 		}
 		

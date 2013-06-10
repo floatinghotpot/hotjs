@@ -188,7 +188,6 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		return this.gravity;
 	},
 	setResistance : function(r) {
-		
 		this.resistance = r;
 		return this;
 	},

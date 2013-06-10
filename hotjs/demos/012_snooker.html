@@ -372,6 +372,7 @@ resources.onReady(function() {
 					.addTo( pool );
 				
 				b.is_hitball = false;
+				b.ballValue = 1;
 				b.home_pos = [x,y];
 			}
 		}
@@ -388,6 +389,7 @@ resources.onReady(function() {
 			.addTo( pool );
 		
 		b.is_hitball = true;
+		b.ballValue = 0;
 		b.home_pos = [x,y];
 		
 		pool.setHitBall( b );
@@ -410,6 +412,7 @@ resources.onReady(function() {
 				.addTo( pool );
 			
 			b.is_hitball = false;
+			b.ballValue = i - 1;
 			b.home_pos = [x,y];
 		}
 		

@@ -90,7 +90,7 @@
 		hotjs.inherit(F3, F2, {
 			f1 : function(){
 				console.log("F3->f1()");
-				F2.prototype.f1.call(this);
+				F3.supClass.f1.call(this);
 				return this;
 			},
 			f3 : function(){}
