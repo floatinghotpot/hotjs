@@ -157,9 +157,6 @@ var Scene = function(){
 	
 	// left, top, right, bottom
 	this.boundary = undefined;
-	// x,y,w,h
-	// x,y,r
-	this.holes = [];
 };
 
 hotjs.inherit(Scene, hotjs.Scene, {
@@ -217,10 +214,6 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		
 		return this;
 	},
-	addHole : function( x,y,w,h ) {
-		this.holes.push( [x,y,w,h] );
-		return this;
-	},
 	checkBorderCollision : function() {
 		var ltrb = this.getBoundary();
 		
@@ -228,17 +221,6 @@ hotjs.inherit(Scene, hotjs.Scene, {
 			var b = this.subnodes[i];
 			var px = b.pos[0], py = b.pos[1];
 			var rx = b.size[0], ry = b.size[1];
-			
-			// if ball in hole, then no collision needed
-			var in_hole = false;
-			for( var j=0; j<this.holes.length; j++ ) {
-				var r = this.holes[j];
-				if( hotjs.Vector.inRange([b.pos[0]+b.size[0]/2, b.pos[1]+b.size[1]/2], [r[0],r[1]], r[3]) ) {
-					in_hole = true;
-					break;
-				}
-			}
-			if( in_hole ) continue;
 			
 			var vx = b.velocity[0], vy = b.velocity[1];
 	
@@ -268,18 +250,6 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
 			var px = b.pos[0], py = b.pos[1];
-
-			// if ball in hole, then remove it
-			var in_hole = false;
-			for( var j=0; j<this.holes.length; j++ ) {
-				var r = this.holes[j];
-				if( hotjs.Vector.inRange([b.pos[0]+b.size[0]/2, b.pos[1]+b.size[1]/2], [r[0],r[1]], r[3]) ) {
-					in_hole = true;
-					this.subnodes.splice(i,1);
-					break;
-				}
-			}
-			if( in_hole ) continue;
 
 			// fix pos if out of boundary
 			px = Math.max( ltrb[0], Math.min(ltrb[2]-b.size[0], b.pos[0]));
