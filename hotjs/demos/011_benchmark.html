@@ -76,13 +76,14 @@ hotjs.inherit(BenchScene, hotjs.Physics.Scene, {
 		var vmax = this.width()/60;
 		
 		var r = hotjs.Random.Integer(20,rmax);
+		var c = hotjs.Random.Integer(0, 8);
 		var x = this.width()/2;
 		var y = 0;
 		var vx = hotjs.Random.Float(-vmax, vmax);
 		var vy = vmax/6;
 		
 		var b = new hotjs.Physics.Ball()
-			.setImage(resources.get('img/balls.png'),[0,0,42,42])
+			.setImage(resources.get('img/balls.png'),[42*c,0,42,42])
 			.setSize(r,r)
 			.setDensity(hotjs.Physics.Constant.WATER_DENSITY)
 			.setPos(x, y)

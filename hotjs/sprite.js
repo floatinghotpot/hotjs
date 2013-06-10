@@ -15,7 +15,7 @@
 			this._index += this.speed * dt;
 		},
 
-		render : function(ctx) {
+		render : function(ctx, w, h) {
 			var frame;
 
 			if (this.speed > 0) {
@@ -39,9 +39,15 @@
 			} else {
 				x += frame * this.size[0];
 			}
+			
+			if(! w) w = this.size[0];
+			if(! h) h = this.size[1];
+			
+			var img = resources.get(this.url);
 
-			ctx.drawImage(resources.get(this.url), x, y, this.size[0],
-					this.size[1], 0, 0, this.size[0], this.size[1]);
+			ctx.drawImage( img, 
+					x, y, this.size[0], this.size[1], 
+					0, 0, w, h);
 		}
     };
 

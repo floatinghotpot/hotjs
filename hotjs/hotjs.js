@@ -351,7 +351,7 @@ var hotjs_lastTime = undefined;
 // The main game loop call back
 hotjs_main = function(){
 	var now = Date.now();
-	var dt = (now - hotjs_lastTime); // / 1000.0;
+	var dt = (now - hotjs_lastTime) / 1000.0;
 
 	if(hotjs_app != null) {
 		hotjs_app.update(dt);
@@ -519,7 +519,7 @@ hotjs.inherit(View, hotjs.Class, {
 		if(id != undefined) {
 			this.sceneIndex[id] = s;
 		}
-		s.setView(this);
+		s.setContainer(this);
 		
 		this.curScene = s;
 		return this;
@@ -564,17 +564,17 @@ hotjs.inherit(View, hotjs.Class, {
 		this.frames ++;
 		this.dtSum += dt;
 	
-		if( this.dtSum > 1000 ) {
+		if( this.dtSum > 1.0 ) {
 			this.rect = this.canvas.getBoundingClientRect();
 
 			this.upTime += this.dtSum;
-			this.fps = Math.round( this.frames * 1000 / this.dtSum );
+			this.fps = Math.round( this.frames / this.dtSum );
 			
 			this.dtSum = 0;
 			this.frames = 0;
 
 			if(this.bFps) {
-				var s = Math.floor(this.upTime / 1000);
+				var s = Math.floor(this.upTime);
 				var m = Math.floor( s / 60 );
 				s %= 60;
 				if(s<10) s="0"+s;
@@ -618,7 +618,7 @@ hotjs.inherit(View, hotjs.Class, {
 			 + ': ('+this.rect.left + "," + this.rect.top + ") -> (" + this.rect.right + ',' + this.rect.bottom + ')';
 			c.fillText( rectInfo, this.infoPos[0], this.infoPos[1] + 80);
 			
-			if( this.curScene ) {
+			if( this.curScene && this.curScene.scale ) {
 				var s = this.curScene.scale;
 				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
 				c.fillText( s, this.infoPos[0], this.infoPos[1] + 100 );
@@ -878,6 +878,8 @@ hotjs.inherit(Node, hotjs.Class, {
 		}
 		return true;
 	},
+	onClick : function(t) {
+	},
 	onTouchMove : function(t) {
 		if( !! this.dragItems ) {
 			// if a sub node is being dragged, then drag it
@@ -1008,6 +1010,10 @@ hotjs.inherit(Node, hotjs.Class, {
 		}
 		return this;
 	},
+	setSprite : function(s) {
+		this.sprite = s;
+		return this;
+	},
 	addNode : function(n, id) {
 		if(this.subnodes == undefined) this.subnodes=[];
 		if(this.index == undefined) this.index={};
@@ -1047,6 +1053,10 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	update : function(dt) {
+		if(!! this.sprite) {
+			this.sprite.update(dt);
+		}
+		
 		if(!! this.subnodes) {
 			for(var i=0; i<this.subnodes.length; i++) {
 				this.subnodes[i].update(dt);
@@ -1112,7 +1122,11 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	draw : function(c) {
 		c.save();
-		if( !! this.img ) {
+
+		if( !! this.sprite ) {
+			this.sprite.render(c, this.size[0], this.size[1]);
+			
+		} else if( !! this.img ) {
 			if( !! this.imgrect ) {
 				c.drawImage( this.img, 
 						this.imgrect[0], this.imgrect[1], this.imgrect[2], this.imgrect[3], 
@@ -1122,11 +1136,14 @@ hotjs.inherit(Node, hotjs.Class, {
 				//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
 				//c.drawImage( this.img, 0, 0 );
 			}
-		} else {
+			
+		} 
+		//else 
+		{
 			c.strokeRect(0,0, this.size[0], this.size[1]);
 		}
-		c.restore();
 		
+		c.restore();
 		return this;
 	}
 });
@@ -1185,7 +1202,7 @@ hotjs.inherit( Scene, Node, {
 		var x = p[0] - this.pos[0], 
 			y = p[1] - this.pos[1];
 
-		if(this.scale != undefined) {
+		if(!! this.scale) {
 			x /= this.scale[0];
 			y /= this.scale[1];
 		}
@@ -1195,7 +1212,7 @@ hotjs.inherit( Scene, Node, {
 	posToView : function(p) {
 		var x = p[0], y = p[1];
 
-		if(this.scale != undefined) {
+		if(!! this.scale) {
 			x *= this.scale[0];
 			y *= this.scale[1];
 		}
@@ -1207,7 +1224,10 @@ hotjs.inherit( Scene, Node, {
 		if( this.pos[0] >0 ) this.pos[0]=0;
 		if( this.pos[1] >0 ) this.pos[1]=0;
 		
-		var posRightBottom = Vector.add( Vector.scale(this.size, this.scale), this.pos );
+		var posRightBottom = (! this.scale) 
+				? Vector.add(this.size, this.pos) 
+				: Vector.add( Vector.scale(this.size, this.scale), this.pos );
+				
 		var offsetRB = Vector.sub( this.container.getSize(), posRightBottom );
 		
 		if( offsetRB[0] >0) this.pos[0] += offsetRB[0];

@@ -252,7 +252,7 @@ hotjs.inherit(BenchLab, hotjs.View, {
 		
 		if( this.nCur < this.nMax ) {
 			this.dtSumB += dt;
-			if( this.dtSumB >= 200 ) {
+			if( this.dtSumB >= 0.2 ) {
 				this.dtSumB = 0;
 				
 				this.curScene.addItem();

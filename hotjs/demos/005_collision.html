@@ -95,10 +95,10 @@ hotjs.inherit(DemoRoom, hotjs.Physics.Scene, {
 		var pos2 = Vector.mul(v2, -0.3);
 		c.strokeStyle = "black";
 		c.beginPath();
-		c.arc(pos1[0], pos1[1], Vector.length(pos1), 0, Math.PI * 2);
+		c.arc(pos1[0], pos1[1], Vector.getLength(pos1), 0, Math.PI * 2);
 		c.stroke();
 		c.beginPath();
-		c.arc(pos2[0], pos2[1], Vector.length(pos2), 0, Math.PI * 2);
+		c.arc(pos2[0], pos2[1], Vector.getLength(pos2), 0, Math.PI * 2);
 		c.stroke();
 		
 		var drawLine = function(c, color, line) {
@@ -156,7 +156,7 @@ resources.onReady(function() {
 		.addTo(viewX);
 	
 	add_ball = function() {
-		r = hotjs.Random.Integer(20,50);
+		r = hotjs.Random.Integer(40,80);
 		var x = w * 0.1 + Math.random() * w * 0.8;
 		
 		b = new hotjs.Physics.Ball()

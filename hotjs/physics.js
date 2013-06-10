@@ -63,14 +63,14 @@ hotjs.inherit(Node, hotjs.Node, {
 
 		if(!! this.draggable) {
 			var now = Date.now();
-			var dt = now - this.dragTime;
+			var dt = (now - this.dragTime) / 1000.0;
 
-			var f = 1000.0/60/dt;
+			var f = 1.0/60/dt;
 			var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
 			this.setVelocity(v[0], v[1]);
 			//this.setSpin(0,0);
 
-			if( dt > 500 ) {
+			if( dt > 0.5 ) {
 				this.dragTime = now;
 				this.t1 = [ t.x, t.y ];
 			}
