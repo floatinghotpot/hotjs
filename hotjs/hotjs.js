@@ -672,14 +672,17 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	onMouseDown : function(e) {
 		var t = this.touchFromEvent(e);
-		this.mouseInView = [t.x, t.y, t.id];
-
 		this.touches.put( t.id, [t.x, t.y] );
 		
+		// for debug
+		this.mouseInView = [t.x, t.y, t.id];
+
 		// pass to scene
 		var s = this.curScene;
 		if( !! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
+			
+			// for debug
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 
 			if( s.inRange(t.x, t.y) ) {
@@ -695,11 +698,15 @@ hotjs.inherit(View, hotjs.Class, {
 	},	
 	onMouseUp : function(e) {
 		var t = this.touchFromEvent(e);
+		
+		// for debug
 		this.mouseInView = [t.x, t.y, t.id];
 
 		var s = this.dragItems.get( t.id );
 		if( !! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
+			
+			// for debug
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 
 			s.drop( t );
@@ -732,12 +739,16 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	onMouseMove : function(e) {
 		var t = this.touchFromEvent(e);
+		
+		// for debug
 		this.mouseInView = [t.x, t.y, t.id];
 		
 		// if a scene is being dragged, then drag it
 		var s = this.dragItems.get( t.id );
 		if( !! s ) {
 			var xy = s.posFromView( [t.x, t.y] );
+			
+			// for debug
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 			
 			s.drag( t );

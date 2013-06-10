@@ -97,13 +97,6 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		this.poleVector = [ v[0], v[1] ];
 		return this;
 	},
-	shootBall : function() {
-		if( this.hitBall != undefined ) {
-			var v_len = this.width() * hotjs.Random.Float(0.03, 0.1);   
-			var hit_dir = hotjs.Vector.norm( this.poleVector );
-			this.hitBall.setVelocity( - hit_dir[0] * v_len, - hit_dir[1] * v_len );
-		}
-	},
 	onClick : function(ts) {
 		var xy = [this.hitBall.pos[0] + this.hitBall.size[0]/2, 
 		          this.hitBall.pos[1] + this.hitBall.size[1]/2 ];
@@ -112,8 +105,8 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		
 		return true;
 	},
-	dragStart : function(t) {
-		var ret = SnookerPool.supClass.dragStart.call(this, t);
+	onTouchStart : function(t) {
+		var ret = SnookerPool.supClass.onTouchStart.call(this, t);
 
 		this.dragTime = Date.now();
 		this.t1 = [ t.x, t.y ];
@@ -121,37 +114,52 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		
 		return ret;
 	},	
-	drag : function(t) {
-		var ret = SnookerPool.supClass.drag.call(this, t);
+	onTouchMove : function(t) {
+		var ret = SnookerPool.supClass.onTouchMove.call(this, t);
 		
 		var now = Date.now();
-		var dt = now - this.dragTime;
-		if( dt > 500 ) {
+		var dt = (now - this.dragTime) / 1000.0;
+		if( dt > 0.5 ) {
 			this.dragTime = now;
 			this.t1 = [ t.x, t.y ];
 		}
 		
 		return true;
 	},
-	drop : function(t) {
-		var ret = SnookerPool.supClass.drop.call(this, t);
+	onTouchEnd : function(t) {
+		var ret = SnookerPool.supClass.onTouchEnd.call(this, t);
 
 		if( this.allBallStill() ) {
 			var now = Date.now();
-			var dt = now - this.dragTime;
+			var dt = (now - this.dragTime) / 1000.0;
 	
-			var f = 1000.0/dt/60;
+			// calculate speed of hit
+			var f = 1/dt/60;
 			var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
-			
 			var v_len = hotjs.Vector.getLength(v);
-			var hit_dir = hotjs.Vector.norm( this.poleVector );
-			this.hitBall.setVelocity( - hit_dir[0] * v_len, - hit_dir[1] * v_len );
+
+			this.shootBall( v_len );
 		}
 		
 		return ret;
 	},	
+	shootBall : function( v_len ) {
+		if( !! this.hitBall ) {
+			if( ! v_len ) {
+				v_len = this.width() * hotjs.Random.Float(0.03, 0.1); 
+			}
+			
+			// hit the ball
+			var hit_dir = hotjs.Vector.norm( this.poleVector );
+			this.hitBall.setVelocity( - hit_dir[0] * v_len, - hit_dir[1] * v_len );
+			
+			// move pole 
+			this.poleHead[0] = - 40;
+		}
+	},
 	addHole : function( x,y,w,h ) {
 		this.holes.push( [x,y,w,h] );
+		
 		return this;
 	},
 	checkBorderCollision : function() {
@@ -244,17 +252,22 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 		}
 		
-		// show animation 
-		this.dtHead += dt;
-		var len = Math.sin( this.dtHead / 1000 * Math.PI * 2 );
-		this.poleHead[0] = 10 + len * 10;
+		if( this.allBallStill() )  {
+			// if ball still, always point pole to hit ball
+			var x = this.hitBall.pos[0] + this.hitBall.size[0]/2;
+			var y = this.hitBall.pos[1] + this.hitBall.size[1]/2;
+			this.polePos = [x,y];
+
+			// show animation if aiming
+			this.dtHead += dt;
+			var len = Math.sin( this.dtHead * Math.PI * 2 );
+			this.poleHead[0] = 10 + len * 10;
+		}
 	},
 	render : function(c) {
 		SnookerPool.supClass.render.call(this, c);
 		
-		if( this.allBallStill() ) {
-			this.drawPole( c );
-		}
+		this.drawPole( c );
 		
 		// draw holes 
 		if( this.grid ) {
@@ -277,18 +290,14 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		return true;
 	},
 	drawPole : function(c) {
-		if( !! this.hitBall ) {
-			c.save();
-			var x = this.hitBall.pos[0] + this.hitBall.size[0]/2;
-			var y = this.hitBall.pos[1] + this.hitBall.size[1]/2;
-			c.translate( x, y );
-			c.rotate( hotjs.Vector.angle( this.poleVector ) );
-			c.translate( this.poleHead[0], -  this.poleImg.height/2 );
-			c.drawImage( this.poleImg, 
-					0, 0, this.poleImg.width, this.poleImg.height,
-					0, 0, this.poleSize[0], this.poleSize[1]);
-			c.restore();
-		}
+		c.save();
+		c.translate( this.polePos[0], this.polePos[1] );
+		c.rotate( hotjs.Vector.angle( this.poleVector ) );
+		c.translate( this.poleHead[0], -  this.poleImg.height/2 );
+		c.drawImage( this.poleImg, 
+				0, 0, this.poleImg.width, this.poleImg.height,
+				0, 0, this.poleSize[0], this.poleSize[1]);
+		c.restore();
 	}	
 });
 
