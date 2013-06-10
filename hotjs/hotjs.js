@@ -447,6 +447,8 @@ var View = function(){
 	this.mouseInView = [0,0,0]; 
 	this.mouseInScene = [0,0,0];
 	
+	this.touch_accuracy = 3;
+	
 	// register mouse/touch events
 	this.canvas.hotjsView = this;
 	this.canvas.addEventListener('click',function(e){
@@ -720,7 +722,7 @@ hotjs.inherit(View, hotjs.Class, {
 			
 			// finger is not accurate, so range in 5 pixel is okay.
 			var vect = [ t.x - t0[0], t.y - t0[1] ];
-			if( Vector.getLength(vect) <= 25 ) {
+			if( Vector.getLength(vect) <= this.touch_accuracy ) {
 				this.click( t );
 			} else {
 				// pass to scene
@@ -768,18 +770,21 @@ hotjs.inherit(View, hotjs.Class, {
 	},	
 	
 	onTouchStart : function(e) {
+		this.touch_accuracy = 10;
 		for ( var i = 0; i < e.targetTouches.length; i++) {
 			this.onMouseDown(e.targetTouches[i]);
 		}
 		e.preventDefault();
 	},
 	onTouchEnd : function(e) {
+		this.touch_accuracy = 10;
 		for ( var i = 0; i < e.changedTouches.length; i++) {
 			this.onMouseUp(e.changedTouches[i]);
 		}
 		e.preventDefault();
 	},
 	onTouchMove : function(e) {
+		this.touch_accuracy = 10;
 		for ( var i = 0; i < e.targetTouches.length; i++) {
 			this.onMouseMove(e.targetTouches[i]);
 		}
