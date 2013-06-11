@@ -215,7 +215,7 @@ var BenchLab = function(){
 	this.nCur = this.nMax;
 	
 	this.marginFormula = 40;
-	this.formula = true;
+	this.formula = false;
 };
 
 hotjs.inherit(BenchLab, hotjs.View, {

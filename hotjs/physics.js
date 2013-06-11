@@ -34,6 +34,7 @@ var Node = function(){
 	hotjs.base(this);
 	
 	this.restitution = 0.9;
+	this.throwable = true;
 };
 
 hotjs.inherit(Node, hotjs.Node, {
@@ -46,11 +47,16 @@ hotjs.inherit(Node, hotjs.Node, {
 	getRestitution : function() {
 		return this.restitution;
 	},
+	setThrowable : function(th) {
+		if(! th) th = ! this.throwable;
+		this.throwable = th;
+		return this;
+	},
 	collide : function(another) {
 		return this;
 	},
-	dragStart : function(t) {
-		var ret = Node.supClass.dragStart.call(this, t);
+	onTouchStart : function(t) {
+		var ret = Node.supClass.onTouchStart.call(this, t);
 
 		this.dragTime = Date.now();
 		this.t1 = [ t.x, t.y ];
@@ -58,34 +64,35 @@ hotjs.inherit(Node, hotjs.Node, {
 		
 		return ret;
 	},
-	drag : function(t) {
-		var ret = Node.supClass.drag.call(this, t);
-
-		if(!! this.draggable) {
-			var now = Date.now();
-			var dt = (now - this.dragTime) / 1000.0;
-
-			var f = 1.0/60/dt;
-			var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
-			this.setVelocity(v[0], v[1]);
-			//this.setSpin(0,0);
-
-			if( dt > 0.5 ) {
-				this.dragTime = now;
-				this.t1 = [ t.x, t.y ];
+	onTouchMove : function(t) {
+		if( this.dragging ) this.gainVelocityFromDrag(t);
+		
+		return Node.supClass.onTouchMove.call(this, t);
+	},
+	onTouchEnd : function(t) {
+		if( this.dragging ) {
+			if( this.throwable ) {
+				this.gainVelocityFromDrag(t);
+			} else {
+				this.setVelocity(0,0);
 			}
 		}
-		
-		return ret;
+
+		return Node.supClass.onTouchEnd.call(this, t);
 	},
-	drop : function(t) {
-		var ret = Node.supClass.drop.call(this, t);
+	gainVelocityFromDrag : function(t) {
+		var now = Date.now();
+		var dt = (now - this.dragTime) / 1000.0;
 
-		if( ! this.moveable ) {
-			this.setVelocity(0,0);
+		var f = 1.0/60/dt;
+		var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
+		this.setVelocity(v[0], v[1]);
+		//this.setSpin(0,0);
+
+		if( dt > 0.3 ) {
+			this.dragTime = now;
+			this.t1 = [ t.x, t.y ];
 		}
-
-		return ret;
 	}
 });
 
@@ -155,22 +162,9 @@ var Scene = function(){
 	this.gravity = Constant.g;
 	this.resistance = 1/6;
 	
-	// left, top, right, bottom
-	this.boundary = undefined;
 };
 
 hotjs.inherit(Scene, hotjs.Scene, {
-	setBoundary : function(x,y,w,h) {
-		this.boundary = [x, y, x+w, y+h];
-		return this;
-	},
-	getBoundary : function() {
-		if(! this.boundary) {
-			return [this.pos[0], this.pos[1], this.pos[0]+this.size[0], this.pos[1]+this.size[1]];
-		}
-		
-		return this.boundary;
-	},
 	setRestitution : function(r) {
 		r = Math.min(1, Math.max(0, r));
 		this.restitution = r;
@@ -214,7 +208,7 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		return this;
 	},
 	checkBorderCollision : function() {
-		var ltrb = this.getBoundary();
+		var a = this.getArea();
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
@@ -223,9 +217,9 @@ hotjs.inherit(Scene, hotjs.Scene, {
 			
 			var vx = b.velocity[0], vy = b.velocity[1];
 	
-			// check boundary 
-			var x_hit = ((px + rx > ltrb[2]) && (vx >0)) || ((px <= ltrb[0]) && (vx <0));
-			var y_hit = ((py + ry > ltrb[3]) && (vy >0)) || ((py <= ltrb[1]) && (vy <0));
+			// check area 
+			var x_hit = ((px + rx > a.r) && (vx >0)) || ((px <= a.l) && (vx <0));
+			var y_hit = ((py + ry > a.b) && (vy >0)) || ((py <= a.t) && (vy <0));
 			
 			// bounce & collision loss
 			var tution = this.restitution * b.getRestitution();
@@ -244,15 +238,15 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		return this;
 	},
 	validatePos : function() {
-		var ltrb = this.getBoundary();
+		var a = this.getArea(); // {l,t,r,b,w,h}
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
 			var px = b.pos[0], py = b.pos[1];
 
-			// fix pos if out of boundary
-			px = Math.max( ltrb[0], Math.min(ltrb[2]-b.size[0], b.pos[0]));
-			py = Math.max( ltrb[1], Math.min(ltrb[3]-b.size[1], py = b.pos[1]));
+			// fix pos if out of area
+			px = Math.max( a.l, Math.min(a.r - b.size[0], b.pos[0]));
+			py = Math.max( a.t, Math.min(a.b - b.size[1], py = b.pos[1]));
 			
 			b.pos = [px, py];			
 		}

@@ -57,10 +57,13 @@ div#btn_zoom {
 </div>
 <script>
 
+
+
 var viewX, room;
 
 resources.load([
-            	'img/room.jpg'
+            	'img/room.jpg',
+            	'img/ball.png'
             ]);
 
 resources.onReady(function(){
@@ -72,9 +75,19 @@ resources.onReady(function(){
 	room = (new hotjs.Scene())
 		.setSize(1900,1200).setColor("black").showGrid(false)
 		.setImage(resources.get('img/room.jpg')).showBgImg(true)
-		.setDraggable(true).setMoveable(true)
 		.addTo( viewX );
-
+	
+	room.onClick = function(ts) {
+		var r = 10;
+		var b = new hotjs.Node()
+			.setImage( resources.get('img/ball.png') )
+			.setSize(r*2, r*2)
+			.setPos(ts.x - r, ts.y - r)
+			.addTo( this );
+		
+		return true;
+	};
+	
 	var app = (new hotjs.App()).addNode( viewX ).start();
 });
 

@@ -69,25 +69,53 @@ input.act {
 var SnookerPool = function(){
 	hotjs.base(this);
 
-	// x,y,r
+	// x,y,r 
 	this.holes = [];
-	
-	this.dtHead = 0;
-	this.poleHead = [0,0];
-
-	this.poleVector = [-1,0];
-	
-	this.poleImg = undefined;
-	this.poleSize = [780,17];
 	
 	this.hitBall = undefined;
 	
-	// { url: "img/xx.png", rect: [x,y,w,h] }
-	this.images = {}; 
+	this.dtHead = 0;
+	this.poleHead = [0,0];
+	this.poleVector = [-1,0];
+	
+	// { url: "img/xx.png", rect: [x,y,w,h], area: [x,y,w,h], holeR/ballR : r }
+	this.images = {};
+	this.zoneD = undefined;
+	this.zoneRed = undefined;
+	this.holeR = undefined;
+	this.ballR = undefined;
+	this.poleSize = undefined;
+	
+	// scene size / background image size -> scale 
+	this.fx = 1;
+	this.fy = 1;
 };
 
 hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
-	addImages : function(r) {
+	config : function(r) {
+		if(! r) {
+			// reference data. 
+			r = {
+					table : {
+						url : 'img/snookertable.jpg',
+						rect : [ 0, 0, 1024, 576 ],
+						area : [ 60, 64, 1024 - 60*2, 576 - 64 *2 ],
+						zoneD : [282, 100],
+						zoneRed : [710, 576/2],
+						holeR : 35
+					},
+					pole : {
+						url : 'img/snookerpole.png',
+						rect : [ 0, 0, 660, 14 ],
+						size : [ 660, 14 ]
+					},
+					balls : {
+						url : 'img/oldballs.png',
+						rect : [ 0, 0, 42, 42 ],
+						ballR : 30
+					}
+				};
+		}
 		for( var i in r ) {
 			src = r[i];
 			dst = {};
@@ -100,21 +128,106 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 			this.images[i] = dst;
 		}
+		
+		var w = this.width(), h = this.height();
+		var bgW = this.images.table.rect[2], bgH = this.images.table.rect[3];
+		this.fx = w / bgW, this.fy = h / bgH;
+		
+		if( !! r.table.area ) {
+			this.setArea( 
+				r.table.area[0] * this.fx, r.table.area[1] * this.fy, 
+				r.table.area[2] * this.fx, r.table.area[3] * this.fy );
+		}
+		
+		this.zoneD = [ r.table.zoneD[0] * this.fx, r.table.zoneD[1] * this.fy ];
+		this.zoneRed = [ r.table.zoneRed[0] * this.fx, r.table.zoneRed[1] * this.fy ];
+		
+		this.holeR = r.table.holeR * this.fx;
+		this.ballR = r.balls.ballR * this.fx;
+		
+		this.poleSize = [ r.pole.size[0] * this.fy, r.pole.size[1] * this.fy ];
+
+		this.setImage( this.images.table.img ).showBgImg(true)
+			.setColor("blue").showGrid(false)
+			.setRestitution(0.8)
+			.setResistance(1/2)
+			.setGravity(0);
+
 		return this;
 	},
-	addBall : function(x, y, c) {
+	initGame : function() {
+		//var w = this.width(), h = this.height();
+		var a = this.getArea();
+		var r = this.ballR;
+		var xR = this.zoneRed[0] - r/2, xD = this.zoneD[0] - r/2;
+		var y0 = (a.t + a.b)/2 - r/2;
+
+		// set holes 
+		this.holes = [ [a.l, a.t, this.holeR ],
+		              [ a.l, a.b, this.holeR ],
+		              [ a.r, a.t, this.holeR ],
+		              [ a.r, a.b, this.holeR ],
+		              [ (a.l+a.r)/2, a.t-this.holeR/2, this.holeR ],
+		              [ (a.l+a.r)/2, a.b+this.holeR/2, this.holeR ]
+		             ];
 		
-	},
-	reset : function() {
+		this.ball_inf = [];
+
+		// white ball 
+		this.ball_inf.push( { x:(xD), y:(y0 + r*2), index:0 });
+		// red balls
+		for( var i=0; i<5; i++ ) {
+			for( var j=0; j<=i; j++ ) {
+				this.ball_inf.push({ 
+					x : (xR + i * r * 0.866), 
+					y : (y0 + j * r - i * 0.5 * r), 
+					index : 1
+					});
+			}
+		}
+		// color balls 
+		this.ball_inf.push( { x:xD, y:(y0+this.zoneD[1]), index:2 } ); // yellow 
+		this.ball_inf.push( { x:xD, y:(y0-this.zoneD[1]), index:3 } ); // green 
+		this.ball_inf.push( { x:xD, y:y0, index:4 } );// brown 
+		this.ball_inf.push( { x:((a.l+a.r)/2-r/2), y:y0, index:5 } );// blue 
+		this.ball_inf.push( { x:(xR - r), y:y0, index:6 } );// pink 
+		this.ball_inf.push( { x:(xR + 4*r*0.866 + a.r)/2, y:y0, index:7 } );// black 
 		
-	},
-	setHitBall : function(b) {
-		this.hitBall = b;
 		return this;
 	},
-	setPole : function(img, s) {
-		this.poleImg = img;
-		this.poleSize = s;
+	resetGame : function() {
+		this.removeAll();
+		
+		var imgs = this.images.balls, infs = this.ball_inf;
+		var r = this.ballR;
+		for( var i=infs.length-1; i>=0; i-- ) {
+			var inf = infs[i];
+			
+			// [i*w, 0, w, h]
+			rect = [ imgs.rect[0] + imgs.rect[2] * inf.index, imgs.rect[1], 
+			         imgs.rect[2], imgs.rect[3] ];
+			
+			b = (new hotjs.Physics.Ball())
+				.setImage( imgs.img, rect ).setSize(r,r)
+			 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY).setRestitution(0.95)
+			 	.setPos( inf.x, inf.y )
+			 	.setVelocity(0,0).setAccel(0,0)
+				.addTo( this );
+
+			b.home_pos = [ inf.x, inf.y ];
+			b.ballValue = inf.index;
+			
+			// the first one is a white ball
+			if( inf.index == 0 ) {
+				b.is_hitball = true;
+				b.setDraggable(true).setMoveable(true).setThrowable(false);
+				this.hitBall = b;
+			}
+		}
+		
+		// put cue/pole 
+		this.setPoleAngle( [-1,0] );
+		
 		return this;
 	},
 	setPoleAngle : function(v) {
@@ -139,8 +252,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		return ret;
 	},	
 	onTouchMove : function(t) {
-		var ret = SnookerPool.supClass.onTouchMove.call(this, t);
-		
+
 		var now = Date.now();
 		var dt = (now - this.dragTime) / 1000.0;
 		if( dt > 0.5 ) {
@@ -148,12 +260,10 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			this.t1 = [ t.x, t.y ];
 		}
 		
-		return true;
+		return SnookerPool.supClass.onTouchMove.call(this, t);
 	},
 	onTouchEnd : function(t) {
-		var ret = SnookerPool.supClass.onTouchEnd.call(this, t);
-
-		if( this.allBallStill() ) {
+		if( this.noBallMoving() ) {
 			var now = Date.now();
 			var dt = (now - this.dragTime) / 1000.0;
 	
@@ -165,7 +275,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			this.shootBall( v_len );
 		}
 		
-		return ret;
+		return SnookerPool.supClass.onTouchEnd.call(this, t);
 	},	
 	shootBall : function( v_len ) {
 		if( !! this.hitBall ) {
@@ -181,13 +291,8 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			this.poleHead[0] = - 40;
 		}
 	},
-	addHole : function( x,y,r ) {
-		this.holes.push( [x,y,r] );
-		
-		return this;
-	},
 	checkBorderCollision : function() {
-		var ltrb = this.getBoundary();
+		var a = this.getArea();
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
@@ -209,8 +314,8 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			var vx = b.velocity[0], vy = b.velocity[1];
 	
 			// check boundary 
-			var x_hit = (! y_in_hole) && ((px + rx > ltrb[2]) && (vx >0)) || ((px <= ltrb[0]) && (vx <0));
-			var y_hit = (! x_in_hole) && ((py + ry > ltrb[3]) && (vy >0)) || ((py <= ltrb[1]) && (vy <0));
+			var x_hit = (! y_in_hole) && ((px + rx > a.r) && (vx >0)) || ((px <= a.l) && (vx <0));
+			var y_hit = (! x_in_hole) && ((py + ry > a.b) && (vy >0)) || ((py <= a.t) && (vy <0));
 			
 			// bounce & collision loss
 			var tution = this.restitution * b.getRestitution();
@@ -229,7 +334,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		return this;
 	},
 	validatePos : function() {
-		var ltrb = this.getBoundary();
+		var a = this.getArea();
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
@@ -247,9 +352,9 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 			if( in_hole ) continue;
 
-			// fix pos if out of boundary
-			px = Math.max( ltrb[0], Math.min(ltrb[2]-b.size[0], b.pos[0]));
-			py = Math.max( ltrb[1], Math.min(ltrb[3]-b.size[1], py = b.pos[1]));
+			// fix pos if out of area
+			px = Math.max( a.l, Math.min(a.r - b.size[0], b.pos[0]));
+			py = Math.max( a.t, Math.min(a.b - b.size[1], py = b.pos[1]));
 			
 			b.pos = [px, py];			
 		}
@@ -276,7 +381,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 		}
 		
-		if( this.allBallStill() )  {
+		if( this.noBallMoving() )  {
 			// if ball still, always point pole to hit ball
 			var x = this.hitBall.pos[0] + this.hitBall.size[0]/2;
 			var y = this.hitBall.pos[1] + this.hitBall.size[1]/2;
@@ -291,8 +396,6 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 	render : function(c) {
 		SnookerPool.supClass.render.call(this, c);
 		
-		this.drawPole( c );
-		
 		// draw holes 
 		if( this.grid ) {
 			c.save();
@@ -305,107 +408,27 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 			c.restore();
 		}
+
+		this.drawPole( c );
 	},
-	allBallStill : function() {
+	noBallMoving : function() {
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
+			if( b.dragging ) return false;
 			if( hotjs.Vector.getLength(b.velocity) > 0.5 ) return false;
 		}
 		return true;
 	},
 	drawPole : function(c) {
+		var p = this.images.pole;
+		
 		c.save();
 		c.translate( this.polePos[0], this.polePos[1] );
 		c.rotate( hotjs.Vector.angle( this.poleVector ) );
-		c.translate( this.poleHead[0], -  this.poleImg.height/2 );
-		c.drawImage( this.poleImg, 
-				0, 0, this.poleImg.width, this.poleImg.height,
-				0, 0, this.poleSize[0], this.poleSize[1]);
+		c.translate( this.poleHead[0], - this.poleSize[1]/2 );
+		c.drawImage( p.img, p.rect[0], p.rect[1], p.rect[2], p.rect[3],
+				0, 0, this.poleSize[0], this.poleSize[1] );
 		c.restore();
-	},
-	initGame : function( marginX, marginY, rHole ) {
-		
-		this.setImage( this.images.table.img ).showBgImg(true)
-			.setColor("blue").showGrid(false)
-			.setRestitution(0.8)
-			.setResistance(1/2)
-			.setGravity(0);
-
-		var bgW = this.images.table.img.width, bgH = this.images.table.img.height;
-		var w = this.width(), h = this.height();
-		var fx = w / bgW, fy = h / bgH;
-		
-		// set gaming area 
-		var marginX = 60, marginY = 64, rHole = 35;
-		pool.setBoundary( marginX * fx, marginY * fx, (w - marginX * fx * 2), (h - marginY * fx *2) );
-		
-		// set holes 
-		var holes = [ [marginX, 		marginY, 		rHole],
-		              [marginX, 		bgH-marginY, 	rHole],
-		              [bgW-marginX, 	marginY, 		rHole],
-		              [bgW-marginX, 	bgH-marginY, 	rHole],
-		              [bgW/2, 	marginY * 0.75, 		rHole],
-		              [bgW/2, 	bgH-marginY * 0.75,		rHole]
-		             ];
-		for( var i=0; i<holes.length; i++ ) {
-			var ho = holes[i];
-			pool.addHole( ho[0]*fx, ho[1]*fy, ho[2]*fx );
-		}
-		
-	},
-	resetGame : function() {
-		pool.removeAll();
-		
-		var bgW = this.images.table.img.width, bgH = this.images.table.img.height;
-		var w = this.width(), h = this.height();
-		var fx = w / bgW, fy = h / bgH;
-		var r = 1.5 * 22 * fx;
-
-		var balls = [];
-		// white ball 
-		balls.push( { x:(282 * fx - r/2), y:(pool.height()/2 - r/2), index:0 });
-		// red balls
-		var x0 = 710 * fx, y0 = pool.height()/2 - r/2;
-		for( var i=0; i<5; i++ ) {
-			for( var j=0; j<=i; j++ ) {
-				balls.push( {x:(x0 + i * r * 0.866), y:(y0 + j * r - i * 0.5 * r), index:1} );
-			}
-		}
-		// color balls
-		for( var i=2; i<8; i++ ) {
-			balls.push( { x:(200 * fx), y:(pool.height()/2 + (i-3) * r), index:i } );
-		}
-		
-		var imgs = this.images.balls;
-		for( var i=balls.length-1; i>=0; i-- ) {
-			var inf = balls[ i ];
-			rect = [ imgs.rect[0] + imgs.rect[2] * inf.index, 
-			         imgs.rect[1], 
-			         imgs.rect[2], 
-			         imgs.rect[3] ];
-			b = new hotjs.Physics.Ball();
-			b.setImage( imgs.img, rect )
-			 	.setDensity(hotjs.Physics.Constant.WOOD_DENSITY)
-			 	.setRestitution(0.9)
-			 	.setSize(r,r)
-			 	.setPos(inf.x, inf.y)
-			 	.setVelocity(0,0)
-			 	.setAccel(0,0)
-				.addTo( this );
-
-			b.home_pos = [inf.x, inf.y];
-			b.ballValue = inf.index;
-			
-			if( b.ballValue == 0 ) {
-				b.is_hitball = true;
-				this.setHitBall( b );
-			}
-		}
-		
-		// put cue/pole 
-		imgs = this.images.pole;
-		this.setPole( imgs.img, [ imgs.rect[2] *fx, imgs.rect[3] *fx] );
-		this.setPoleAngle( [-1,0] );
 	}
 });
 
@@ -429,37 +452,35 @@ resources.onReady(function() {
 	viewX = (new hotjs.Util.BenchLab())
 		.setContainer('mainView')
 		.setSize(w,h)
-		.setInfoPos(50,50)
-		.showFormula(false)
 		.setInfoPos(100,100)
 		.showFPS(false);
 
 	pool = (new SnookerPool())
 		.setSize(w, h)
 		.addTo( viewX )
-		;
+		.config({
+			table : {
+				url : 'img/snookertable.jpg',
+				rect : [ 0, 0, 1024, 576 ],
+				area : [ 60, 64, 1024 - 60*2, 576 - 64 *2 ],
+				zoneD : [282, 100],
+				zoneRed : [710, 576/2],
+				holeR : 35
+			},
+			pole : {
+				url : 'img/snookerpole.png',
+				rect : [ 0, 0, 660, 14 ],
+				size : [ 660, 14 ]
+			},
+			balls : {
+				url : 'img/oldballs.png',
+				rect : [ 0, 0, 42, 42 ],
+				ballR : 30
+			}
+		}).initGame().resetGame();
 
-	pool.addImages( {
-		table : {
-			url : 'img/snookertable.jpg'
-		},
-		pole : {
-			url : 'img/snookerpole.png'
-		},
-		balls : {
-			url : 'img/oldballs.png',
-			rect : [0, 0, 42, 42],
-			scale : 1.5
-		}
-	});
-	
-	pool.initGame();
-	
-	pool.resetGame();
-	
-	var app = (new hotjs.App()).addNode( viewX ).start();
+	var app = (new hotjs.App()).addNode(viewX).start();
 });
-
 </script>
 </body>
 

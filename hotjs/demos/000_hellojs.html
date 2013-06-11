@@ -60,7 +60,7 @@ var balls = [];
 
 resources.onReady(function(){
 	var b = (new hotjs.Physics.Ball())
-		.setImage(resources.get('img/ball.png')).setSize(50,40)
+		.setImage(resources.get('img/ball.png')).setSize(50,50)
 		.setPos( room.width()/2, room.height()/2 ).setVelocity(0,0).setAccel(0,0)
 		.setDraggable(true).setMoveable(true)
 		.addTo( room );
