@@ -692,13 +692,10 @@ hotjs.inherit(View, hotjs.Class, {
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 
 			if( s.inRange(t.x, t.y) ) {
-				this.dragItems.put( t.id, s );
+				if( s.draggable ) this.dragItems.put( t.id, s );
 
 				var ts = { id: t.id, x: xy[0], y: xy[1] };
 				return s.onTouchStart( ts );
-				
-				// drag scene 
-				return s.dragStart( t );
 			}
 		}
 		return false;
@@ -714,14 +711,11 @@ hotjs.inherit(View, hotjs.Class, {
 			this.dragItems.remove( t.id );
 
 			var xy = s.posFromView( [t.x, t.y] );
-			
 			// for debug
 			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
 
 			var ts = { id: t.id, x: xy[0], y: xy[1] };
 			return s.onTouchEnd( ts );
-			//s.drop( t );
-			//return true;
 		}
 
 		var t0 = this.touches.get( t.id );
