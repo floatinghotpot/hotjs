@@ -324,12 +324,21 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		c.restore();
 	},
 	initGame : function( marginX, marginY, rHole ) {
+		
+		this.setImage( this.images.table.img ).showBgImg(true)
+			.setColor("blue").showGrid(false)
+			.setRestitution(0.8)
+			.setResistance(1/2)
+			.setGravity(0);
+
 		var bgW = this.images.table.img.width, bgH = this.images.table.img.height;
 		var w = this.width(), h = this.height();
 		var fx = w / bgW, fy = h / bgH;
 		
 		// set gaming area 
 		var marginX = 60, marginY = 64, rHole = 35;
+		pool.setBoundary( marginX * fx, marginY * fx, (w - marginX * fx * 2), (h - marginY * fx *2) );
+		
 		// set holes 
 		var holes = [ [marginX, 		marginY, 		rHole],
 		              [marginX, 		bgH-marginY, 	rHole],
@@ -338,18 +347,10 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		              [bgW/2, 	marginY * 0.75, 		rHole],
 		              [bgW/2, 	bgH-marginY * 0.75,		rHole]
 		             ];
-		
-		pool.setBoundary(marginX * fx, marginY * fx, (bgW - marginX *2) * fx, (bgH - marginY *2) * fx);
 		for( var i=0; i<holes.length; i++ ) {
 			var ho = holes[i];
 			pool.addHole( ho[0]*fx, ho[1]*fy, ho[2]*fx );
 		}
-		
-		this.setImage( this.images.table.img ).showBgImg(true)
-			.setColor("blue").showGrid(false)
-			.setRestitution(0.8)
-			.setResistance(1/2)
-			.setGravity(0);
 		
 	},
 	resetGame : function() {
