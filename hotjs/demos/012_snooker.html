@@ -58,10 +58,16 @@ input.act {
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS();'/>
 <input type='button' value='~' onClick='viewX.showFormula().benchFPS(1,300,true);'/>
-<input type='button' value='bg' onClick='pool.showBgImg();'/>
+<input type='button' value='bg' onClick='pool.showImg();'/>
 <input type='button' value='#' onClick='pool.showGrid();'/>
 <input class='act' type="button" value="new game" onClick="pool.resetGame();"/>
 <input class='act' type="button" value="shoot!" onClick="pool.shootBall();"/>
+
+<input type='button' value='+' onClick='viewX.zoom(1.2)'/>
+<input type='button' value='-' onClick='viewX.zoom(1/1.2)'/>
+<input type='button' value='*' onClick='viewX.zoom()'/>
+<input type='button' value='<->' onClick='viewX.zoom("stretch")'/>
+<input type='button' value='1:1' onClick='viewX.zoom("none")'/>
 </div>
 </div>
 <script>
@@ -147,8 +153,9 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		
 		this.poleSize = [ r.pole.size[0] * this.fy, r.pole.size[1] * this.fy ];
 
-		this.setImage( this.images.table.img ).showBgImg(true)
+		this.setBgImage(false, this.images.table.img ).showImg(true)
 			.setColor("blue").showGrid(false)
+			.setDraggable(false).setMoveable(false)
 			.setRestitution(0.8)
 			.setResistance(1/2)
 			.setGravity(0);
@@ -235,11 +242,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		return this;
 	},
 	onClick : function(ts) {
-		var xy = [this.hitBall.pos[0] + this.hitBall.size[0]/2, 
-		          this.hitBall.pos[1] + this.hitBall.size[1]/2 ];
-		
-		this.poleVector = [ xy[0] - ts.x, xy[1] - ts.y ];
-		
+
 		return true;
 	},
 	onTouchStart : function(t) {
@@ -263,13 +266,24 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		return SnookerPool.supClass.onTouchMove.call(this, t);
 	},
 	onTouchEnd : function(t) {
-		if( this.noBallMoving() ) {
+		var delta = [ t.x - this.t1[0], t.y - this.t1[1] ];
+		
+		if( hotjs.Vector.getLength(delta) <= this.container.touch_accuracy ) {
+			
+			// if click only, adjust pole direction
+			var xy = [this.hitBall.pos[0] + this.hitBall.size[0]/2, 
+			          this.hitBall.pos[1] + this.hitBall.size[1]/2 ];
+			
+			this.poleVector = [ xy[0] - t.x, xy[1] - t.y ];
+			
+		} else if( this.noBallMoving() ) {
+			
 			var now = Date.now();
 			var dt = (now - this.dragTime) / 1000.0;
 	
 			// calculate speed of hit
 			var f = 1/dt/60;
-			var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
+			var v = [ delta[0] * f, delta[1] * f ];
 			var v_len = hotjs.Vector.getLength(v);
 
 			this.shootBall( v_len );
@@ -344,7 +358,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			var in_hole = false;
 			for( var j=0; j<this.holes.length; j++ ) {
 				var r = this.holes[j];
-				if( hotjs.Vector.inRange([b.pos[0]+b.size[0]/2, b.pos[1]+b.size[1]/2], [r[0],r[1]], r[2]) ) {
+				if( hotjs.Vector.inCircle([b.pos[0]+b.size[0]/2, b.pos[1]+b.size[1]/2], [r[0],r[1]], r[2]) ) {
 					in_hole = true;
 					this.subnodes.splice(i,1);
 					break;

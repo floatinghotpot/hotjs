@@ -56,7 +56,7 @@ input.act {
 <div id="mainView"></div>
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
-<input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
+<input type='button' value='#' onClick='room.showGrid();room.showImg();'/>
 <input type='button' value='f' onClick='room.showFormula()'/>
 
 <input class='act' type="button" value="Add Ball" onClick="add_ball();"/>
@@ -65,6 +65,12 @@ input.act {
 <input class='act' type="button" value="#1" onClick="kick_ball(0);"/>
 <input class='act' type="button" value="#2" onClick="kick_ball(1);"/>
 <input class='act' type="button" value="#3" onClick="kick_ball(2);"/>
+
+<input type='button' value='+' onClick='viewX.zoom(1.2)'/>
+<input type='button' value='-' onClick='viewX.zoom(1/1.2)'/>
+<input type='button' value='*' onClick='viewX.zoom()'/>
+<input type='button' value='<->' onClick='viewX.zoom("stretch")'/>
+<input type='button' value='1:1' onClick='viewX.zoom("none")'/>
 </div>
 </div>
 <script>
@@ -94,7 +100,8 @@ resources.onReady(function() {
 	room = (new hotjs.Physics.Scene())
 		.setSize(w, h)
 		.setColor("blue").showGrid(false)
-		.setImage(resources.get('img/room.jpg')).showBgImg(true)
+		.setBgImage(false, resources.get('img/room.jpg')).showImg(true)
+		.setDraggable(true).setMoveable(true)
 		.addTo( viewX );
 	
 	add_baloon = function() { // Constant.AIR_DENSITY

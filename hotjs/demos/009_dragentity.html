@@ -56,7 +56,7 @@ input.act {
 <div id="mainView"></div>
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
-<input type='button' value='#' onClick='room.showGrid();room.showBgImg();'/>
+<input type='button' value='#' onClick='room.showGrid();room.showImg();'/>
 <input type='button' value='f' onClick='room.showFormula()'/>
 
 <input class='act' type="button" value="Add" onClick="add_ball();"/>
@@ -98,7 +98,7 @@ resources.onReady(function() {
 	room = (new hotjs.Physics.Scene())
 		.setSize(w, h)
 		.setColor("blue").showGrid(false)
-		.setImage(resources.get('img/room.jpg')).showBgImg(true)
+		.setBgImage( false, resources.get('img/room.jpg')).showImg(true)
 		.setDraggable(true).setMoveable(true)
 		.addTo( viewX );
 	

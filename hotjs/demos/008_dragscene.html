@@ -74,7 +74,7 @@ resources.onReady(function() {
 	room = (new hotjs.Scene())
 		.setSize(1920, 960)
 		.setColor("blue").showGrid(false)
-		.setImage( resources.get('img/room.jpg')).showBgImg(true)
+		.setBgImage( false, resources.get('img/room.jpg')).showImg(true)
 		.setDraggable(true).setMoveable(true)
 		.addTo( viewX );
 	

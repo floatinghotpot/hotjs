@@ -58,7 +58,7 @@ input.act {
 <div id="btn_zoom">
 <input type='button' value='?' onClick='viewX.showFPS()'/>
 <input type='button' value='#' onClick='room.showGrid();'/>
-<input type='button' value='bg' onClick='room.showBgImg();'/>
+<input type='button' value='bg' onClick='room.showImg();'/>
 <input type='button' value='f' onClick='viewX.showFormula();'/>
 <input type='button' value='start' onClick='room.removeAll();viewX.benchFPS(1,500,false)'/>
 <input type='button' value='stop' onClick='room.removeAll();viewX.benchStop();'/>
@@ -121,7 +121,7 @@ resources.onReady(function() {
 	room = (new BenchScene())
 		.setSize(w, h)
 		.setColor("blue").showGrid(false)
-		.setImage(resources.get('img/room.jpg')).showBgImg(false)
+		.setBgImage( false, resources.get('img/room.jpg')).showImg(false)
 		.addTo( viewX );
 	
 	var app = (new hotjs.App()).addNode(viewX).start();

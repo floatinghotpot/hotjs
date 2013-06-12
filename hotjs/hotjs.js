@@ -201,7 +201,7 @@ var Vector = {
 	inRect : function(v, r) { // [x,y,w,h]
 		return ((v[0]>=r[0]) && (v[0]<r[0]+r[2])) && ((v[1]>=r[1]) && (v[1]<r[1]+r[3]));
 	},
-	inRange : function(v1, v2, r) {
+	inCircle : function(v1, v2, r) {
 		return ((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]) <= (r*r));
 	}
 };
@@ -442,7 +442,7 @@ var View = function(){
 	
 	// for testing only, [x,y,id]
 	this.mouseInView = [0,0,0]; 
-	this.mouseInScene = [0,0,0];
+	this.mouseInNode = [0,0,0];
 	
 	this.touch_accuracy = 3;
 	
@@ -505,7 +505,10 @@ hotjs.inherit(View, hotjs.Class, {
 	// shift view, then move scene in reverse direction
 	shift : function(x,y) {
 		if(!! this.curScene ) {
-			this.curScene.move( -x, -y );
+			var pos = this.curScene.scaleFromView( [-x, -y] );
+			this.curScene.move( pos[0], pos[1] );
+			
+			//this.curScene.move( -x, -y );
 		}
 		return this;
 	},
@@ -515,7 +518,7 @@ hotjs.inherit(View, hotjs.Class, {
 		}
 
 		if(!! this.curScene ) {
-			var pos = this.curScene.posFromView( posCenter );
+			var pos = this.curScene.posFromContainer( posCenter );
 			this.curScene.zoom( f, pos );
 		}
 		return this;
@@ -631,7 +634,7 @@ hotjs.inherit(View, hotjs.Class, {
 			}
 			
 			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', this.infoPos[0], this.infoPos[1] + 120 );
-			c.fillText( this.mouseInScene[2] + ': (' + this.mouseInScene[0] + ', ' + this.mouseInScene[1] +')', this.infoPos[0], this.infoPos[1] + 140 );
+			c.fillText( this.mouseInNode[2] + ': (' + this.mouseInNode[0] + ', ' + this.mouseInNode[1] +')', this.infoPos[0], this.infoPos[1] + 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
@@ -657,10 +660,8 @@ hotjs.inherit(View, hotjs.Class, {
 		// pass to scene
 		var s = this.curScene;
 		if( !! s ) {
-			var xy = s.posFromView( [t.x, t.y] );
-			if( s.inRange(t.x, t.y) ) {
-				var ts = { id: t.id, x: xy[0], y: xy[1] };
-				return s.onClick( ts );
+			if( s.inRange( [t.x, t.y] ) ) {
+				return s.onClick( t );
 			}
 		}
 
@@ -670,11 +671,8 @@ hotjs.inherit(View, hotjs.Class, {
 		// ignore, just fire the click event by ourselves.
 		return false;
 
-		//var t = this.touchFromEvent(e);
-		//this.click( t );
-	},
-	inRange : function(x,y) {
-		
+		// var t = this.touchFromEvent(e);
+		// this.click( t );
 	},
 	onMouseDown : function(e) {
 		var t = this.touchFromEvent(e);
@@ -682,62 +680,45 @@ hotjs.inherit(View, hotjs.Class, {
 		
 		// for debug
 		this.mouseInView = [t.x, t.y, t.id];
+		this.t0 = [t.x, t.y];
 
 		// pass to scene
 		var s = this.curScene;
 		if( !! s ) {
-			var xy = s.posFromView( [t.x, t.y] );
-			
-			// for debug
-			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
-
-			if( s.inRange(t.x, t.y) ) {
+			if( s.inRange( [t.x, t.y] ) ) {
 				if( s.draggable ) this.dragItems.put( t.id, s );
-
-				var ts = { id: t.id, x: xy[0], y: xy[1] };
-				return s.onTouchStart( ts );
+				return s.onTouchStart( t );
 			}
 		}
+		
 		return false;
 	},	
 	onMouseUp : function(e) {
 		var t = this.touchFromEvent(e);
+		this.touches.remove( t.id );
 		
 		// for debug
 		this.mouseInView = [t.x, t.y, t.id];
 
+		// finger is not accurate, so range in 5 pixel is okay.
+		var vect = [ t.x - this.t0[0], t.y - this.t0[1] ];
+		if( Vector.getLength(vect) <= this.touch_accuracy ) {
+			this.click( t );
+		}
+
 		var s = this.dragItems.get( t.id );
 		if( !! s ) {
 			this.dragItems.remove( t.id );
-
-			var xy = s.posFromView( [t.x, t.y] );
-			// for debug
-			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
-
-			var ts = { id: t.id, x: xy[0], y: xy[1] };
-			return s.onTouchEnd( ts );
+			return s.onTouchEnd( t );
 		}
-
-		var t0 = this.touches.get( t.id );
-		if( t0 != null ) {
-			this.touches.remove( t.id );
-			
-			// finger is not accurate, so range in 5 pixel is okay.
-			var vect = [ t.x - t0[0], t.y - t0[1] ];
-			if( Vector.getLength(vect) <= this.touch_accuracy ) {
-				this.click( t );
-			} else {
-				// pass to scene
-				var s = this.curScene;
-				if(!! s ) {
-					var xy = s.posFromView( [t.x, t.y] );
-					this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
-					
-					var ts = { id: t.id, x: xy[0], y: xy[1] };
-					return s.onTouchEnd( ts );
-				}
+		
+		// pass to scene
+		var s = this.curScene;
+		if( !! s ) {
+			if( s.inRange( [t.x, t.y] ) ) {
+				return s.onTouchEnd( t );
 			}
-		}
+		}		
 
 		return false;
 	},
@@ -750,26 +731,13 @@ hotjs.inherit(View, hotjs.Class, {
 		// if a scene is being dragged, then drag it
 		var s = this.dragItems.get( t.id );
 		if( !! s ) {
-			var xy = s.posFromView( [t.x, t.y] );
-			
-			// for debug
-			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
-			
-			var ts = { id: t.id, x: xy[0], y: xy[1] };
-			return s.onTouchMove( ts );
-
-			s.drag( t );
-			return true;
+			return s.onTouchMove( t );
 		}
 
 		// pass to scene
 		var s = this.curScene;
-		if(!! s ) {
-			var xy = s.posFromView( [t.x, t.y] );
-			this.mouseInScene = [ Math.round(xy[0]), Math.round(xy[1]), t.id ];
-			
-			var ts = { id: t.id, x: xy[0], y: xy[1] };
-			return s.onTouchMove( ts );
+		if( !! s ) {
+			return s.onTouchMove( t );
 		}
 		
 		return false;
@@ -795,7 +763,8 @@ hotjs.inherit(View, hotjs.Class, {
 	}
 });
 
-// ------------- hotjs.Node -----------
+//-----------------------
+//TODO: class Node
 var hotjs_node_id = 0;
 
 var Node = function() {
@@ -834,8 +803,6 @@ var Node = function() {
 	this.moveable = undefined;
 };
 
-//-----------------------
-// TODO: class Node
 hotjs.inherit(Node, hotjs.Class, {
 	setContainer : function(c) {
 		this.container = c;
@@ -859,8 +826,31 @@ hotjs.inherit(Node, hotjs.Class, {
 	getSize : function() {
 		return this.size;
 	},
-	inRange : function(x,y) {
-		return ((x >= this.pos[0]) && (x<this.pos[0]+this.size[0]) && (y>=this.pos[1]) && (y<=this.pos[1]+this.size[1]));
+	posFromContainer : function(p) {
+		var x = p[0] - this.pos[0], 
+			y = p[1] - this.pos[1];
+
+		if(!! this.scale) {
+			x /= this.scale[0];
+			y /= this.scale[1];
+		}
+		
+		return [ Math.floor(x), Math.floor(y) ];
+	},
+	posToContainer : function(p) {
+		var x = p[0], y = p[1];
+
+		if(!! this.scale) {
+			x *= this.scale[0];
+			y *= this.scale[1];
+		}
+		
+		return [ Math.floor(x + this.pos[0]), Math.floor(y + this.pos[1])];
+	},
+	inRange : function( pos ) {
+		var p = this.posFromContainer( pos );
+		var b = (p[0]>=0) && (p[0]<this.size[0]) && (p[1]>=0) && (p[1]<this.size[1]);
+		return b;
 	},
 	setDraggable : function(b) {
 		this.draggable = b;
@@ -872,18 +862,39 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	onClick : function(t) {
 		// override if need handle click event
+		var pos = this.posFromContainer( [t.x, t.y] );
+		var ts = { id:t.id, x: pos[0], y: pos[1] };
+
+		// for debug purpose
+		this.container.mouseInNode = [ts.x, ts.y, ts.id];
+
+		if( !! this.subnodes ) {
+			// pass to subnodes
+			for(var i=this.subnodes.length-1; i>=0; i--) {
+				var n = this.subnodes[i];
+				if( n.inRange( pos ) ) {
+					return n.onClick( ts );
+				}
+			}
+		}
 	},
 	onTouchMove : function(t) {
 		if( !! this.dragging ) {
-			this.pos = Vector.add( this.pos0, Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]) );
+			var delta = Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]);
+			this.pos = Vector.add( this.pos0, delta );
 			return true;
 		}
+		
+		var pos = this.posFromContainer( [t.x, t.y] );
+		var ts = { id:t.id, x: pos[0], y: pos[1] };
+
+		this.container.mouseInNode = [ts.x, ts.y, ts.id];
 
 		if( !! this.dragItems ) {
 			// if a sub node is being dragged, then drag it
 			var n = this.dragItems.get( t.id );
 			if( !! n ) {
-				return n.onTouchMove( t );
+				return n.onTouchMove( ts );
 			}
 		}
 		
@@ -891,8 +902,8 @@ hotjs.inherit(Node, hotjs.Class, {
 			// pass to subnodes
 			for(var i=this.subnodes.length-1; i>=0; i--) {
 				var n = this.subnodes[i];
-				if( n.inRange(t.x, t.y) ) {
-					return n.onTouchMove( t );
+				if( n.inRange( pos ) ) {
+					return n.onTouchMove( ts );
 				}
 			}
 		}
@@ -907,13 +918,18 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.pos0 = [ this.pos[0], this.pos[1] ];
 		this.t0 = { id: t.id, x: t.x, y: t.y };
 
+		var pos = this.posFromContainer( [t.x, t.y] );
+		var ts = { id:t.id, x: pos[0], y: pos[1] };
+
+		this.container.mouseInNode = [ts.x, ts.y, ts.id];
+		
 		if(!! this.subnodes) {
 			for(var i=this.subnodes.length-1; i>=0; i--) {
 				var n = this.subnodes[i];
-				if( (!! n.draggable) && n.inRange(t.x, t.y) ) {
+				if( (!! n.draggable) && n.inRange( pos ) ) {
 					// drag subnode 
-					this.dragItems.put( t.id, n );
-					return n.onTouchStart( t );
+					this.dragItems.put( ts.id, n );
+					return n.onTouchStart( ts );
 				}
 			}
 		}
@@ -937,18 +953,24 @@ hotjs.inherit(Node, hotjs.Class, {
 		if( this.dragging ) {
 			this.dragging = false;
 			if(!! this.moveable) {
-				this.pos = Vector.add( this.pos0, Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]) );
+				var delta = Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]);
+				this.pos = Vector.add( this.pos0, delta );
 			} else {
 				this.pos = [ this.pos0[0], this.pos0[1] ];
 			}
 			return true;
 		}
 		
+		var pos = this.posFromContainer( [t.x, t.y] );
+		var ts = { id:t.id, x: pos[0], y: pos[1] };
+		
+		this.container.mouseInNode = [ts.x, ts.y, ts.id];
+		
 		if( !! this.dragItems ) {
 			var n = this.dragItems.get( t.id );
 			if( !! n ) {
-				this.dragItems.remove( t.id );
-				return n.onTouchEnd( t );
+				this.dragItems.remove( ts.id );
+				return n.onTouchEnd( ts );
 			}
 		}
 		
@@ -1017,13 +1039,14 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.fade = f;
 		return this;
 	},
-	setImage : function(img, rect) {
+	setImage : function(img, r) {
 		this.img = img;
-		if(!! rect) {
-			this.imgrect = rect;
-			if(! this.size) this.size = [rect[2], rect[3]];
-		} else {
+		if(! r) {
+			this.imgrect = [0, 0, img.width, img.height];
 			if(! this.size) this.size = [img.width, img.height];
+		} else {
+			this.imgrect = [ r[0], r[1], r[2], r[3] ];
+			if(! this.size) this.size = [rect[2], rect[3]];
 		}
 		return this;
 	},
@@ -1122,8 +1145,8 @@ hotjs.inherit(Node, hotjs.Class, {
 			c.rotate(this.rotation * Math.PI / 180);
 			c.translate( - this.size[0]/2, - this.size[1]/2 );
 		}
-		if(this.scale !== undefined) c.scale(this.scale[0],this.scale[1]);
-		if(this.alpha !== undefined) c.globalAlpha = this.alpha;
+		if( !! this.scale ) c.scale(this.scale[0],this.scale[1]);
+		if( !! this.alpha ) c.globalAlpha = this.alpha;
 		//if(this.composite !== undefined) c.globalCompositeOperation = this.compositeOperation;
 		
 		this.draw(c);
@@ -1169,13 +1192,20 @@ hotjs.inherit(Node, hotjs.Class, {
 var Scene = function(){
 	hotjs.base(this);
 
-	// { l, t, r, b, w, h }
-	this.area = undefined;
-	
-	this.grid = false;
-	this.bgimg = true;
+	this.gridOn = false;
+	this.imgOn = true;
 	this.color = "black";
 	this.bgcolor = "white";
+
+	this.bgrepeat = false;
+	this.bgimg = undefined;
+	this.bgimgrect = undefined;
+	
+	// { l, t, r, b, w, h }
+	this.area = undefined;
+	this.arearepeat = false;
+	this.areaimg = undefined;
+	this.areaimgrect = undefined;
 };
 
 hotjs.inherit( Scene, Node, {
@@ -1187,6 +1217,26 @@ hotjs.inherit( Scene, Node, {
 		
 		return this;
 	},
+	setBgImage : function(repeat, img, r) {
+		this.bgrepeat = repeat;
+		this.bgimg = img;
+		if(! r) {
+			this.bgimgrect = [0,0, img.width, img.height];
+		} else {
+			this.bgimgrect = [ r[0], r[1], r[2], r[3] ];
+		}
+		return this;
+	},
+	setAreaImage : function(repeat, img, r) {
+		this.arearepeat = repeat;
+		this.areaimg = img;
+		if(! r) {
+			this.areaimgrect = [0,0, img.width, img.height];
+		} else {
+			this.areaimgrect = [ r[0], r[1], r[2], r[3] ];
+		}
+		return this;
+	},
 	setArea : function(x,y,w,h) {
 		this.area = { l:x, t:y, w:w, h:h, r:(x+w), b:(y+h) };
 		return this;
@@ -1194,12 +1244,12 @@ hotjs.inherit( Scene, Node, {
 	getArea : function() {
 		if(! this.area) {
 			return {
-				l : this.pos[0],
-				t : this.pos[1],
+				l : 0,
+				t : 0,
 				w : this.size[0],
 				h : this.size[1],
-				r : this.pos[0] + this.size[0],
-				b : this.pos[1] + this.size[1]
+				r : this.size[0],
+				b : this.size[1]
 			};
 		}
 		
@@ -1208,13 +1258,6 @@ hotjs.inherit( Scene, Node, {
 	setBgColor : function(c) {
 		this.bgcolor = c;
 		return this;
-	},
-	inRange : function(x,y) {
-		var b1 = (x >= this.pos[0]);
-		var b2 = (x <= this.pos[0] + this.size[0]);
-		var b3 = (y >= this.pos[1]);
-		var b4 = (y <= this.pos[1] + this.size[1]);
-		return b1 && b2 && b3 && b4;
 	},
 	onTouchMove : function(t) {
 		var ret = Scene.supClass.onTouchMove.call(this, t);
@@ -1233,27 +1276,6 @@ hotjs.inherit( Scene, Node, {
 		//this.setSpin(0,0);
 		
 		return ret;
-	},
-	posFromView : function(p) {
-		var x = p[0] - this.pos[0], 
-			y = p[1] - this.pos[1];
-
-		if(!! this.scale) {
-			x /= this.scale[0];
-			y /= this.scale[1];
-		}
-		
-		return [ x, y ];
-	},
-	posToView : function(p) {
-		var x = p[0], y = p[1];
-
-		if(!! this.scale) {
-			x *= this.scale[0];
-			y *= this.scale[1];
-		}
-		
-		return [x + this.pos[0], y + this.pos[1]];
 	},
 	// ensure the scene is always in view
 	fixView : function() {		
@@ -1329,13 +1351,13 @@ hotjs.inherit( Scene, Node, {
 	},
 	
 	showGrid : function(g) {
-		if(g == undefined) g = (! this.grid);
-		this.grid = g;
+		if(g == undefined) g = (! this.gridOn);
+		this.gridOn = g;
 		return this;
 	},
-	showBgImg : function(g) {
-		if(g == undefined) g = (! this.bgimg);
-		this.bgimg = g;
+	showImg : function(g) {
+		if(g == undefined) g = (! this.imgOn);
+		this.imgOn = g;
 		return this;
 	},
 	play : function() {
@@ -1350,34 +1372,61 @@ hotjs.inherit( Scene, Node, {
 	draw : function(c) { 
 		c.save();
 
-		if( (!! this.img) && (this.bgimg) ) {
-			//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
-			//c.drawImage( this.img, 0, 0 );
-			c.drawImage(this.img, 0,0, this.img.width, this.img.height, 0,0, this.size[0], this.size[1]);
-		} else if( !! this.bgcolor ){
-			c.fillStyle = this.bgcolor;
-			c.fillRect(0, 0, this.size[0], this.size[1]);
+		var a = this.getArea();
+		
+		if( this.imgOn ) {
+			if(!! this.bgimg) {
+				if( this.bgrepeat ) {
+					c.fillStyle = c.createPattern(this.bgimg, 'repeat');
+					c.fillRect(0, 0, this.size[0], this.size[1]);
+				} else {
+					c.drawImage(this.bgimg, 
+							this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
+							0, 0, this.size[0], this.size[1]);
+				}
+			}
+			if(!! this.areaimg) {
+				if( this.arearepeat ) {
+					c.fillStyle = c.createPattern(this.areaimg, 'repeat');
+					c.fillRect(a.l, a.t, a.w, a.h);
+				} else {
+					c.drawImage(this.areaimg, 
+							this.areaimgrect[0], this.areaimgrect[1], this.areaimgrect[2], this.areaimgrect[3], 
+							a.l, a.t, a.w, a.h);
+				}
+			}
+		} else {
+			if( !! this.bgcolor ){
+				c.fillStyle = this.bgcolor;
+				c.fillRect(0, 0, this.size[0], this.size[1]);
+			}
 		}
 		
-		if( this.grid ) {
-			c.strokeStyle = this.color;			
+		if( this.gridOn ) {
+			c.strokeStyle = this.color;
+
 			c.lineWidth = 0.5;
-			var dx = 40, dy = 40, w = this.size[0], h = this.size[1];
+			var dx = 40, dy = 40;
 			c.beginPath();
-			for( var x=0; x<=w; x += dx ) {
+			for( var x=0; x<=this.size[0]; x += dx ) {
 				c.moveTo(x, 0);
-				c.lineTo(x, h);
+				c.lineTo(x, this.size[1]);
 			}
-			for( var y=0; y<=h; y += dy ) {
+			for( var y=0; y<=this.size[1]; y += dy ) {
 				c.moveTo(0, y);
-				c.lineTo(w, y);
+				c.lineTo(this.size[0], y);
 			}
 			c.stroke();
 			
 			c.lineWidth = 1;
-			c.translate( this.size[0]/2, this.size[1]/2 );
 			c.beginPath();
-			c.arc(0, 0, 10, 0, Math.PI * 2);
+			c.arc((a.l+a.r)/2, (a.t+a.b)/2, 10, 0, Math.PI * 2);
+			c.arc(this.size[0]/2, this.size[1]/2, 20, 0, Math.PI * 2);
+			c.stroke();
+
+			c.beginPath();
+			c.strokeRect( a.l, a.t, a.w, a.h );
+			c.strokeRect( 0, 0, this.size[0], this.size[1]);
 			c.stroke();
 		}
 		c.restore();
