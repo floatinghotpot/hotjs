@@ -12,8 +12,7 @@
 	<script src="../hotjs.js"></script>
 	<script>
 	
-module('Basic operations and object inherit');
-
+module('Basic type operations');
 test("Basic boolean operations", function() {
 	
 	function func1(){}
@@ -40,14 +39,21 @@ test("Basic boolean operations", function() {
 	equal(typeof null, 'object', 'typeof null is object');
 	notEqual( func1, true, 'value of function is not true');
 	equal(! func1, false, '! func1 -> false');
+});
 
+module('Javascript core extension');
+
+test("Array indexOf", function() {
 	var olist = ['a', 'b', 'c', 'd', 'e'];
 	equal(olist.indexOf('a'), 0, 'expected: 0');
 	equal(olist.indexOf('c'), 2, 'expected: 2');
 	equal(olist.indexOf('a',3), -1, 'expected: -1, if search after that.');
 	equal(olist.indexOf('x'), -1, 'expected: -1, if not found.');
+});
 
+module('Object oriented');
 
+test("Object inherit and override", function() {
 	// test object inherit 
 	var F1 = function(x){
 		this.v1 = x;
@@ -102,13 +108,23 @@ test("Basic boolean operations", function() {
 	
 	equal(F1.prototype.f1, F2.prototype.f1, "F1.f1 == F2.f1");
 	equal(F1.prototype.f1, F3.prototype.f1, "F1.f1 == F3.f1");
+	
+});
 
+module('Random APIs');
+
+test("Random APIs", function() {
 	// test random 
 	ok( hotjs.Random.Float(10,20) >= 10, 'random(10,20) >= 10');
 	ok( hotjs.Random.Float(10,20) < 20, 'random(10,20) < 20');
 	ok( hotjs.Random.Integer(10,20) >= 10, 'random(10,20) >= 10');
 	ok( hotjs.Random.Integer(10,20) < 20, 'random(10,20) < 20');
 
+});
+
+module('Vector APIs');
+
+test("Vector APIs", function() {
 	// test Vector operation 
 	notEqual(hotjs.Vector.copy([1,2]), [1,2], 'vector copy  return different object.');
 	deepEqual(hotjs.Vector.copy([1,2]), [1,2], 'vector copy value should be same, if use deepEqual compare.');
@@ -118,12 +134,17 @@ test("Basic boolean operations", function() {
 	deepEqual(hotjs.Vector.mul([1,2],3), [3,6], 'vector sub fails.');
 	deepEqual(hotjs.Vector.scale([1,2],[3,4]), [3,8], 'vector scale fails.');
 	deepEqual(hotjs.Vector.scaleDown([1,2],[2,4]), [0.5,0.5], 'vector scale down fails.');
-	equal(hotjs.Vector.length([3,4]), 5, '[3,4] length is 5');
+	equal(hotjs.Vector.getLength([3,4]), 5, '[3,4] length is 5');
 	deepEqual(hotjs.Vector.norm([3,4]), [0.6,0.8], '[3,4] -> [0.6,0.8], but compare float is triky.');
 	ok(hotjs.Vector.inRect([3,4], [0,0,3.1,4.1]), '[3,4] in rect [0,0,3.1,4.1]');
 	ok(hotjs.Vector.inRect([3,4], [3,4,0.1,0.1]), '[3,4] in rect [3,4,0.1,0.1]');
-	ok(hotjs.Vector.inRange([0,0],[3,4],5), '[3,4] are in range of [0,0] if given r = 5');
+	ok(hotjs.Vector.inCircle([0,0],[3,4],5), '[3,4] are in range of [0,0] if given r = 5');
 	
+});
+
+module('HashMap APIs');
+
+test("HashMap APIs", function() {
 	// test HashMap 
 	var hm = new hotjs.HashMap();
 	ok( hm.isEmpty(), 'hashmap is empty after created.');
