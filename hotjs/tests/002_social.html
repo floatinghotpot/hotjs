@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>QUnit: Object Oriented</title>
+<link rel="stylesheet" href="../../lib/qunit-1.11.0.css">
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	<script src="../../lib/qunit-1.11.0.js"></script>
+	<script src="../../lib/jquery-1.9.js"></script>
+	<script src="../hotjs.js"></script>
+	<script src="../social.js"></script>
+	<script>
+	
+module('Network & Social APIs');
+
+test("Basic operations of Social APIs", function() {
+	var aj = new hotjs.Social.AjaxClient();
+	var msg;
+	
+	// async call. will not work.
+	aj.config( { url: './msghub.php', async: true } );
+	aj.sendMsg( { a : 1 } );
+	msg = aj.pickMsg();
+	equal( msg, false, "ajax async call will not immediately return result." );
+	equal( msg.cmd, undefined, "ajax async call will not immediately return result." );
+	
+	// sync call, will work. 
+	aj.config( { url: './msghub.php', async: false } );
+
+	aj.sendMsg( { a : 1 } );
+	msg = aj.pickMsg();
+	equal( typeof msg, "object", "ajax sync call return msg object" );
+	equal( msg.cmd, "hello", "ajax sync call return cmd = hello" );
+
+	aj.sendMsg( { a : 2 } );
+	var msgs = aj.pickAllMsg();
+	ok( msgs.length > 0, "ajax sync call return msgs > 0" );
+	equal( msgs[0].cmd, "hello", "ajax sync call return cmd = hello" );
+	
+});
+		
+	</script>
+</body>
+</html>
