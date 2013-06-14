@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>QUnit: Object Oriented</title>
+<title>QUnit: Social API</title>
 <link rel="stylesheet" href="../../lib/qunit-1.11.0.css">
 </head>
 <body>
@@ -22,7 +22,7 @@ test("Basic operations of AjaxClient APIs", function() {
 	
 	// async call. will not work.
 	aj.config( { async: true } );
-	aj.configURL( './msghub.php' );
+	aj.configAPI( './server/hello.php' );
 	
 	aj.sendMsg( { a : 1 } );
 	msg = aj.pickMsg();
@@ -42,9 +42,9 @@ test("Basic operations of AjaxClient APIs", function() {
 	ok( msgs.length > 0, "ajax sync call return, pickAllMsg to get msgs > 0" );
 	equal( msgs[0].api, "hello", "ajax sync call return api = hello" );
 	
-	msgs = aj.requestMsg( { a:3 } );
-	ok( msgs.length > 0, "requestMsg is a sync call, return msgs > 0" );
-	equal( msgs[0].api, "hello", "requestMsg is a sync call, return api = hello" );
+	msg = aj.requestMsg( { a:3 } );
+	ok( typeof msg, "object", "requestMsg is a sync call, return msg as object." );
+	equal( msg.api, "hello", "requestMsg is a sync call, return msg.api = hello" );
 	
 	msg = aj.callAPI( "hello", { name: 'hotjs' } );
 	equal( msg.name, "msghub", "call remote API by name, return remote name 'msghub'." )
@@ -58,17 +58,23 @@ module('Social APIs');
 test("Basic operations of Social APIs", function() {
 	var user = new hotjs.Social.User();
 	
-	user.configURL( {
-		_default_ : './msghub.php',
-		hello : './msghub.php',
-		registerAccount : './msghub.php'
+	user.configAPI( {
+		_default_ : './server/hello.php',
+		registerAccount : './server/usermgmt.php'
 	});
 	
 	var msg = user.callAPI("registerAccount", { username : 'me', password: 'abc123', email: 'me@gmail.com', cellphone:'110' });
 	ok( msg != false, "call remote API registerAccount, reply with msg." );
-	equal( msg.done, true, "call remote API registerAccount, reply done." );
+	equal( msg.done, true, "call remote API registerAccount." );
+	//equal( msg.done, false, "call remote API registerAccount, reply done=false, comment: " + msg.comment );
 	
 	ok( user.registerAccount('me','abc123','me@gmmail.com','110'), "registerAccount() called and done." );
+	
+	equal( typeof [], "object", "typeof [] is object.");
+	ok( Array.isArray( [] ), "Array.isArray([]) == true");
+	
+	var ret = user.loadAPI( "./server/usermgmt.inf", "usermgmt", 1.05 );
+	equal( ret, true, "Load API definition from server inf." );
 	
 });
 

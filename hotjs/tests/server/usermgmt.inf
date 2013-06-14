@@ -1,0 +1,10 @@
+{
+	"module" : "usermgmt",
+	"version" : 2.2,
+	"base_ignore" : "http://msghub.hotjs.net/api/usermgmt/",
+	"list" : [ 
+		{ "api": "_default_", "url" : "hello.php", "param": [], "comment" : "default api, must be defined." },
+		{ "api": "hello", "url" : "hello.php", "param": [ "name" ], "comment" : "say hello, given own name, return peer name." },
+		{ "api": "registerAccount", "url" : "usermgmt.php", "param": [ "username", "password", "email", "cellphone" ], "comment" : "register user with giving info." }
+	]
+} 
