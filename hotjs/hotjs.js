@@ -345,23 +345,6 @@ hotjs.Class.prototype = {
 // ----------------------
 // TODO: class App
 
-var hotjs_app = undefined;
-var hotjs_lastTime = undefined;
-
-// The main game loop call back
-hotjs_main = function(){
-	var now = Date.now();
-	var dt = (now - hotjs_lastTime) / 1000.0;
-
-	if(hotjs_app != null) {
-		hotjs_app.update(dt);
-		hotjs_app.render();
-	}
-
-	hotjs_lastTime = now;
-	requestAnimFrame(hotjs_main);
-};
-
 var App = function(){
 	hotjs.base(this);
 	
@@ -378,16 +361,23 @@ hotjs.inherit(App, hotjs.Class, {
 		return this;
 	},
 	start : function() {
-		hotjs_app = this;
+		// using closure, me is accessable to inner function, but 'this' changed.
+		var me = this;
+		var lastTime = Date.now();
 		
-		this.reset();
+		function app_loop(){
+			var now = Date.now();
+			var dt = (now - lastTime) / 1000.0;
+			
+			me.update( dt );
+			me.render();
+			
+			lastTime = now;
+			requestAnimFrame( app_loop );
+		}
 		
-		hotjs_lastTime = Date.now();
-		hotjs_main();
+		app_loop();
 
-		return this;
-	},
-	reset : function() {
 		return this;
 	},
 	update : function(dt) {
@@ -446,34 +436,34 @@ var View = function(){
 	
 	this.touch_accuracy = 3;
 	
-	// register mouse/touch events
-	this.canvas.hotjsView = this;
+	// using closure, 'me' is accessable to inner function, but 'this' changed.
+	var me = this; 
 	this.canvas.addEventListener('click',function(e){
-		this.hotjsView.onClick(e);
+		me.onClick(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('mousedown',function(e){
-		this.hotjsView.onMouseDown(e);
+		me.onMouseDown(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('mouseup',function(e){
-		this.hotjsView.onMouseUp(e);
+		me.onMouseUp(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('mousemove',function(e){
-		this.hotjsView.onMouseMove(e);
+		me.onMouseMove(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('touchstart',function(e){
-		this.hotjsView.onTouchStart(e);
+		me.onTouchStart(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('touchend',function(e){
-		this.hotjsView.onTouchEnd(e);
+		me.onTouchEnd(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('touchmove',function(e){
-		this.hotjsView.onTouchMove(e);
+		me.onTouchMove(e);
 		e.preventDefault();
 	});	
 };
@@ -505,10 +495,7 @@ hotjs.inherit(View, hotjs.Class, {
 	// shift view, then move scene in reverse direction
 	shift : function(x,y) {
 		if(!! this.curScene ) {
-			var pos = this.curScene.scaleFromView( [-x, -y] );
-			this.curScene.move( pos[0], pos[1] );
-			
-			//this.curScene.move( -x, -y );
+			this.curScene.move( -x, -y );
 		}
 		return this;
 	},
