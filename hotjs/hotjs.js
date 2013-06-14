@@ -27,12 +27,7 @@ var hotjs = hotjs || {};
 
 // addon: 
 
-
-
-// -------------------------------------
-
-hotjs.require = function(file) {
-};
+hotjs.version = 1.0;
 
 // tool for inherit
 // See 
