@@ -22,7 +22,7 @@ test("Basic operations of AjaxClient APIs", function() {
 	
 	// async call. will not work.
 	aj.config( { async: true } );
-	aj.configAPI( './server/hello.php' );
+	aj.configAPI( './server/php/hello.php' );
 	
 	aj.sendMsg( { a : 1 } );
 	msg = aj.pickMsg();
@@ -59,8 +59,8 @@ test("Basic operations of Social APIs", function() {
 	var user = new hotjs.Social.User();
 	
 	user.configAPI( {
-		_default_ : './server/hello.php',
-		registerAccount : './server/usermgmt.php'
+		_default_ : './server/php/hello.php',
+		registerAccount : './server/php/usermgmt.php'
 	});
 	
 	var msg = user.callAPI("registerAccount", { username : 'me', password: 'abc123', email: 'me@gmail.com', cellphone:'110' });

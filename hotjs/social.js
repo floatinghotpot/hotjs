@@ -444,9 +444,8 @@ hotjs.inherit( Gomoku, User, {
 	},
 	// return msg.room [ "room1", "room2", ... ]
 	findRoom : function findRoom( name ) {
-		var msg = this.callAPI( this.app, {
+		var msg = this.callAPI( arguments.callee.name, {
 			sessionKey : this.session,
-			action : arguments.callee.name,
 			name : name
 		} );
 		return ((!! msg) && msg.done) ? msg.room : false;
@@ -454,29 +453,25 @@ hotjs.inherit( Gomoku, User, {
 	// if room not exist, then create it.
 	// may need enter password, if required
 	enterRoom : function enterRoom( name, pwd ) {
-		var msg = this.callAPI( this.app, {
+		var msg = this.callAPI( arguments.callee.name, {
 			sessionKey : this.session,
-			action : arguments.callee.name,
 			name : name,
 			password : pwd
 		} );
 		return ((!! msg) && msg.done) ? msg.name : false;
 	},
 	// if no one in room after exist, then remove the password if there is.
-	exitRoom : function exitRoom( name ) {
-		var msg = this.callAPI( this.app, {
+	leaveRoom : function leaveRoom( name ) {
+		var msg = this.callAPI( arguments.callee.name, {
 			sessionKey : this.session,
-			action : arguments.callee.name,
 			name : name
 		} );
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	
 	getColor : function getColor() {
-		var msg = this.callAPI( this.app, {
-			sessionKey : this.session,
-			action : arguments.callee.name,
-			pos : [x, y]
+		var msg = this.callAPI( arguments.callee.name, {
+			sessionKey : this.session
 		} );
 		if( (!! msg) && msg.done ) {
 			// cache it
@@ -487,32 +482,30 @@ hotjs.inherit( Gomoku, User, {
 	},
 	
 	setBoardSize : function setBoardSize( n ) {
-		var msg = this.callAPI( this.app, {
+		var msg = this.callAPI( arguments.callee.name, {
 			sessionKey : this.session,
-			action : arguments.callee.name,
 			size : n
 		} );
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	go : function go( x, y ) {
-		var msg = this.callAPI( this.app, {
+		var msg = this.callAPI( arguments.callee.name, {
 			sessionKey : this.session,
-			action : arguments.callee.name,
-			pos : [x, y]
+			x: x,
+			y: y,
+			color : this.mycolor
 		} );
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	undo : function undo() {
-		var msg = this.callAPI( this.app, {
-			sessionKey : this.session,
-			action : arguments.callee.name
+		var msg = this.callAPI( arguments.callee.name, {
+			sessionKey : this.session
 		});
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	confirmUndo : function confurmUndo() {
-		var msg = this.callAPI( this.app, {
-			sessionKey : this.session,
-			action : arguments.callee.name
+		var msg = this.callAPI( arguments.callee.name, {
+			sessionKey : this.session
 		});
 		return ((!! msg) && msg.done) ? true : false;
 	}

@@ -1,0 +1,60 @@
+
+NOTE: mod_python is NOT recommended now.
+
+What is mod_python?
+==========================
+mod_python is an Apache module that embeds the Python interpreter within the server. 
+
+With mod_python you can write web-based applications in Python 
+that will run many times faster than traditional CGI and will have access to 
+advanced features such as ability to retain database connections and other data 
+between hits and access to Apache internals. 
+
+Statement from modpython.org:
+==================================
+Currently mod_python is not under active development. 
+
+This does not mean that it is "dead" as some people have claimed. 
+It smiply means that the code and the project are mature enough 
+when very little is required to maintain it.
+
+Activity log:
+Jan-08-2013 I've added a git repo at Github, see link at the top of the page.
+Jan-25-2008 Mod_python SVN moved into the Quetzalcoatl directory here.
+Feb-14-2007 3.3.1 is out and available on the download page.
+
+
+Comments from stackoverflow.org
+==================================
+The mod_python package is no longer developed or supported and has not 
+been updated in many years. 
+
+If it still works with the latest Python 2.X versions you would be lucky. 
+
+The mod_python package doesn't use the Python threading APIs properly. 
+In Python 3.X they changed the obligations on how the threading API is used. 
+If any of that got back ported to Python 2.7, then mod_python would likely break, 
+because of its incorrect threading API usage.
+
+Short answer is that you don't want to be using mod_python these days.
+
+Explanation from python.org
+==================================
+
+mod_python does have some problems. Unlike the PHP interpreter, the Python 
+interpreter uses caching when executing files, so changes to a file will 
+require the web server to be restarted. 
+
+Another problem is the basic concept Apache starts child processes to 
+handle the requests, and unfortunately every child process needs to load 
+the whole Python interpreter even if it does not use it. This makes the 
+whole web server slower. 
+
+Another problem is that, because mod_python is linked against a specific 
+version of libpython, it is not possible to switch from an older version 
+to a newer (e.g. 2.4 to 2.5) without recompiling mod_python. mod_python 
+is also bound to the Apache web server, so programs written for mod_python 
+cannot easily run on other web servers.
+
+These are the reasons why mod_python should be avoided when writing new programs. 
+

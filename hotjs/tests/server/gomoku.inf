@@ -1,0 +1,16 @@
+{
+	"module" : "gomoku",
+	"version" : 1.0,
+	"base" : "./py/gomoku.py/",
+	"list" : [ 
+		{ "api": "_default_", "url" : "index", "param": [], "comment" : "default api, must be defined." },
+		{ "api": "findRoom", "url" : "findRoom", "param": [ "name" ], "comment" : "" },
+		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "name" ], "comment" : "" },
+		{ "api": "leaveRoom", "url" : "leaveRoom", "param": [ "name" ], "comment" : "" },
+		{ "api": "getColor", "url" : "getColor", "param": [ "name" ], "comment" : "" },
+		{ "api": "setBoardSize", "url" : "setBoardSize", "param": [ "name" ], "comment" : "" },
+		{ "api": "go", "url" : "go", "param": [ "name" ], "comment" : "" },
+		{ "api": "undo", "url" : "undo", "param": [ "name" ], "comment" : "" },
+		{ "api": "confirmUndo", "url" : "confirmUndo", "param": [], "comment" : "" }
+	]
+} 

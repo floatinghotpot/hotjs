@@ -1,0 +1,23 @@
+
+HotSNS
+=======================================
+
+What's HotSNS? The full name is: Hotpot Social Network Server.
+
+It's a sub project under HotJS.
+
+The goal is to make a high performance SNS server for mobile Apps and games.
+
+
+How it works?
+=======================================
+
+It provides web service to web client, and exchange data in JSON format.
+
+It can be implemented with PHP, Java EE, Python, etc.
+
+The persistence layer might be MySQL.
+
+The high performance is supported with memcache, or other cache server (like Taobao Tair).
+
+
