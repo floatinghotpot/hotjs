@@ -1,16 +1,15 @@
 {
-	"module" : "gomoku",
+	"module" : "goplayer",
 	"version" : 1.0,
-	"base" : "./py/gomoku.py/",
+	"base" : "./py/goplayer.py/",
 	"list" : [ 
 		{ "api": "_default_", "url" : "index", "param": [], "comment" : "default api, must be defined." },
-		{ "api": "findRoom", "url" : "findRoom", "param": [ "name" ], "comment" : "" },
-		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "name" ], "comment" : "" },
-		{ "api": "leaveRoom", "url" : "leaveRoom", "param": [ "name" ], "comment" : "" },
-		{ "api": "getColor", "url" : "getColor", "param": [ "name" ], "comment" : "" },
-		{ "api": "setBoardSize", "url" : "setBoardSize", "param": [ "name" ], "comment" : "" },
-		{ "api": "go", "url" : "go", "param": [ "name" ], "comment" : "" },
-		{ "api": "undo", "url" : "undo", "param": [ "name" ], "comment" : "" },
-		{ "api": "confirmUndo", "url" : "confirmUndo", "param": [], "comment" : "" }
+		{ "api": "getColor", "url" : "getColor", "param": [ "sid" ], "comment" : "return msg.done, msg.color=1/2" },
+		{ "api": "changeColor", "url" : "changeColor", "param": [ "sid" ], "comment" : "return msg.done },
+		{ "api": "confirmChangeColor", "url" : "confirmChangeColor", "param": [ "sid", "agree" ], "comment" : "return msg.done, msg.color=1/2" },
+		{ "api": "setBoardSize", "url" : "setBoardSize", "param": [ "sid", "size" ], "comment" : "return msg.done" },
+		{ "api": "go", "url" : "go", "param": [ "sid", "x", "y", "color" ], "comment" : "return msg.done" },
+		{ "api": "undo", "url" : "undo", "param": [ "sid" ], "comment" : "return msg.done" },
+		{ "api": "confirmUndo", "url" : "confirmUndo", "param": [ "sid" ], "comment" : "return msg.done" }
 	]
-} 
+}

@@ -40,7 +40,7 @@ wget http://pecl.php.net/get/memcached-2.1.0.tgz
 tar xvf memcached-2.1.0.tgz
 cd memcached-2.1.0
 phpize
-./configure
+./configure --enable-memcached
 make
 make test
 sudo make install

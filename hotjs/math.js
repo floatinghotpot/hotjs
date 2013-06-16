@@ -3,10 +3,12 @@
 
 hotjs = hotjs || {};
 
+// Random, often used, so merged into hotjs.js.
 
+// Vector, often used, so merged into hotjs.js.
 
+// TODO: to implement
 
-// TODO: to implement 
 var Matrix = {
 	copy : function(){
 		

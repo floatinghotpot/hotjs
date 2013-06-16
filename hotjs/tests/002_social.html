@@ -60,7 +60,7 @@ test("Basic operations of Social APIs", function() {
 	
 	user.configAPI( {
 		_default_ : './server/php/hello.php',
-		registerAccount : './server/php/usermgmt.php'
+		registerAccount : './server/php/user.php'
 	});
 	
 	var msg = user.callAPI("registerAccount", { username : 'me', password: 'abc123', email: 'me@gmail.com', cellphone:'110' });
@@ -73,7 +73,7 @@ test("Basic operations of Social APIs", function() {
 	equal( typeof [], "object", "typeof [] is object.");
 	ok( Array.isArray( [] ), "Array.isArray([]) == true");
 	
-	var ret = user.loadAPI( "./server/usermgmt.inf", "usermgmt", 1.05 );
+	var ret = user.loadAPI( "./server/py_user.inf", "user", 1.05 );
 	equal( ret, true, "Load API definition from server inf." );
 	
 	equal( "", false, "empty string is false." );

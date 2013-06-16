@@ -26,22 +26,18 @@ def index(req):
     req.write( "{}" )
     return apache.OK
 
-def findRoom(req):
-    req.content_type = appjson
-    return apache.OK
-
-def enterRoom(req):
-    req.content_type = appjson
-    return apache.OK
-
-def leaveRoom(req):
-    req.content_type = appjson
-    return apache.OK
-
 def getColor(req):
     req.content_type = appjson
     return apache.OK
     
+def changeColor(req):
+    req.content_type = appjson
+    return apache.OK
+
+def confirmChangeColor(req):
+    req.content_type = appjson
+    return apache.OK
+
 def setBoardSize(req):
     req.content_type = appjson
     return apache.OK
