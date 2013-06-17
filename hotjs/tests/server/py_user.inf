@@ -1,16 +1,16 @@
 {
 	"module" : "user",
 	"version" : 1.0,
-	"base" : "./py/user.py/",
+	"base" : "./server/py/user.py/",
 	"list" : [ 
 		{ "api": "_default_", "url" : "_default_", "param": [], "comment" : "default api, must be defined." },
 
-		{ "api": "registerAccount", "url" : "index", "param": [ "username", "password", "fullname", "email", "cellphone" ], "comment" : "return msg.done=true/false, msg.comment" },
-		{ "api": "deleteAccount", "url" : "index", "param": [ "username", "password" ], "comment" : "return msg.done=true/false, msg.comment" },
+		{ "api": "registerAccount", "url" : "registerAccount", "param": [ "username", "password", "fullname", "email", "cellphone" ], "comment" : "return msg.done=true/false, msg.comment" },
+		{ "api": "deleteAccount", "url" : "deleteAccount", "param": [ "username", "password" ], "comment" : "return msg.done=true/false, msg.comment" },
 
-		{ "api": "login", "url" : "index", "param": [ "username", "password", "app", "version", "heartbeat" ], "comment" : "return msg.sid, the session key" },
-		{ "api": "heartbeat", "url" : "index", "param": [ "sid" ], "comment" : "return all msg in inbox, [ msg1, msg2, msg3, ... ]" },
-		{ "api": "logout", "url" : "index", "param": [ "sid" ], "comment" : "return msg.done=true/false" },
+		{ "api": "login", "url" : "login", "param": [ "username", "password", "app", "version", "heartbeat" ], "comment" : "return msg.sid, the session key" },
+		{ "api": "heartbeat", "url" : "heartbeat", "param": [ "sid" ], "comment" : "return all msg in inbox, [ msg1, msg2, msg3, ... ]" },
+		{ "api": "logout", "url" : "logout", "param": [ "sid" ], "comment" : "return msg.done=true/false" },
 
 		{ "api": "changePassword", "url" : "index", "param": [ "username", "oldpwd", "newpwd" ], "comment" : "return msg.done=true/false, msg.comment" },
 		{ "api": "updateProfile", "url" : "index", "param": [ "sid", "profile" ], "comment" : "profile is { public: {any}, protected: {dont care}, private: {as it is} }, return msg.done=true/false" },

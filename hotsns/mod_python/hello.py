@@ -9,7 +9,7 @@ appjson = "application/json"
 def index(req):
     req.content_type = appjson
     req.write( "hello, world.\n" )
-    return apache.OK
+    #return apache.OK
 
 def testmem(req):
     mc = memcache.Client(['127.0.0.1:11211'], debug=0)
@@ -28,4 +28,4 @@ def testmem(req):
     except:
         pass
     
-    return apache.OK
+    #return apache.OK

@@ -10,7 +10,7 @@ var AjaxClient = function(){
 		cache : false,
 		data : {},
 		processData : true,
-		type : 'POST',
+		type : 'GET',
 		async : false,
 		timeout : 10000,	// 10 sec
 		dataType : 'html',
@@ -83,10 +83,11 @@ AjaxClient.prototype = {
 		
 		for( var i=0; i<msg.list.length; i++ ) {
 			var entry = msg.list[i];
-			if( entry.url.indexOf("://") > -1)
-				this.settings.url[ entry.api ] = entry.url;
-			else
-				this.settings.url[ entry.api ] = base_url + entry.url;
+			if( entry.url.indexOf("://") > -1) {
+				this.urls[ entry.api ] = entry.url;
+			} else {
+				this.urls[ entry.api ] = base_url + entry.url;
+			}
 		}
 		
 		return true;
@@ -152,7 +153,7 @@ AjaxClient.prototype = {
 	onMsgComplete : function( data_or_jqXHR, textStatus, jqXHR_or_errorThrown ) {
 	},
 	onMsgComing : function( data, textStatus, jqXHR ) {
-		if( typeof data == "array" ) {
+		if( Array.isArray(data) ) {
 			for( var i=0; i<data.length; i++ ) {
 				this.onMsgParse( data[i] );
 			}
@@ -277,19 +278,14 @@ hotjs.inherit( User, AjaxClient, {
 			// send heartbeat msg
 			var api = arguments.callee.name;
 			this.sendMsg( {
-				api : api,
+				//api : api,
 				sid : this.session			
 				}, 
-				this.settings.url[ api ], { async:true } 
+				this.urls[ api ], { async:true } 
 			);
 			
-			// closure, will it work?
-			var me = this;
-			function loopHeartbeat() {
-				me.heartbeat();
-			}
-
-			this.hb_timer = setTimeout("loopHeartbeat()", this.hb_interval);
+			window.hotjs_user = this;
+			this.hb_timer = window.setTimeout("window.hotjs_user.heartbeat()", this.hb_interval);
 		}
 		return true;
 	},
