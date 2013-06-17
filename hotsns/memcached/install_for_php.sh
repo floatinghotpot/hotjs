@@ -28,6 +28,7 @@ fi
 #
 wget https://launchpad.net/libmemcached/1.0/1.0.17/+download/libmemcached-1.0.17.tar.gz
 tar xvf libmemcached-1.0.17.tar.gz
+cd libmemcached-1.0.17
 ./configure
 make
 sudo make install
@@ -61,6 +62,7 @@ cd ..
 echo "memcache for php installed."
 
 cd ..
+rm -rf tmp
 echo "done."
 
 # If using MAMP
