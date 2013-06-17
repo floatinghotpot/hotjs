@@ -42,32 +42,54 @@ def deleteAccount(req):
     return apache.OK
 
 def login(req):
+    form = util.FieldStorage(req, keep_blank_values=1)
+    api = form.getfirst("api")
+    param = json.loads( form.getfirst("param") )
     req.content_type = appjson
-    form = util.FieldStorage(req)
+
+    name = param['username']
     
-    name = form.getfirst("username")
     m = hashlib.md5()
     m.update( name  )
-    req.write( "{" + "\"done\":true, \"sid\":\"{0}\" ".format( m.hexdigest() ) + "}" )
+    sid = m.hexdigest();
+    
+    msg = { 'done':True, 'sid': sid };
+    req.write( json.dumps(msg) )
     #return apache.OK
 
 def heartbeat(req):
+    form = util.FieldStorage(req, keep_blank_values=1)
+    api = form.getfirst("api")
+    param = json.loads( form.getfirst("param") )
     req.content_type = appjson
-    form = util.FieldStorage(req)
-    sid = form.getfirst("sid")
+
+    sid = param['sid']
+
     req.write( "[" )
-    #req.write( "{ \"api\": \"say\", \"sid\":\"" + sid +"\", \"who\":\"li4\", \"what\":\"hi, how are you?\" }" )
+    # get all msg from inbox
+    #req.write( json.dumps( param ) )
     req.write( "]" )
     #return apache.OK
     
 def logout(req):
+    form = util.FieldStorage(req, keep_blank_values=1)
+    api = form.getfirst("api")
+    param = json.loads( form.getfirst("param") )
+    sid = param['sid']
+    
     req.content_type = appjson
-    req.write( "{ \"done\":true } " )
+    msg = { 'done':True }
+    req.write( json.dumps(msg) )
     #return apache.OK
 
 def changePassword(req):
+    form = util.FieldStorage(req, keep_blank_values=1)
+    api = form.getfirst("api")
+    param = json.loads( form.getfirst("param") )
     req.content_type = appjson
-    req.write( "{ \"done\":true } " )
+
+    msg = { 'done':True }
+    req.write( json.dumps(msg) )
     #return apache.OK
 
 def updateProfile(req):

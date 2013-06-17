@@ -17,56 +17,52 @@
 module('Network APIs');
 
 test("Basic operations of AjaxClient APIs", function() {
+
+	equal( typeof [], "object", "typeof [] is object.");
+	ok( Array.isArray( [] ), "Array.isArray([]) == true");
+	equal( "", false, "empty string is false." );
+
 	var aj = new hotjs.Social.AjaxClient();
 	var msg;
-	
-	// async call. will not work.
-	//aj.config( { async: true } );
+
 	aj.configAPI( './server/php/hello.php' );
-	
-	//aj.sendMsg( { a : 1 } );
-	//msg = aj.pickMsg();
-	//equal( msg, false, "ajax async call will not immediately return result." );
-	//equal( msg.api, undefined, "ajax async call will not immediately return result." );
-	
-	// sync call, will work. 
-	aj.config( { async: false } );
+	equal( aj.settings.url, './server/php/hello.php', "config url locally.");
 
-	aj.sendMsg( { a : 1 } );
-	msg = aj.pickMsg();
-	equal( typeof msg, "object", "ajax sync call return, pick 1 msg object" );
-	equal( msg.api, "hello", "ajax sync call return api = hello" );
-
-	aj.sendMsg( { a : 2 } );
-	var msgs = aj.pickAllMsg();
-	ok( msgs.length > 0, "ajax sync call return, pickAllMsg to get msgs > 0" );
-	equal( msgs[0].api, "hello", "ajax sync call return api = hello" );
+	// async call 
+	aj.onMsgParse = function( m ) {
+		console.log( m );
+	};
+	aj.postMsg( { a : 1 } );
 	
+	aj.configAPI( {
+		_default_ : './server/php/hello.php',
+		hello : './server/php/hello.php',
+		registerAccount : './server/php/user.php'
+	});
+	equal( aj.settings.url, './server/php/hello.php', "config url locally.");
+	equal( aj.urls["_default_"], './server/php/hello.php', "config url locally.");
+	equal( aj.urls["hello"], './server/php/hello.php', "config url locally.");
+	equal( aj.urls["registerAccount"], './server/php/user.php', "config url locally.");
+
+	// sync call
 	msg = aj.requestMsg( { a:3 } );
 	ok( typeof msg, "object", "requestMsg is a sync call, return msg as object." );
 	equal( msg.api, "hello", "requestMsg is a sync call, return msg.api = hello" );
 	
+	// call remote API 
 	msg = aj.callAPI( "hello", { name: 'hotjs' } );
 	equal( msg.name, "msghub", "call remote API by name, return remote name 'msghub'." )
 
+	// call local API 
 	equal( aj.hello(), "msghub", "call hello(), return remote name 'msghub'." );
+
 });
 
 module('Social APIs');
 
 test("Basic operations of Social APIs", function() {
-	equal( typeof [], "object", "typeof [] is object.");
-	ok( Array.isArray( [] ), "Array.isArray([]) == true");
-	equal( "", false, "empty string is false." );
 
 	var user = new hotjs.Social.User();
-
-	user.configAPI( {
-		_default_ : './server/php/hello.php',
-		registerAccount : './server/php/user.php'
-	});
-	equal( user.urls["_default_"], './server/php/hello.php', "config url locally.");
-	equal( user.urls["registerAccount"], './server/php/user.php', "config url locally.");
 
 	// load API from remote inf file. 
 	var ret = user.loadAPI( "./server/py_user.inf", "user", 1.05 );
@@ -77,8 +73,7 @@ test("Basic operations of Social APIs", function() {
 		//if( msg.api == "say" ) alert( msg.who + " say: " + msg.what );
 	};
 	
-	ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to server." );
-
+	ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to server, start heartbeat." );
 	
 });
 

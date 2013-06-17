@@ -120,13 +120,14 @@ AjaxClient.prototype = {
 		
 		return msgs;
 	},
-	sendMsg : function( data, url, options ) {
+	postMsg : function( data, url, options ) {
 		var ajaxpkg = {};
 		
 		for( var i in this.settings ) ajaxpkg[i] = this.settings[i];
 		if( !! options ) for( var i in options ) ajaxpkg[i] = options[i];
 		if( !! data ) ajaxpkg.data = data;
 		if( !! url ) ajaxpkg.url = url;
+		ajaxpkg.async = true;
 		
 		var me = this;
 		
@@ -161,22 +162,11 @@ AjaxClient.prototype = {
 			this.onMsgParse( data );
 		}
 	},
+	// TODO: sub class always override this function
+	// to handle incoming message immediately.
+	// check msg.api, then do something.
 	onMsgParse : function( msg ) {
-		// remove some if queue full
-		var n = this.msgList.length;
-		if( n >= this.msgMax ) {
-			this.msgList.splice(0, n-1 - this.msgMax);
-		}
 		
-		this.msgList.push( msg );
-	},
-	pickMsg : function() {
-		return ( this.msgList.length > 0 ) ? this.msgList.shift() : false;
-	},
-	pickAllMsg : function() {
-		var msgs = this.msgList;
-		this.msgList = [];
-		return msgs;
 	},
 	// input: { api: "api_name", key1: value1, key2: value2, ... }
 	// output: { api: "api_name", key1: value1, key2: value2, ... }
@@ -185,7 +175,10 @@ AjaxClient.prototype = {
 		var url = this.urls[ api ];
 		if(! url) url = this.urls[ '_default_' ];
 		
-		var msg = this.requestMsg( data, url );
+		var msg = this.requestMsg( {
+			api: api,
+			param: JSON.stringify(data) 
+			}, url );
 		if( typeof msg == "object" ) {
 			//if( msg.api == api ) { // double check api, needed ? 
 			return msg;
@@ -264,6 +257,9 @@ hotjs.inherit( User, AjaxClient, {
 			// set hb interval if needed.
 			if(!! hb) this.hb_interval = hb;
 			
+			var magic_id = 'u' + this.session;
+			window[ magic_id ] = this;
+			
 			// start first hb.
 			this.heartbeat();
 			
@@ -277,15 +273,16 @@ hotjs.inherit( User, AjaxClient, {
 		if( !! this.session ) {
 			// send heartbeat msg
 			var api = arguments.callee.name;
-			this.sendMsg( {
-				//api : api,
-				sid : this.session			
-				}, 
-				this.urls[ api ], { async:true } 
-			);
+			var data = { sid : this.session, test1: [2,3,"str"], test2: {x:1, y:2} };
+			this.postMsg( { 
+				api: api, 
+				param: JSON.stringify(data) 
+				}, this.urls[ api ] );
 			
-			window.hotjs_user = this;
-			this.hb_timer = window.setTimeout("window.hotjs_user.heartbeat()", this.hb_interval);
+			//window.hotjs_user = this;
+			var magic_id = 'u' + this.session;
+			var func = "window." + magic_id + ".heartbeat()"; 
+			this.hb_timer = window.setTimeout( func, this.hb_interval );
 		}
 		return true;
 	},
@@ -293,6 +290,9 @@ hotjs.inherit( User, AjaxClient, {
 		// stop heartbeat timer
 		if(!! this.hb_timer) {
 			clearTimeout( this.hb_tiemr );
+			
+			var magic_id = 'u' + this.session;
+			delete window[ magic_id ];
 		}
 		
 		// send logout msg

@@ -12,34 +12,35 @@
 		{ "api": "heartbeat", "url" : "heartbeat", "param": [ "sid" ], "comment" : "return all msg in inbox, [ msg1, msg2, msg3, ... ]" },
 		{ "api": "logout", "url" : "logout", "param": [ "sid" ], "comment" : "return msg.done=true/false" },
 
-		{ "api": "changePassword", "url" : "index", "param": [ "username", "oldpwd", "newpwd" ], "comment" : "return msg.done=true/false, msg.comment" },
-		{ "api": "updateProfile", "url" : "index", "param": [ "sid", "profile" ], "comment" : "profile is { public: {any}, protected: {dont care}, private: {as it is} }, return msg.done=true/false" },
-		{ "api": "getProfile", "url" : "index", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.profile as it is." },
-		{ "api": "queryProfile", "url" : "index", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false, msg.profile depends on friend relationship." },
+		{ "api": "changePassword", "url" : "changePassword", "param": [ "username", "oldpwd", "newpwd" ], "comment" : "return msg.done=true/false, msg.comment" },
+		{ "api": "updateProfile", "url" : "updateProfile", "param": [ "sid", "profile" ], "comment" : "profile is { public: {any}, protected: {dont care}, private: {as it is} }, return msg.done=true/false" },
+		{ "api": "getProfile", "url" : "getProfile", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.profile as it is." },
+		{ "api": "queryProfile", "url" : "queryProfile", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false, msg.profile depends on friend relationship." },
 
-		{ "api": "listFriend", "url" : "index", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.user=[ { username:xx, fullname:xx, presence:xx }, ...]" },
-		{ "api": "addFriend", "url" : "index", "param": [ "sid", "name", "textmsg" ], "comment" : "drop a msg in peer inbox, return msg.done=true/false" },
-		{ "api": "confirmAddFriend", "url" : "index", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
-		{ "api": "removeFriend", "url" : "index", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
+		{ "api": "listFriend", "url" : "listFriend", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.user=[ { username:xx, fullname:xx, presence:xx }, ...]" },
+		{ "api": "addFriend", "url" : "addFriend", "param": [ "sid", "name", "textmsg" ], "comment" : "drop a msg in peer inbox, return msg.done=true/false" },
+		{ "api": "confirmAddFriend", "url" : "confirmAddFriend", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
+		{ "api": "removeFriend", "url" : "removeFriend", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
 
-		{ "api": "block", "url" : "index", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
-		{ "api": "unblock", "url" : "index", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
+		{ "api": "listBlock", "url" : "listBlock", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.user=[ { username:xx, fullname:xx, presence:xx }, ...]" },
+		{ "api": "block", "url" : "block", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
+		{ "api": "unblock", "url" : "unblock", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
 
-		{ "api": "setTag", "url" : "index", "param": [ "sid", "tag" ], "comment" : "tag is [str1, str2, ...], return msg.done=true/false" },
-		{ "api": "getTag", "url" : "index", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.tag as it is." },
-		{ "api": "updateStatus", "url" : "index", "param": [ "sid", "status" ], "comment" : "status={ presence: str, location: [lat, lang] }, return msg.done=true/false" },
-		{ "api": "queryPresence", "url" : "index", "param": [ "sid", "user" ], "comment" : "user=[user1, user2, ...], return msg.done=true/false" },
-		{ "api": "searchUser", "url" : "index", "param": [ "sid", "tag", "distance" ], "comment" : "return msg.done=true/false, msg.user=[ { username:xx, fullname:xx, presence:xx }, ...]" },
-		{ "api": "searchUserComplex", "url" : "index", "param": [ "sid", "filter" ], "comment" : "return msg.done=true/false, msg.user" },
+		{ "api": "setTag", "url" : "setTag", "param": [ "sid", "tag" ], "comment" : "tag is [str1, str2, ...], return msg.done=true/false" },
+		{ "api": "getTag", "url" : "getTag", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.tag as it is." },
+		{ "api": "updateStatus", "url" : "updateStatus", "param": [ "sid", "status" ], "comment" : "status={ presence: str, location: [lat, lang] }, return msg.done=true/false" },
+		{ "api": "queryPresence", "url" : "queryPresence", "param": [ "sid", "user" ], "comment" : "user=[user1, user2, ...], return msg.done=true/false" },
+		{ "api": "searchUser", "url" : "searchUser", "param": [ "sid", "tag", "distance" ], "comment" : "return msg.done=true/false, msg.user=[ { username:xx, fullname:xx, presence:xx }, ...]" },
+		{ "api": "searchUserComplex", "url" : "searchUserComplex", "param": [ "sid", "filter" ], "comment" : "return msg.done=true/false, msg.user" },
 
-		{ "api": "inviteJoinGroup", "url" : "index", "param": [ "sid", "name", "group" ], "comment" : "inviter must in the group, return msg.done=true/false" },
-		{ "api": "quitGroup", "url" : "index", "param": [ "sid", "group" ], "comment" : "return msg.done=true/false" },
-		{ "api": "chat", "url" : "index", "param": [ "sid", "group", "what" ], "comment" : "chat in a group, return msg.done=true/false" },
+		{ "api": "inviteJoinGroup", "url" : "inviteJoinGroup", "param": [ "sid", "name", "group" ], "comment" : "inviter must in the group, return msg.done=true/false" },
+		{ "api": "quitGroup", "url" : "quitGroup", "param": [ "sid", "group" ], "comment" : "return msg.done=true/false" },
+		{ "api": "chat", "url" : "chat", "param": [ "sid", "group", "what" ], "comment" : "chat in a group, return msg.done=true/false" },
 
-		{ "api": "enterRoom", "url" : "index", "param": [ "sid", "name", "password" ], "comment" : "enter room, create if not exists, password optional, return msg.done=true/false" },
-		{ "api": "leaveRoom", "url" : "index", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
-		{ "api": "say", "url" : "index", "param": [ "sid", "what" ], "comment" : "anyone in room can hear. return msg.done=true/false" },
+		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "sid", "name", "password" ], "comment" : "enter room, create if not exists, password optional, return msg.done=true/false" },
+		{ "api": "leaveRoom", "url" : "leaveRoom", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
+		{ "api": "say", "url" : "say", "param": [ "sid", "what" ], "comment" : "anyone in room can hear. return msg.done=true/false" },
 		
-		{ "api": "sms", "url" : "index", "param": [ "sid", "name", "what" ], "comment" : "send short message, only between friends. return msg.done=true/false" }
+		{ "api": "sms", "url" : "sms", "param": [ "sid", "name", "what" ], "comment" : "send short message, only between friends. return msg.done=true/false" }
 	]
 } 
