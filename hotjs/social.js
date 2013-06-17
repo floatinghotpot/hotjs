@@ -170,14 +170,13 @@ AjaxClient.prototype = {
 	},
 	// input: { api: "api_name", key1: value1, key2: value2, ... }
 	// output: { api: "api_name", key1: value1, key2: value2, ... }
-	callAPI : function( api, data ) {
-		data.api = api;
+	callAPI : function( api, param ) {
 		var url = this.urls[ api ];
 		if(! url) url = this.urls[ '_default_' ];
 		
 		var msg = this.requestMsg( {
 			api: api,
-			param: JSON.stringify(data) 
+			param: JSON.stringify(param) 
 			}, url );
 		if( typeof msg == "object" ) {
 			//if( msg.api == api ) { // double check api, needed ? 
