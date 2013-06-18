@@ -1033,17 +1033,11 @@ hotjs.inherit(Node, hotjs.Class, {
 		if(! this.touches0) return false;
 		
 		if( this.draggable ) {
-			var px = 0;
-			var py = 0;
-			var ids = this.touches.keys();
-			for( var i=0; i<ids.length; i++ ) {
-				id = ids[i];
-				t1 = this.touches.get( id );
-				t0 = this.touches0.get( id );
-				px += (t1.x - t0.x + t0.px) / ids.length; // average
-				py += (t1.y - t0.y + t0.py) / ids.length;
+			if( this.touches.size() == 1 ) {
+				var t0 = this.touches0.get( this.id0 );
+				var t1 = this.touches.get( this.id0 );
+				this.pos = [ (t1.x - t0.x + t0.px), (t1.y - t0.y + t0.py) ];
 			}
-			this.pos = [ px, py ];
 		}
 		
 		if( this.zoomable ) {
@@ -1064,6 +1058,16 @@ hotjs.inherit(Node, hotjs.Class, {
 				// calc the new scale, based on the scale when put first finger.
 				var t0 = this.touches0.get( this.id0 );
 				this.scale = [ t0.sx * d_t1 / d_t0, t0.sy * d_t1 / d_t0 ];
+				
+				// we scale from the center point between 2 fingers, keep the point no move.
+				var center_t0 = [ (f1t0.x + f2t0.x)/2, (f1t0.y + f2t0.y)/2 ];
+				center_view = Vector.add( [t0.px, t0.py], Vector.scale( center_t0, [t0.sx, t0.sy] ) );
+				this.pos = Vector.sub( center_view, Vector.scale(center_t0, this.scale) );
+
+				// if the center point moves, let's move 
+				var center_t1 = [ (f1t1.x + f2t1.x)/2, (f1t1.y + f2t1.y)/2 ];
+				var center_delta = Vector.sub( center_t1, center_t0 );
+				this.pos = Vector.add( this.pos, center_delta );
 			}
 		}
 		
@@ -1425,7 +1429,15 @@ hotjs.inherit( Scene, Node, {
 		return ret;
 	},
 	// ensure the scene is always in view
-	fixView : function() {		
+	fixView : function() {
+		var w = this.container.width(), h = this.container.height();
+		var min_sx = w / this.size[0], min_sy = h / this.size[1];
+		var min_scale = Math.min( min_sx, min_sy );
+		if( this.scale[0] < min_scale || this.scale[1] < min_scale ) {
+			this.scale[0] = min_scale;
+			this.scale[1] = min_scale;
+		}
+		
 		if( this.pos[0] >0 ) this.pos[0]=0;
 		if( this.pos[1] >0 ) this.pos[1]=0;
 		
