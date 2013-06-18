@@ -27,25 +27,23 @@ div#mainView {
 	margin: 0px;
 	padding: 0px;
 }
-div#btn_zoom {
+div#btn_chat {
 	display: inline-block;
 	position: absolute;
-	border: solid green 1px;
+	border: solid green 0px;
 	margin: 0px;
 	padding: 0px;
 	top: 10px;
 	right: 10px;
-	background-color: #eeeeee;
 }
 div#btn_act {
 	display: inline-block;
 	position: absolute;
-	border: solid green 1px;
+	border: solid green 0px;
 	margin: 0px;
 	padding: 0px;
-	top: 50px;
+	top: 80px;
 	right: 10px;
-	background-color: #eeeeee;
 }
 input.act {
 	right: 0px;
@@ -55,19 +53,29 @@ input.act {
 <body>
 <div>
 <div id="mainView"></div>
-<div id="btn_zoom">
-<input type='button' value='?' onClick='viewX.showFPS()'/>
-<input type='button' value='bg' onClick='room.showImg();'/>
+<div id="btn_chat">
+<div id="chatmsg">
 
-<input type='button' value='f' onClick='viewX.showFormula();'/>
-<input type='button' value='start' onClick='room.removeAll();viewX.benchFPS(1,500,false)'/>
-<input type='button' value='stop' onClick='room.removeAll();viewX.benchStop();'/>
+</div><br>
+<input type="text" id="chatinput" name="chatinput"/><input type="button" value="send" onClick=''/>
+</div>
+<div id="btn_act">
+<input type='button' value='13x13' onClick='room.resetGame(13);'/><br>
+<input type='button' value='15x15' onClick='room.resetGame(15);'/><br>
+<input type='button' value='17x17' onClick='room.resetGame(17);'/><br>
+<input type='button' value='19x19' onClick='room.resetGame(19);'/><br><br>
 
-<input type='button' value='13x13' onClick='room.resetGame(13);'/>
-<input type='button' value='15x15' onClick='room.resetGame(15);'/>
-<input type='button' value='19x19' onClick='room.resetGame(19);'/>
-<input type='button' value='new game' onClick='room.resetGame();'/>
-<input type='button' value='undo' onClick='room.undo();'/>
+<input type='button' value='easy' onClick=''/><br>
+<input type='button' value='middle level' onClick=''/><br>
+<input type='button' value='difficult' onClick=''/><br><br>
+
+<input type='button' value='solo play' onClick=''/><br>
+<input type='button' value='two player' onClick=''/><br>
+<input type='button' value='play online' onClick=''/><br><br>
+
+<input type='button' value='new game' onClick='room.resetGame();'/><br>
+<input type='button' value='undo' onClick='room.undo();'/><br>
+<input type='button' value='tips' onClick=''/><br><br>
 
 </div>
 </div>
