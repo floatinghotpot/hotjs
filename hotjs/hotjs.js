@@ -827,6 +827,8 @@ var Node = function() {
 
 	this.draggable = undefined;
 	this.moveable = undefined;
+	this.zoomable = undefined;
+	this.rotateable = undefined;
 };
 
 hotjs.inherit(Node, hotjs.Class, {
@@ -879,16 +881,36 @@ hotjs.inherit(Node, hotjs.Class, {
 		return b;
 	},
 	setDraggable : function(b) {
+		this.draggable = b;
+		if(b) {
+			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
+			if(this.touches == undefined) this.touches = new hotjs.HashMap();
+		}
+		return this;
+	},
+	setMoveable : function(b) {
+		this.setDraggable( b );
+		
+		this.moveable = b;
+		return this;
+	},
+	setZoomable : function(b) {
+		this.zoomable = b;
 		if(b) {
 			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
 			if(this.touches == undefined) this.touches = new hotjs.HashMap();
 			if(this.scale == undefined) this.scale = [1,1];
 		}
-		this.draggable = b;
 		return this;
 	},
-	setMoveable : function(b) {
-		this.moveable = b;
+	setRotateable : function(b) {
+		if(b) {
+			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
+			if(this.touches == undefined) this.touches = new hotjs.HashMap();
+			//if(this.scale == undefined) this.scale = [1,1];
+			if(this.rotation == undefined) this.rotation = 0;
+		}
+		this.rotateable = b;
 		return this;
 	},
 	onClick : function(t) {
@@ -911,20 +933,25 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	onTouchMove : function(t) {
 		if( !! this.touches ) {
-			this.touches.put( t.id, { 
-				id: t.id, 
-				x: t.x, 
-				y: t.y, 
-				px: this.pos[0], 
-				py: this.pos[1],
-				sx: this.scale[0],
-				sy: this.scale[1]
-			});
+			var f = {
+				id : t.id,
+				x : t.x,
+				y : t.y,
+				px : this.pos[0],
+				py : this.pos[1]
+			};
+			if( this.zoomable ) {
+				f.sx = this.scale[0];
+				f.sy = this.scale[1];
+			}
+			if( this.rotateable ) {
+				f.r = this.rotation;
+			}
+			this.touches.put( t.id, f );
 		}
 		
 		if( !! this.dragging ) {
-			var delta = Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]);
-			this.pos = Vector.add( this.pos0, delta );
+			this.handleDragZoomRotate(t);
 			return true;
 		}
 		
@@ -955,20 +982,28 @@ hotjs.inherit(Node, hotjs.Class, {
 	},	
 	onTouchStart : function(t) {
 		if( !! this.touches0 ) {
-			this.touches0.put( t.id, { 
-				id: t.id, 
-				x: t.x, 
-				y: t.y, 
-				px: this.pos[0], 
-				py: this.pos[1],
-				sx: this.size[0],
-				sy: this.size[1]
-			});
+			var f = {
+				id : t.id,
+				x : t.x,
+				y : t.y,
+				px : this.pos[0],
+				py : this.pos[1]
+			};
+			if( this.zoomable ) {
+				f.sx = this.scale[0];
+				f.sy = this.scale[1];
+			}
+			if( this.rotateable ) {
+				f.r = this.rotation;
+			}
+			this.touches0.put( t.id, f );
+			
+			// only memorize the id of first touch, and we can get init pos/scale/rotation.
+			if(this.touches0.size() == 1) {
+				this.id0 = t.id;
+			}
 		}
 		
-		this.pos0 = [ this.pos[0], this.pos[1] ];
-		this.t0 = { id: t.id, x: t.x, y: t.y };
-
 		var pos = this.posFromContainer( [t.x, t.y] );
 		var ts = { id:t.id, x: pos[0], y: pos[1] };
 
@@ -992,23 +1027,80 @@ hotjs.inherit(Node, hotjs.Class, {
 		}
 		
 		return false;
-	},	
+	},
+	handleDragZoomRotate : function(t) {
+		if(! this.touches) return false;
+		if(! this.touches0) return false;
+		
+		if( this.draggable ) {
+			var px = 0;
+			var py = 0;
+			var ids = this.touches.keys();
+			for( var i=0; i<ids.length; i++ ) {
+				id = ids[i];
+				t1 = this.touches.get( id );
+				t0 = this.touches0.get( id );
+				px += (t1.x - t0.x + t0.px) / ids.length; // average
+				py += (t1.y - t0.y + t0.py) / ids.length;
+			}
+			this.pos = [ px, py ];
+		}
+		
+		if( this.zoomable ) {
+			// we treat touch of 2 fingers as zoom gesture
+			if( this.touches.size() == 2) {
+				var ids = this.touches.keys();
+				
+				// calc distance between 2 fingers when touch start.
+				var f1t0 = this.touches0.get( ids[0] );
+				var f2t0 = this.touches0.get( ids[1] );
+				var d_t0 = Vector.getLength( Vector.sub([f1t0.x, f1t0.y], [f2t0.x, f2t0.y]) );
+				
+				// calc distance between 2 fingers now.
+				var f1t1 = this.touches.get( ids[0] );
+				var f2t1 = this.touches.get( ids[1] );
+				var d_t1 = Vector.getLength( Vector.sub([f1t1.x, f1t1.y], [f2t1.x, f2t1.y]) );
+				
+				// calc the new scale, based on the scale when put first finger.
+				var t0 = this.touches0.get( this.id0 );
+				this.scale = [ t0.sx * d_t1 / d_t0, t0.sy * d_t1 / d_t0 ];
+			}
+		}
+		
+		if( this.rotateable ) {
+			
+		}
+	},
 	onTouchEnd : function(t) {
 		if( !! this.touches ) {
-			var t0 = this.touches.get( t.id );
-			if( !! t0 ) {
-				this.touches.remove( t.id );
+			var f = {
+				id : t.id,
+				x : t.x,
+				y : t.y,
+				px : this.pos[0],
+				py : this.pos[1]
+			};
+			if( this.zoomable ) {
+				f.sx = this.scale[0];
+				f.sy = this.scale[1];
 			}
+			if( this.rotateable ) {
+				f.r = this.rotation;
+			}
+			this.touches.put( t.id, f );
 		}
 		
 		if( this.dragging ) {
 			this.dragging = false;
 			if(!! this.moveable) {
-				var delta = Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]);
-				this.pos = Vector.add( this.pos0, delta );
+				this.handleDragZoomRotate(t);
 			} else {
-				this.pos = [ this.pos0[0], this.pos0[1] ];
+				var t0 = this.touches0.get( this.id0 );
+				this.pos = [ t0.px, t0.py ];
 			}
+
+			if( !! this.touches ) this.touches.remove( t.id );
+			if( !! this.touches0 ) this.touches0.remove( t.id );
 			return true;
 		}
 		
@@ -1025,6 +1117,8 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 		}
 		
+		if( !! this.touches ) this.touches.remove( t.id );
+		if( !! this.touches0 ) this.touches0.remove( t.id );
 		return false;
 	},
 	width : function() {
