@@ -16,14 +16,14 @@
 html, body {
 	width: 100%;
 	height: 100%;
-	overflow: hidden;
+	/*overflow: hidden;*/
 	margin: 0;
 	padding: 0;
 }
 div#mainView {
 	display: inline-block;
 	border: solid green 0px;
-	margin: 0px;
+	margin: 40px;
 	padding: 0px;
 }
 div#btn_zoom {
@@ -87,7 +87,7 @@ resources.load([
     	]);
         	
 resources.onReady(function() {
-	var w = window.innerWidth, h = window.innerHeight;
+	var w = window.innerWidth-80, h = window.innerHeight-80;
 	
 	var v = document.getElementById('mainView');
 	v.style.width = w;

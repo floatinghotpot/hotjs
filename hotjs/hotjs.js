@@ -433,19 +433,48 @@ var View = function(){
 	
 	// using closure, 'me' is accessable to inner function, but 'this' changed.
 	var me = this; 
+	var cv = this.canvas;
 	this.canvas.addEventListener('click',function(e){
 		me.onClick(e);
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('mousedown',function(e){
+		
+		// we use document.onmousemove to track mouse move, even if outside window
+		document.onmousemove = function(event) {
+			event = event || window.event;
+
+			me.onMouseMove(event);
+			e.preventDefault();
+		};
+
+		document.onmouseup = function(event) {
+			document.onmousemove = null;
+
+			if (cv.releaseCapture) {
+				cv.releaseCapture();
+			}
+			
+			me.onMouseUp(event);
+			e.preventDefault();
+		};
+
+		if (cv.setCapture) {
+			cv.setCapture();
+		}
+
 		me.onMouseDown(e);
 		e.preventDefault();
 	});
-	this.canvas.addEventListener('mouseup',function(e){
-		me.onMouseUp(e);
-		e.preventDefault();
-	});
+	// we use document.onmouseup(), so disable here
+	//this.canvas.addEventListener('mouseup',function(e){
+		//me.onMouseUp(e);
+		//e.preventDefault();
+	//});
 	this.canvas.addEventListener('mousemove',function(e){
+		// will be duplicated, if mouse down
+		// we may need track mousemove event, even mouse not down in some case
+		// TODO: is it a waste?
 		me.onMouseMove(e);
 		e.preventDefault();
 	});
@@ -454,6 +483,10 @@ var View = function(){
 		e.preventDefault();
 	});
 	this.canvas.addEventListener('touchend',function(e){
+		me.onTouchEnd(e);
+		e.preventDefault();
+	});
+	this.canvas.addEventListener('touchcancel',function(e){
 		me.onTouchEnd(e);
 		e.preventDefault();
 	});
@@ -470,6 +503,17 @@ hotjs.inherit(View, hotjs.Class, {
 			this.container = document.body;
 		}
 		this.container.appendChild(this.canvas);
+		
+		/* These 3 lines are helpful for the browser to not accidentally 
+		 * think the user is trying to "text select" the draggable object
+		 * when drag initiation happens on text nodes.
+		 * Unfortunately they also break draggability outside the window.
+		 */
+		// used for mouse event handling.
+		this.canvas.unselectable = "on";
+		this.canvas.onselectstart = function(){return false;};
+		this.canvas.style.userSelect = this.canvas.style.MozUserSelect = "none";
+		  
 		return this;
 	},
 	setSize : function(w,h) {
@@ -835,6 +879,11 @@ hotjs.inherit(Node, hotjs.Class, {
 		return b;
 	},
 	setDraggable : function(b) {
+		if(b) {
+			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
+			if(this.touches == undefined) this.touches = new hotjs.HashMap();
+			if(this.scale == undefined) this.scale = [1,1];
+		}
 		this.draggable = b;
 		return this;
 	},
@@ -861,6 +910,18 @@ hotjs.inherit(Node, hotjs.Class, {
 		}
 	},
 	onTouchMove : function(t) {
+		if( !! this.touches ) {
+			this.touches.put( t.id, { 
+				id: t.id, 
+				x: t.x, 
+				y: t.y, 
+				px: this.pos[0], 
+				py: this.pos[1],
+				sx: this.scale[0],
+				sy: this.scale[1]
+			});
+		}
+		
 		if( !! this.dragging ) {
 			var delta = Vector.sub([t.x,t.y], [this.t0.x, this.t0.y]);
 			this.pos = Vector.add( this.pos0, delta );
@@ -893,8 +954,16 @@ hotjs.inherit(Node, hotjs.Class, {
 		return false;
 	},	
 	onTouchStart : function(t) {
-		if( !! this.touches ) {
-			this.touches.put( t.id, [t.x, t.y] );
+		if( !! this.touches0 ) {
+			this.touches0.put( t.id, { 
+				id: t.id, 
+				x: t.x, 
+				y: t.y, 
+				px: this.pos[0], 
+				py: this.pos[1],
+				sx: this.size[0],
+				sy: this.size[1]
+			});
 		}
 		
 		this.pos0 = [ this.pos[0], this.pos[1] ];
@@ -1188,6 +1257,8 @@ var Scene = function(){
 	this.arearepeat = false;
 	this.areaimg = undefined;
 	this.areaimgrect = undefined;
+	
+	this.scale = [1,1];
 };
 
 hotjs.inherit( Scene, Node, {

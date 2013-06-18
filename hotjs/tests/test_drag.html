@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Simple drag demo</title>
+<style>
+#dragme {
+  position:absolute;
+  cursor:move;
+  background:#eee;
+  border:1px solid #333;
+  padding:10px;
+}
+</style>
+
+<script>
+function makeDraggable(element) {
+
+  /* Simple drag implementation */
+  element.onmousedown = function(event) {
+
+    document.onmousemove = function(event) {
+      event = event || window.event;
+      element.style.left = event.clientX + 'px';
+      element.style.top = event.clientY + 'px';
+    };
+
+    document.onmouseup = function() {
+      document.onmousemove = null;
+
+      if(element.releaseCapture) { element.releaseCapture(); }
+    };
+
+    console.log( element );
+    console.log( element.setCapture );
+    
+    if(element.setCapture) { element.setCapture(); }
+  };
+
+  /* These 3 lines are helpful for the browser to not accidentally 
+   * think the user is trying to "text select" the draggable object
+   * when drag initiation happens on text nodes.
+   * Unfortunately they also break draggability outside the window.
+   */
+  element.unselectable = "on";
+  element.onselectstart = function(){return false};
+  element.style.userSelect = element.style.MozUserSelect = "none";
+}
+</script>
+</head>
+<body onload="makeDraggable(document.getElementById('dragme'))">
+
+<div id="dragme">Drag me (outside window)</div>
+
+</body>
+</html>
