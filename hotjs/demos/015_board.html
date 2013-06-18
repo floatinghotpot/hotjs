@@ -59,11 +59,6 @@ input.act {
 <input type='button' value='?' onClick='viewX.showFPS()'/>
 <input type='button' value='bg' onClick='room.showImg();'/>
 
-<input type='button' value='+' onClick='viewX.zoom(1.2)'/>
-<input type='button' value='-' onClick='viewX.zoom(1/1.2)'/>
-<input type='button' value='*' onClick='viewX.zoom()'/>
-<input type='button' value='1:1' onClick='viewX.zoom("none")'/>
-
 <input type='button' value='f' onClick='viewX.showFormula();'/>
 <input type='button' value='start' onClick='room.removeAll();viewX.benchFPS(1,500,false)'/>
 <input type='button' value='stop' onClick='room.removeAll();viewX.benchStop();'/>
@@ -122,6 +117,8 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		if( this.undos.length > 0 ) {
 			var go = this.undos.pop();
 			this.matrix[ go[0] ][ go[1] ] = 0;
+			
+			this.changePlayer();
 		}
 	},
 	posToMatrix : function(p) {
@@ -150,6 +147,13 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 
 		return false;
 	},
+	changePlayer : function() {
+		// change to another player 
+		if( this.player == 1 ) this.player = 2;
+		else this.player = 1;
+		
+		return this;
+	},
 	go : function(x, y) {
 		if( this.matrix[x][y] == 0 ) {
 			// put a stone 
@@ -158,9 +162,7 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			// record for undo
 			this.undos.push( [x, y, this.player] );
 			
-			// change to another player 
-			if( this.player == 1 ) this.player = 2;
-			else this.player = 1;
+			this.changePlayer();
 		}
 		
 		return this;
