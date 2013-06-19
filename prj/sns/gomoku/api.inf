@@ -1,0 +1,15 @@
+{
+	"module" : "gomoku",
+	"version" : 1.0,
+	"base" : "./gomoku.py/",
+	"list" : [ 
+		{ "api": "_default_", "url" : "index", "param": [], "comment" : "default api, must be defined." },
+		{ "api": "getColor", "url" : "getColor", "param": [ "sid" ], "comment" : "return msg.done, msg.color=1/2" },
+		{ "api": "changeColor", "url" : "changeColor", "param": [ "sid" ], "comment" : "return msg.done },
+		{ "api": "confirmChangeColor", "url" : "confirmChangeColor", "param": [ "sid", "agree" ], "comment" : "return msg.done, msg.color=1/2" },
+		{ "api": "setBoardSize", "url" : "setBoardSize", "param": [ "sid", "size" ], "comment" : "return msg.done" },
+		{ "api": "go", "url" : "go", "param": [ "sid", "x", "y", "color" ], "comment" : "return msg.done" },
+		{ "api": "undo", "url" : "undo", "param": [ "sid" ], "comment" : "return msg.done" },
+		{ "api": "confirmUndo", "url" : "confirmUndo", "param": [ "sid" ], "comment" : "return msg.done" }
+	]
+}

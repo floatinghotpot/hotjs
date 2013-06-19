@@ -28,7 +28,17 @@ else :
 basedir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 curdir = os.path.abspath('.')
 
-projects_path = join(basedir,'bin/projects')
+lib_dir = os.path.join(basedir, 'lib')
+hotjsbin_path = os.path.join(lib_dir,'hotjs-bin.js')
+
+prj_basedir = os.path.join(basedir, 'prj')
+tmpl_dir = os.path.join(prj_basedir, 'template')
+
+apps_dir = os.path.join(prj_basedir, 'app')
+games_dir = os.path.join(prj_basedir, 'game')
+sns_dir = os.path.join(prj_basedir, 'sns')
+
+project_records = os.path.join(prj_basedir,'projects')
 
 def removeDupes(seq):
     # Not order preserving
@@ -37,15 +47,16 @@ def removeDupes(seq):
         keys[e.rstrip()] = 1
     return keys.keys()
     
-def makeProjectPaths(add):
-    lines = open(projects_path,'r').readlines()
+def updateProjectRecord(add):
+    lines = open(project_records,'r').readlines()
     if len(add):
         lines.append(add)
-    newlines = filter(lambda x: exists(join(basedir,x.rstrip())) and len(x.rstrip()),lines)
+    newlines = filter(lambda x: exists(join(prj_basedir,x.rstrip())) and len(x.rstrip()),lines)
     newlines = removeDupes(newlines)
     
-    f = open(projects_path,'w')
+    f = open(project_records,'w')
     f.write('\n'.join(newlines))
+    f.write('\n')
     f.close()
     
 def escapeSpace(s):
@@ -54,34 +65,57 @@ def escapeSpace(s):
 def quoteSpace(s):
     return s.replace(" ","' '")
 
-def create(name):
+def create(type, name):
+    if( type == 'app'):
+        type_dir = apps_dir
+    elif( type == 'game'):
+        type_dir = games_dir
+    else:
+        return
     
-    path = os.path.join(curdir, name)
+    prj_path = os.path.join( type_dir, name )
+    sns_path = os.path.join( sns_dir, name )
     
-    name = os.path.basename(path)
+    if not exists(tmpl_dir):
+        logging.error('Project template not found: %s\n', tmpl_dir)
+        sys.exit(1)
     
-    if exists(path):
-        logging.error('Directory already exists: %s',path)
-        sys.exit(1) 
+    if exists(prj_path):
+        print('Folder exists (%s), skip change.' % prj_path)
+    else:
+        shutil.copytree( os.path.join(tmpl_dir, type), prj_path )
+        for fname in os.listdir(prj_path):
+            fpath = os.path.join(prj_path, fname)
+            if os.path.isfile( fpath ):
+                newname = fname.replace('__name__', name)
+                newpath = os.path.join(prj_path,newname)
+                if fname.find("__name__")!=-1:
+                    os.rename(fpath, newpath)
+                for line in fileinput.FileInput( newpath, inplace=1):
+                    line = line.replace('{__name__}',name)
+                    print(line.rstrip())
+
+    if exists(sns_path):
+        print('Folder exists (%s), skip change.' % sns_path)
+    else:
+        shutil.copytree( os.path.join(tmpl_dir,'sns'), sns_path )
+        for fname in os.listdir(sns_path):
+            fpath = os.path.join(sns_path, fname)
+            if os.path.isfile( fpath ):
+                newname = fname.replace('__name__', name)
+                newpath = os.path.join(sns_path,newname)
+                if fname.find("__name__")!=-1:
+                    os.rename(fpath, newpath)
+                for line in fileinput.FileInput( newpath, inplace=1):
+                    line = line.replace('{__name__}',name)
+                    print(line.rstrip())
+
+    print ('Project created: %s' % name)
     
-    proj = os.path.relpath(path,basedir)
-    
-    shutil.copytree(os.path.join(basedir,'apps/template'),path)
-    
-    for root, dirs, files in os.walk(path):
-        for fname in files:
-            newname = fname.replace('__name__',name)
-            if fname.find("__name__")!=-1:
-                os.rename(os.path.join(path,fname),os.path.join(path,newname))
-            for line in fileinput.FileInput(os.path.join(path,newname),inplace=1):
-                line = line.replace('{name}',name)
-                print(line.rstrip())
-            
-    print ('Created %s' % path)
-    
-    
-    if proj!='.':
-        makeProjectPaths(os.path.relpath(path,basedir))
+    proj = os.path.relpath(prj_path, prj_basedir)
+    if proj != '.':
+        updateProjectRecord( proj )
+        print('Project records updated.\n')
 
 def build(name,options):
     pass
@@ -89,8 +123,7 @@ def build(name,options):
 def update():
     hotjs_path = join(basedir,'hotjs/')
     hotjslist_path = join(hotjs_path,'files')
-    hotjsbin_path = join(hotjs_path,'hotjs-bin.js')
-
+ 
     print( "updating hotjsbin: " + hotjsbin_path )
     f = open(hotjsbin_path,'w')
         
@@ -108,36 +141,37 @@ def update():
                 print( jspath + " not found." );
     f.close()
     
-    print( "hotjsbin updated." )
+    print( "\nDone. hotjsbin updated: %s.\n" % hotjsbin_path )
     
 def main():
     """The entrypoint for this script."""
     
     usage = """usage: %prog [command] [options]
 Commands:
-    init            Check lime dependecies and setup if needed
-    create [path/name]   Setup new project [name]
-    build [name]    Compile project to single Javascript file"""
-    parser = optparse.OptionParser(usage)
+    init          Check lime dependecies and setup if needed
+    update        Update hotjs into single javascript file for release
+    create [app/game] [name]   Setup new project [name]"""
     
+    parser = optparse.OptionParser(usage)
     parser.add_option("-o", "--output", dest="output", action="store", type="string",
                       help="Output file for build result")
     
     (options, args) = parser.parse_args()
     
-    if not (len(args) == 2 or (len(args)==1 and ['init','update'].count(args[0])==1 )) :
-        parser.error('incorrect number of arguments')
+    if( len(args) < 1 ) :
+        parser.error('incorrect number of arguments\n')
         
-    print( "welcome to hotjs." )
-    
     if args[0]=='init' or args[0]=='update':
         update()
     
     elif args[0]=='create':
-        create(args[1])
+        if( len(args) == 3 and ['app','game'].count(args[1]) == 1 ) :
+            create(args[1], args[2])
+        else:
+            parser.error('arguments for create not correct.\n')
         
     else:
-        logging.error('No such command: %s',args[0])
+        logging.error('No such command: %s\n',args[0])
         exit(1)
     
 if __name__ == '__main__':

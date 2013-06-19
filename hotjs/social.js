@@ -77,9 +77,10 @@ AjaxClient.prototype = {
 		
 		// if no base specified, then assume the same server & folder
 		var base_url = msg.base;
-		if( base_url == "" ) {
-			base_url = inf_url.substring(0, inf_url.lastIndexOf('/'));
+		if( base_url.indexOf("://") < 0 ) {
+			base_url = inf_url.substring(0, inf_url.lastIndexOf('/')+1) + base_url;
 		}
+		console.log( base_url );
 		
 		for( var i=0; i<msg.list.length; i++ ) {
 			var entry = msg.list[i];

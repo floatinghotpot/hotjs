@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <title>QUnit: Social API</title>
-<link rel="stylesheet" href="../../lib/qunit-1.11.0.css">
+<link rel="stylesheet" href="lib/qunit-1.11.0.css">
 </head>
 <body>
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
-	<script src="../../lib/qunit-1.11.0.js"></script>
-	<script src="../../lib/jquery-1.9.js"></script>
+	<script src="lib/qunit-1.11.0.js"></script>
+	<script src="lib/jquery-1.9.js"></script>
 	<script src="../hotjs.js"></script>
 	<script src="../social.js"></script>
 	<script>
@@ -25,8 +25,8 @@ test("Basic operations of AjaxClient APIs", function() {
 	var aj = new hotjs.Social.AjaxClient();
 	var msg;
 
-	aj.configAPI( './server/php/hello.php' );
-	equal( aj.settings.url, './server/php/hello.php', "config url locally.");
+	aj.configAPI( './sns/hello.php' );
+	equal( aj.settings.url, './sns/hello.php', "config url locally.");
 
 	// async call 
 	aj.onMsgParse = function( m ) {
@@ -35,14 +35,14 @@ test("Basic operations of AjaxClient APIs", function() {
 	aj.postMsg( { a : 1 } );
 	
 	aj.configAPI( {
-		_default_ : './server/php/hello.php',
-		hello : './server/php/hello.php',
-		registerAccount : './server/php/user.php'
+		_default_ : './sns/hello.php',
+		hello : './sns/hello.php',
+		registerAccount : './sns/user.php'
 	});
-	equal( aj.settings.url, './server/php/hello.php', "config url locally.");
-	equal( aj.urls["_default_"], './server/php/hello.php', "config url locally.");
-	equal( aj.urls["hello"], './server/php/hello.php', "config url locally.");
-	equal( aj.urls["registerAccount"], './server/php/user.php', "config url locally.");
+	equal( aj.settings.url, './sns/hello.php', "config url locally.");
+	equal( aj.urls["_default_"], './sns/hello.php', "config url locally.");
+	equal( aj.urls["hello"], './sns/hello.php', "config url locally.");
+	equal( aj.urls["registerAccount"], './sns/user.php', "config url locally.");
 
 	// sync call
 	msg = aj.requestMsg( { a:3 } );
@@ -65,15 +65,15 @@ test("Basic operations of Social APIs", function() {
 	var user = new hotjs.Social.User();
 
 	// load API from remote inf file. 
-	var ret = user.loadAPI( "./server/py_user.inf", "user", 1.05 );
-	equal( ret, true, "Load API definition from server inf." );
+	var ret = user.loadAPI( "./sns/user.inf", "user", 1.05 );
+	equal( ret, true, "Load API definition from sns inf." );
 	
 	user.onMsgParse = function(msg) {
 		//console.log( msg );
 		//if( msg.api == "say" ) alert( msg.who + " say: " + msg.what );
 	};
 	
-	ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to server, start heartbeat." );
+	ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to sns, start heartbeat." );
 	
 });
 

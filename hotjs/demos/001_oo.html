@@ -7,7 +7,6 @@
 <script type="text/javascript" src="../resource.js"></script>
 <script type="text/javascript" src="../sprite.js"></script>
 <script type="text/javascript" src="../hotjs.js"></script>
-<script type="text/javascript" src="../../lib/jquery-1.9.js"></script>
 </head>
 <body>
 	<p>Please check console log, for the debug info.</p>
@@ -18,24 +17,6 @@
 	var fn = function(){};
 	var ob = new fn();
 	var oc = {};
-	
-	var str = "value, ! value, !! value\n" 
-		+ (0) + ", " + (! 0) + ", " + (!! 0) + "\n" 
-		+ (1) + ", " + (! 1) + ", " + (!! 1) + "\n" 
-		+ (2) + ", " + (! 2) + ", " + (!! 2) + "\n" 
-		+ ('c') + ", " + (! 'c') + ", " + (!! 'c') + "\n" 
-		+ ('true') + ", " + (! 'true') + ", " + (!! 'true') + "\n" 
-		+ ('false') + ", " + (! 'false') + ", " + (!! 'false') + "\n" 
-		+ ('0') + ", " + (! '0') + ", " + (!! '0') + "\n" 
-		+ ('1') + ", " + (! '1') + ", " + (!! '1') + "\n" 
-		+ (fn) + ", " + (! fn) + ", " + (!! fn) + "\n" 
-		+ (ob) + ", " + (! ob) + ", " + (!! ob) + "\n" 
-		+ (oc) + ", " + (! oc) + ", " + (!! oc) + "\n" 
-		+ (undefined) + ", " + (! undefined) + ", " + (!! undefined) + "\n"
-		+ (null) + ", " + (! null) + ", " + (!! null) + "\n"
-		;
-		
-	$("#msg").html( str );
 	
 	var F1 = function(x){
 		console.log("F1()");

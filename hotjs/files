@@ -3,3 +3,5 @@ resource.js
 sprite.js
 math.js
 physics.js
+social.js
+util.js
