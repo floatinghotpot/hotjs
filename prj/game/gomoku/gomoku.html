@@ -64,6 +64,13 @@ div#menu {
 input.btn {
 	width: 100px;
 }
+img {
+	v-space: 0px;
+	padding-bottom: 0px;
+}
+td {
+	text-align: center;
+}
 </style>
 </head>
 <body>
@@ -73,27 +80,27 @@ input.btn {
 <table>
 <tr>
 <td align='center'>Lvl: 6<br>Gold: $ 1500<br><br><img src='img/user1.png'><br>Blue</td>
-<td>
-
-</td>
 </tr>
 </table>
 </div>
-<div id='chat'>
-<div id='msg'></div>
-<input type="text" id="chatinput" name="chatinput" size='30'/>
-<input type="button" class='btn' value="send" onClick=''/>
-</div>
+
 <div id='menu'>
-<input type='button' class='btn' value='new game' onClick='board.resetGame();'/><br>
-<input type='button' class='btn' value='undo' onClick='board.undo();'/><br>
-<input type='button' class='btn' value='tips' onClick=''/>
+<table>
+<tr>
+<td><img width=48 src='img/msg.png'/><br>message</td>
+<td><img width=48 src='img/undo.png' onClick='board.undo();'/><br>undo</td>
+<td><img width=48 src='img/tips.png'/><br>tips</td>
+</tr>
+<tr>
+<td><img width=48 src='img/new.png' onClick='board.resetGame();'/><br>restart</td>
+<td><img width=48 src='img/settings.png'/><br>settings</td>
+<td><img width=48 src='img/menu.png'/><br>menu</td>
+</tr></table>
+
 </div>
 <div id="user2">
 <table>
 <tr>
-<td>
-</td>
 <td align='center'>Lvl: 5<br>Gold: $ 1200<br><br><img src='img/user2.png'><br>Red</td>
 </tr>
 </table>
