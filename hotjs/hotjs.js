@@ -13,7 +13,7 @@ var hotjs = hotjs || {};
 
 // animation: move, rotate, scale, fade
 
-// math: vector (done), matrix,
+// math: point/vector (done), matrix,
 
 // physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
 
