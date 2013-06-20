@@ -5,6 +5,8 @@
 <meta http-equiv="Expires" CONTENT="0">
 <meta http-equiv="Cache-Control" CONTENT="no-cache">
 <meta http-equiv="Pragma" CONTENT="no-cache">
+<link rel="apple-touch-icon" href="img/icon.png" />
+<link rel="icon" type="image/png" href="img/icon.png" />
 <meta name="viewport"
 	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
 <script type="text/javascript" src="../../lib/jquery-1.9.js"></script>
@@ -26,42 +28,62 @@ div#mainView {
 	border: solid green 0px;
 	margin: 0px;
 	padding: 0px;
+	-moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;	
 }
 div#user1 {
+	left: 3px;
+	top: 4px;
 	display: inline-block;
 	position: absolute;
-	border: solid green 0px;
+	border: solid black 2px;
 	margin: 0px;
-	padding: 10px;
-	bottom: 0px;
-	left: 0px;
+	padding: 5px;
+	background: #669966;
+	opacity:0.9;
+	-moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;	
 }
 div#user2 {
+	right: 3px;
+	top: 4px;
 	display: inline-block;
 	position: absolute;
-	border: solid green 0px;
+	border: solid black 2px;
 	margin: 0px;
-	padding: 10px;
-	bottom: 0px;
-	right: 0px;
+	padding: 5px;
+	background: #669966;
+	opacity:0.9;	
+	-moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;	
 }
-div#chat {
+div#control {
 	display: inline-block;
 	position: absolute;
 	border: solid green 0px;
 	margin: 0px;
 	padding: 10px;
-	bottom: 0px;
-	left: 120px;
+	top: 4px;
+	right: 120px;
 }
 div#menu {
 	display: inline-block;
 	position: absolute;
 	border: solid green 0px;
 	margin: 0px;
-	padding: 10px;
+	padding: 0px;
 	bottom: 0px;
-	right: 120px;
+	left: 0px;
+	right: 0px;
+	text-align: center;
+	color: #aaaaaa;
+	background: #333333;
 }
 input.btn {
 	width: 100px;
@@ -70,44 +92,54 @@ img {
 	v-space: 0px;
 	padding-bottom: 0px;
 }
-td {
+table {
+	width: 100%;
+	padding: 0;
+	margin: 0;
 	text-align: center;
+	border: solid green 0px;
+}
+td.m {
+	width: 20%;
 }
 </style>
 </head>
 <body>
 <div>
 <div id="mainView"></div>
+
 <div id="user1">
 <table>
-<tr>
-<td align='center'>Lvl: 6<br>Gold: $ 1500<br><br><img src='img/user1.png'><br>Blue</td>
-</tr>
+<tr><td align='left' colspan=2>级别: 6<br>金币: $ 1500</td></tr>
+<tr><td><img src='img/user1.png'><br>曹操</td><td><img width=32 src='img/whitego.png'/></td></tr>
+</table>
+</div>
+
+<div id="user2">
+<table>
+<tr><td align='left' colspan=2>级别: 7<br>金币: $ 2100</td></tr>
+<tr><td><img width=32 src='img/blackgo.png'/></td><td><img src='img/user2.png'><br>刘备</td></tr>
+</table>
+</div>
+
+<div id="control">
+<table>
+<tr><td><img width=32 src='img/undo.png' onClick='board.undo();'/><br>悔棋</td></tr>
+<tr><td><img width=32 src='img/tips.png' onClick=''/><br>提示</td></tr>
 </table>
 </div>
 
 <div id='menu'>
 <table>
 <tr>
-<td><img width=48 src='img/msg.png'/><br>message</td>
-<td><img width=48 src='img/undo.png' onClick='board.undo();'/><br>undo</td>
-<td><img width=48 src='img/tips.png'/><br>tips</td>
-</tr>
-<tr>
-<td><img width=48 src='img/new.png' onClick='board.resetGame();'/><br>restart</td>
-<td><img width=48 src='img/settings.png'/><br>settings</td>
-<td><img width=48 src='img/menu.png'/><br>menu</td>
+<td class='m'><img width=32 src='img/menu.png'/><br>菜单</td>
+<td class='m'><img width=32 src='img/games.png'/><br>微游</td>
+<td class='m'><img width=32 src='img/msg.png'/><br>聊天</td>
+<td class='m'><img width=32 src='img/friends.png'/><br>朋友们</td>
+<td class='m'><img width=32 src='img/settings.png'/><br>设置</td>
 </tr></table>
-
 </div>
-<div id="user2">
-<table>
-<tr>
-<td align='center'>Lvl: 5<br>Gold: $ 1200<br><br><img src='img/user2.png'><br>Red</td>
-</tr>
-</table>
 
-</div>
 </div>
 <script>
 
@@ -120,6 +152,8 @@ var netplay;
 
 function main() {
 	var w = window.innerWidth, h = window.innerHeight;
+	h -= $("#menu").height();
+	
 	var m = Math.min(w,h);
 	
 	var v = document.getElementById('mainView');
