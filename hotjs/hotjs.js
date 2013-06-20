@@ -1598,8 +1598,62 @@ hotjs.inherit( Scene, Node, {
 	}
 });
 
+// TODO: Sprite
+
+function Sprite(url, pos, size, speed, frames, dir, once) {
+    this.pos = pos;
+    this.size = size;
+    this.speed = typeof speed === 'number' ? speed : 0;
+    this.frames = frames;
+    this._index = 0;
+    this.url = url;
+    this.dir = dir || 'horizontal';
+    this.once = once;
+};
+
+Sprite.prototype = {
+	update : function(dt) {
+		this._index += this.speed * dt;
+	},
+
+	render : function(ctx, w, h) {
+		var frame;
+
+		if (this.speed > 0) {
+			var max = this.frames.length;
+			var idx = Math.floor(this._index);
+			frame = this.frames[idx % max];
+
+			if (this.once && idx >= max) {
+				this.done = true;
+				return;
+			}
+		} else {
+			frame = 0;
+		}
+
+		var x = this.pos[0];
+		var y = this.pos[1];
+
+		if (this.dir == 'vertical') {
+			y += frame * this.size[1];
+		} else {
+			x += frame * this.size[0];
+		}
+		
+		if(! w) w = this.size[0];
+		if(! h) h = this.size[1];
+		
+		var img = resources.get(this.url);
+
+		ctx.drawImage( img, 
+				x, y, this.size[0], this.size[1], 
+				0, 0, w, h);
+	}
+};
+
 //-----------------------
-// TODO: all packages, classes, and function set
+// TODO: all core packages, classes, and function set
 hotjs.Random = Random;
 hotjs.Vector = Vector;
 hotjs.HashMap = HashMap;
@@ -1607,65 +1661,7 @@ hotjs.App = App;
 hotjs.View = View;
 hotjs.Node = Node;
 hotjs.Scene = Scene;
+hotjs.Sprite = Sprite;
 
 })(); 
-
-(function() {
-    function Sprite(url, pos, size, speed, frames, dir, once) {
-        this.pos = pos;
-        this.size = size;
-        this.speed = typeof speed === 'number' ? speed : 0;
-        this.frames = frames;
-        this._index = 0;
-        this.url = url;
-        this.dir = dir || 'horizontal';
-        this.once = once;
-    };
-
-    Sprite.prototype = {
-		update : function(dt) {
-			this._index += this.speed * dt;
-		},
-
-		render : function(ctx, w, h) {
-			var frame;
-
-			if (this.speed > 0) {
-				var max = this.frames.length;
-				var idx = Math.floor(this._index);
-				frame = this.frames[idx % max];
-
-				if (this.once && idx >= max) {
-					this.done = true;
-					return;
-				}
-			} else {
-				frame = 0;
-			}
-
-			var x = this.pos[0];
-			var y = this.pos[1];
-
-			if (this.dir == 'vertical') {
-				y += frame * this.size[1];
-			} else {
-				x += frame * this.size[0];
-			}
-			
-			if(! w) w = this.size[0];
-			if(! h) h = this.size[1];
-			
-			var img = resources.get(this.url);
-
-			ctx.drawImage( img, 
-					x, y, this.size[0], this.size[1], 
-					0, 0, w, h);
-		}
-    };
-
-    window.Sprite = Sprite;
-})();
-
-
-
 

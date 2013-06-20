@@ -77,11 +77,16 @@ var room = (new WalkingRoom())
 
 var balls = [];
 
+var spritesheet = {
+	boy : new hotjs.Sprite('img/walkingboy.png', [0,0], [120,160], 8, [0,1,2,3,4,5,6,7,8,9], null, false),
+	bird : new hotjs.Sprite('img/flyingbird.png', [0,0], [120,160], 22, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21], null, false)
+};
+
 resources.onReady(function(){
 	var boy = (new hotjs.Physics.Node())
 		.setName('boy')
 		.setSize(90,120)
-		.setSprite( new Sprite('img/walkingboy.png', [0,0], [120,160], 8, [0,1,2,3,4,5,6,7,8,9], null, false) )
+		.setSprite( spritesheet.boy )
 		.setPos(room.width(), room.height()-120)
 		.setVelocity(-1,0).setAccel(0,0)
 		.addTo( room );
@@ -89,7 +94,7 @@ resources.onReady(function(){
 	var b = (new hotjs.Physics.Node())
 		.setName('bird')
 		.setSize(120,160)
-		.setSprite( new Sprite('img/flyingbird.png', [0,0], [120,160], 22, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21], null, false) )
+		.setSprite( spritesheet.bird )
 		.setPos(room.width(), room.height()/2)
 		.setVelocity(-3,0).setAccel(0,0)
 		.addTo( room );

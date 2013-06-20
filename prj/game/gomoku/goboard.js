@@ -84,6 +84,7 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		if( this.matrix[x][y] == 0 ) {
 			// put a stone 
 			this.matrix[x][y] = this.player;
+			resources.get('audio/move.mp3').play();
 			
 			// record for undo
 			this.undos.push( [x, y, this.player] );

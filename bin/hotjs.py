@@ -28,7 +28,7 @@ else :
 basedir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 curdir = os.path.abspath('.')
 
-lib_dir = os.path.join(basedir, 'lib')
+lib_dir = os.path.join(basedir, 'prj/lib')
 hotjsbin_path = os.path.join(lib_dir,'hotjs-bin.js')
 
 prj_basedir = os.path.join(basedir, 'prj')

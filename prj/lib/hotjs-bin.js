@@ -8,27 +8,29 @@ var hotjs = hotjs || {};
 
 // object oriented (done)
 	
-// app (done) -> view (done) -> scene (done) -> layer -> node (done) -> sub node ...
+// app (done) -> view (done) -> scene (done) -> node (layer -> node -> sub node ...) (done)
 
-// event: mouse, touch, keyboard, user-defined
+// event: mouse (done), multi-touch (done), keyboard, user-defined
 
-// resource: image (done), sprite, audio, video
+// resource: image (done), sprite (done), audio/video (done)
 
 // animation: move, rotate, scale, fade
 
-// math: vector (done), matrix,
+// math: point/vector (done), matrix,
 
 // physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
 
-// tool: UT, benchmark, debug, profiling,
+// util: UT (done), getDeviceInfo (done), benchmark (done), debug (using chrome), profiling,
 
 // AI: pathfinding
 
 // lang: i18n
 
-// effect: light, flash, explosion, fire, smoke, fireworks, magic
-
+// effect: light, flash, explosion, fire, smoke, fireworks, magic, f()
+	
 // addon: 
+	
+// scenes: goboard (done), snooker (done)
 
 hotjs.version = 1.0;
 
@@ -1667,12 +1669,49 @@ hotjs.Scene = Scene;
     window.Sprite = Sprite;
 })();
 
+
+
+
+
+// ------- resource.js ------------- 
+
+
+// merged into hotjs.js as a basic class.
+
 (function() {
 	var resourceCache = {};
-	var loading = [];
+	//var loading = [];
+	
 	var readyCallbacks = [];
+	var loadingCallbacks = [];
+	var errorCallbacks = [];
+	
+	var total = 0;
+	var loaded = 0;
 
-	// Load an image url or an array of image urls
+	function getTotal() {
+		return total;
+	}
+	function getLoaded() {
+		return loaded;
+	}
+	
+	// func() {}
+	function onReady(func) {
+		readyCallbacks.push(func);
+	}
+
+	// func( url, loaded, total ) {}
+	function onLoading(func) {
+		loadingCallbacks.push(func);
+	}
+	
+	// func( url ) {}
+	function onError(func) {
+		errorCallbacks.push(func);
+	}
+
+	// Load an resource url or an array of resource urls
 	function load(urlOrArr) {
 		if (urlOrArr instanceof Array) {
 			urlOrArr.forEach(function(url) {
@@ -1682,14 +1721,63 @@ hotjs.Scene = Scene;
 			_load(urlOrArr);
 		}
 	}
+	
+	function unload(urlOrArr) {
+		if (urlOrArr instanceof Array) {
+			urlOrArr.forEach(function(url) {
+				if ( resourceCache.hasOwnProperty(url) ) {
+					delete resourceCache[ url ];
+				}
+			});
+		} else {
+			if ( resourceCache.hasOwnProperty(urlOrArr) ) {
+				delete resourceCache[ url ];				
+			}
+		}
+	}
 
+	function isVideo(url) {
+		var ext = url.substring( url.lastIndexOf('.') +1 );
+		if( (ext == 'ogg') ) {
+			return ( url.indexOf('video') > -1 );
+		} else {
+			return ( ['mp4', 'webm'].indexOf(ext) > -1);
+		}
+	}
+	
+	function isAudio(url) {
+		var ext = url.substring( url.lastIndexOf('.') +1 );
+		if( (ext == 'ogg') ) {
+			return ( url.indexOf('video') == -1 );
+		} else {
+			return ( ['mp3', 'wav'].indexOf(ext) > -1);
+		}
+	}
+	
 	function _load(url) {
 		if (resourceCache[url]) {
 			return resourceCache[url];
 		} else {
-			var img = new Image();
-			img.onload = function() {
-				resourceCache[url] = img;
+			resourceCache[url] = false;
+			total ++;
+
+			var res;
+			var isvideo = isVideo(url), isaudio = isAudio(url);
+			if( isvideo ) {
+				res = new Video();
+			} else if( isaudio ) {
+				res = new Audio();
+			} else {
+				res = new Image();
+			}
+			
+			var onload = function(){
+				resourceCache[url] = res;
+				loaded ++;
+
+				loadingCallbacks.forEach(function(func){
+					func(res.src, loaded, total);
+				});
 
 				if (isReady()) {
 					readyCallbacks.forEach(function(func) {
@@ -1697,13 +1785,46 @@ hotjs.Scene = Scene;
 					});
 				}
 			};
-			resourceCache[url] = false;
-			img.src = url;
+			var onerror = function() {
+				errorCallbacks.forEach(function(func){
+					func(res.src);
+				});
+			};
+			
+			if( isvideo || isaudio ) {
+				res.addEventListener('canplaythrough', onload);
+				res.addEventListener('error', onerror);
+				res.setAttribute('src', url);
+				res.load();
+			} else {
+				res = new Image();
+				res.onload = onload;
+				res.onerror = onerror;
+				res.setAttribute('src', url);
+			}
+			
+			return res;
 		}
 	}
 
 	function get(url) {
-		return resourceCache[url];
+		var res = resourceCache[url];
+		if(! res) {
+			var isvideo = isVideo(url), isaudio = isAudio(url);
+			if( isvideo ) {
+				res = new Video();
+				res.setAttribute('src', url);
+				res.load();
+			} else if( isaudio ) {
+				res = new Audio();
+				res.setAttribute('src', url);
+				res.load();
+			} else {
+				res = new Image();
+				res.setAttribute('src', url);
+			}			
+		}
+		return res;
 	}
 
 	function isReady() {
@@ -1716,24 +1837,18 @@ hotjs.Scene = Scene;
 		return ready;
 	}
 
-	function onReady(func) {
-		readyCallbacks.push(func);
-	}
-
 	window.resources = {
 		load : load,
+		unload : unload,
 		get : get,
+		getTotal : getTotal,
+		getLoaded : getLoaded,
 		onReady : onReady,
+		onLoading : onLoading,
+		onError : onError,
 		isReady : isReady
 	};
 })();
-
-
-
-// ------- resource.js ------------- 
-
-
-// already merged into hotjs.js as a basic class.
 
 // ------- sprite.js ------------- 
 
@@ -2146,8 +2261,8 @@ AjaxClient.prototype = {
 		
 		// if no base specified, then assume the same server & folder
 		var base_url = msg.base;
-		if( base_url == "" ) {
-			base_url = inf_url.substring(0, inf_url.lastIndexOf('/'));
+		if( base_url.indexOf("://") < 0 ) {
+			base_url = inf_url.substring(0, inf_url.lastIndexOf('/')+1) + base_url;
 		}
 		
 		for( var i=0; i<msg.list.length; i++ ) {
@@ -2658,80 +2773,8 @@ hotjs.inherit( User, AjaxClient, {
 	}
 });
 
-// TODO: GoPlayer, also works for Gomoku.
-
-var GoPlayer = function(){
-	hotjs.base(this);
-};
-
-hotjs.inherit( GoPlayer, User, {
-	// override to handle incoming msessages
-	onMsgParse : function() {
-
-		return true;
-	},
-	getColor : function getColor() {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session
-		} );
-		if( (!! msg) && msg.done ) {
-			// cache it
-			this.mycolor = msg.color;
-			return this.mycolor;
-		} 
-		return false;
-	},
-	changeColor : function changeColor() {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session
-		} );
-		return ( (!! msg) && msg.done );
-	},
-	confirmChangeColor : function confirmChangeColor( yn ) {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session,
-			agree : yn
-		} );
-		if( (!! msg) && msg.done ) {
-			// cache it
-			this.mycolor = msg.color;
-			return this.mycolor;
-		} 
-		return false;
-	},
-	setBoardSize : function setBoardSize( n ) {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session,
-			size : n
-		} );
-		return ((!! msg) && msg.done) ? true : false;
-	},
-	go : function go( x, y ) {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session,
-			x: x,
-			y: y,
-			color : this.mycolor
-		} );
-		return ((!! msg) && msg.done) ? true : false;
-	},
-	undo : function undo() {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session
-		});
-		return ((!! msg) && msg.done) ? true : false;
-	},
-	confirmUndo : function confurmUndo() {
-		var msg = this.callAPI( arguments.callee.name, {
-			sid : this.session
-		});
-		return ((!! msg) && msg.done) ? true : false;
-	}
-});
-
 hotjs.Social.AjaxClient = AjaxClient;
 hotjs.Social.User = User;
-hotjs.Social.GoPlayer = GoPlayer;
 
 })();
 // ------- util.js ------------- 

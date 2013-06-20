@@ -8,7 +8,9 @@
 <meta name="viewport"
 	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
 <script type="text/javascript" src="../../lib/jquery-1.9.js"></script>
-<script type="text/javascript" src="../../lib/hotjs-bin.js"></script>
+<script type="text/javascript" src="../../../hotjs/hotjs.js"></script>
+<script type="text/javascript" src="../../../hotjs/social.js"></script>
+<script type="text/javascript" src="../../../hotjs/resource.js"></script>
 <script type="text/javascript" src="goboard.js"></script>
 <script type="text/javascript" src="goplayer.js"></script>
 <style type="text/css">
@@ -112,21 +114,11 @@ td {
 //var api_url = "http://cloud.rnjsoft.com/sns/gomoku/api.inf";
 var api_url = '../../sns/gomoku/api.inf';
 
-var img_bg = 'img/woodfloor.jpg';
-var img_board = 'img/wood.jpg';
-var img_go = 'img/gostones.png';
-
 var viewX;
 var board;
 var netplay;
 
-resources.load([
-            img_bg,
-            img_board,
-            img_go
-    	]);
-        	
-resources.onReady(function() {
+function main() {
 	var w = window.innerWidth, h = window.innerHeight;
 	var m = Math.min(w,h);
 	
@@ -150,16 +142,26 @@ resources.onReady(function() {
 	board = (new GoBoard(19))
 		.setSize(w, h)
 		.setColor("black").showGrid(false)
-		.setBgImage( true, resources.get(img_bg) )
-		.setAreaImage( true, resources.get(img_board) )
-		.setGoImage( resources.get(img_go), [0,0,128,128] )
+		.setBgImage( true, resources.get('img/woodfloor.jpg') )
+		.setAreaImage( true, resources.get('img/wood.jpg') )
+		.setGoImage( resources.get('img/gostones.png'), [0,0,128,128] )
 		.showImg(true)
 		.setDraggable(true).setMoveable(true).setZoomable(true)
 		.resetGame()
 		.addTo( viewX );
 	
 	var app = (new hotjs.App()).addNode(viewX).start();
-});
+	
+}
+
+resources.load([
+                'img/woodfloor.jpg',
+                'img/wood.jpg',
+                'img/gostones.png',
+                'audio/move.mp3'
+        	]);
+
+resources.onReady( main );
 
 </script>
 </body>

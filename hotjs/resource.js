@@ -59,24 +59,22 @@
 		}
 	}
 
-	function newResByUrl(url) {
+	function isVideo(url) {
 		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( ext == 'ogg' ) {
-			// we cannot tell audio/ogg or video/ogg only by ext name
-			// so give us the hint in url, like: http://which.com/video/file.ogg
-			if( url.indexOf('video') > -1 ) {
-				res = new Video();
-			} else {
-				res = new Audio();
-			}
-		} else if( ['mp4', 'webm'].indexOf(ext) > -1) {
-			res = new Video();
-		} else if( ['mp3', 'wav'].indexOf(ext) > -1) {
-			res = new Audio();
+		if( (ext == 'ogg') ) {
+			return ( url.indexOf('video') > -1 );
 		} else {
-			res = new Image();
+			return ( ['mp4', 'webm'].indexOf(ext) > -1);
 		}
-		return res;
+	}
+	
+	function isAudio(url) {
+		var ext = url.substring( url.lastIndexOf('.') +1 );
+		if( (ext == 'ogg') ) {
+			return ( url.indexOf('video') == -1 );
+		} else {
+			return ( ['mp3', 'wav'].indexOf(ext) > -1);
+		}
 	}
 	
 	function _load(url) {
@@ -86,14 +84,22 @@
 			resourceCache[url] = false;
 			total ++;
 
-			var res = newResByUrl( url );
-			res.onload = function() {
+			var res;
+			var isvideo = isVideo(url), isaudio = isAudio(url);
+			if( isvideo ) {
+				res = new Video();
+			} else if( isaudio ) {
+				res = new Audio();
+			} else {
+				res = new Image();
+			}
+			
+			var onload = function(){
 				resourceCache[url] = res;
-
 				loaded ++;
-				var me = this;
+
 				loadingCallbacks.forEach(function(func){
-					func(me.src, loaded, total);
+					func(res.src, loaded, total);
 				});
 
 				if (isReady()) {
@@ -102,15 +108,23 @@
 					});
 				}
 			};
-			res.onerror = function() {
-				var me = this;
+			var onerror = function() {
 				errorCallbacks.forEach(function(func){
-					func(me.src);
+					func(res.src);
 				});
 			};
 			
-			// start async loading
-			res.src = url;
+			if( isvideo || isaudio ) {
+				res.addEventListener('canplaythrough', onload);
+				res.addEventListener('error', onerror);
+				res.setAttribute('src', url);
+				res.load();
+			} else {
+				res = new Image();
+				res.onload = onload;
+				res.onerror = onerror;
+				res.setAttribute('src', url);
+			}
 			
 			return res;
 		}
@@ -119,11 +133,19 @@
 	function get(url) {
 		var res = resourceCache[url];
 		if(! res) {
-			// if not found, async load it, but will not cache it.
-			res = newResByUrl(url);
-			
-			// start async loading
-			res.src = url;
+			var isvideo = isVideo(url), isaudio = isAudio(url);
+			if( isvideo ) {
+				res = new Video();
+				res.setAttribute('src', url);
+				res.load();
+			} else if( isaudio ) {
+				res = new Audio();
+				res.setAttribute('src', url);
+				res.load();
+			} else {
+				res = new Image();
+				res.setAttribute('src', url);
+			}			
 		}
 		return res;
 	}
