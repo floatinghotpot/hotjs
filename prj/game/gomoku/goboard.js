@@ -6,9 +6,10 @@ var GoBoard = function(){
 hotjs.inherit( GoBoard, hotjs.Scene, {
 	setSize : function(w, h) {
 		GoBoard.supClass.setSize.call(this, w, h);
-		
+		var uh = $("#user1").height()+8;
+		console.log( uh );
 		var m = Math.min(w, h);
-		this.setArea( (w-m)/2, (h-m), m, m );
+		this.setArea( (w-m)/2, (h+uh-m)/2, m, m );
 		
 		return this;
 	},
