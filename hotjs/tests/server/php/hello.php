@@ -1,4 +1,0 @@
-{ 
-"api": "hello",
-"name" : "msghub"
-}
