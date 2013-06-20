@@ -97,17 +97,9 @@ hotjs.inherit(BenchScene, hotjs.Scene, {
 	}
 });
 
+var viewX, room;
 
-
-var viewX;
-var room;
-
-resources.load([
-    		'img/balls.png',
-    		'img/room.jpg'
-    	]);
-        	
-resources.onReady(function() {
+function main() {
 	var w = window.innerWidth, h = window.innerHeight;
 	
 	var v = document.getElementById('mainView');
@@ -124,8 +116,15 @@ resources.onReady(function() {
 		.setSize(w, h)
 		.addTo( viewX );
 	
-	var app = (new hotjs.App()).addNode(viewX).start();
-});
+	var app = (new hotjs.App())
+		.addNode(viewX)
+		.start();
+}
+
+resources.onReady( main );
+
+resources.load([ 'img/balls.png', 'img/room.jpg' ]);
+
 </script>
 </body>
 

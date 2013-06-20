@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>QUnit: Javascript Basics</title>
+<link rel="stylesheet" href="lib/qunit-1.11.0.css">
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	<script src="lib/qunit-1.11.0.js"></script>
+	<script>
+	
+module('Basic type operations');
+test("Basic boolean operations", function() {
+	
+	function func1(){}
+	var func2 = function() {};
+	
+	notEqual(func1, func2, 'func1 not equal func2');
+	notDeepEqual(func1, func2, 'func1 and func2 are different even if code same.');	
+	
+	// test basic boolean operations  
+	equal(true, 1, 'true == 1');
+	notEqual(true, 2, 'true != 2');
+	equal(! true, ! 1, '! true == ! 1');
+	equal(! 2, false, '! 2 -> false');
+	equal(false, 0, 'false == 0');
+	equal(! false, ! 0, '! false == ! 0');
+	notEqual(undefined, false, 'undefined is not false');
+	equal(! undefined, true, '! undefined == true');
+	notEqual(null, false, 'null is not false.');
+	equal(! null, true, '! null == true');
+	equal(undefined, null, 'value of undefined and null equal if compare.');
+	equal(! undefined, ! null, '! undefined == ! null');
+	notEqual(typeof undefined, typeof null, 'typeof undefined and null is not same.');
+	equal(typeof undefined, 'undefined', 'typeof undefined is undefined');
+	equal(typeof null, 'object', 'typeof null is object');
+	notEqual( func1, true, 'value of function is not true');
+	equal(! func1, false, '! func1 -> false');
+});
+
+module('String operations');
+test("String operations", function() {
+	var url = "http://www.google.com/folder/file.html";
+	var aud = "hello.mp3";
+	var aud_types = ['mp3', 'ogg', 'wav'];
+	
+	function baseDir(url) {
+		return url.substring(0, url.lastIndexOf('/'));
+	}
+	function extName(fname){
+		return fname.substring(fname.lastIndexOf('.')+1);
+	}
+	
+	equal( baseDir(url), 'http://www.google.com/folder', 'base dir of ' + url );
+	equal( extName(aud), 'mp3', 'ext of ' + aud + ' is mp3');
+	equal( ['mp3', 'ogg', 'wav'].indexOf( 'ogg' ) > -1, true, 'mp3 in [mp3, ogg, wav]');
+});
+
+	</script>
+</body>
+</html>

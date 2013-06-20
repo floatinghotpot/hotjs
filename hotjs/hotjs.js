@@ -7,9 +7,9 @@ var hotjs = hotjs || {};
 	
 // app (done) -> view (done) -> scene (done) -> layer -> node (done) -> sub node ...
 
-// event: mouse, touch, keyboard, user-defined
+// event: mouse (done), multi-touch (done), keyboard, user-defined
 
-// resource: image (done), sprite, audio, video
+// resource: image (done), sprite (done), audio, video
 
 // animation: move, rotate, scale, fade
 
@@ -17,7 +17,7 @@ var hotjs = hotjs || {};
 
 // physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
 
-// tool: UT, benchmark, debug, profiling,
+// tool: UT (done), benchmark (done), debug (using chrome), profiling,
 
 // AI: pathfinding
 
@@ -1664,65 +1664,6 @@ hotjs.Scene = Scene;
     window.Sprite = Sprite;
 })();
 
-(function() {
-	var resourceCache = {};
-	var loading = [];
-	var readyCallbacks = [];
 
-	// Load an image url or an array of image urls
-	function load(urlOrArr) {
-		if (urlOrArr instanceof Array) {
-			urlOrArr.forEach(function(url) {
-				_load(url);
-			});
-		} else {
-			_load(urlOrArr);
-		}
-	}
-
-	function _load(url) {
-		if (resourceCache[url]) {
-			return resourceCache[url];
-		} else {
-			var img = new Image();
-			img.onload = function() {
-				resourceCache[url] = img;
-
-				if (isReady()) {
-					readyCallbacks.forEach(function(func) {
-						func();
-					});
-				}
-			};
-			resourceCache[url] = false;
-			img.src = url;
-		}
-	}
-
-	function get(url) {
-		return resourceCache[url];
-	}
-
-	function isReady() {
-		var ready = true;
-		for ( var k in resourceCache) {
-			if (resourceCache.hasOwnProperty(k) && !resourceCache[k]) {
-				ready = false;
-			}
-		}
-		return ready;
-	}
-
-	function onReady(func) {
-		readyCallbacks.push(func);
-	}
-
-	window.resources = {
-		load : load,
-		get : get,
-		onReady : onReady,
-		isReady : isReady
-	};
-})();
 
 
