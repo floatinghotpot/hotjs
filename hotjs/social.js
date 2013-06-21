@@ -85,11 +85,9 @@ AjaxClient.prototype = {
 		
 		for( var i=0; i<msg.list.length; i++ ) {
 			var entry = msg.list[i];
-			if( entry.url.indexOf("://") > -1) {
-				this.urls[ entry.api ] = entry.url;
-			} else {
-				this.urls[ entry.api ] = base_url + entry.url;
-			}
+			var url = ( entry.url.indexOf("://") > -1) ? entry.url : (base_url + entry.url);
+			url = url.replace('/./', '/');
+			this.urls[ entry.api ] =  url;
 		}
 		
 		return true;

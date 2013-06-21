@@ -1,0 +1,9 @@
+{
+	"module" : "hello",
+	"version" : 1.0,
+	"base" : "./",
+	"list" : [ 
+		{ "api": "_default_", "url" : "hello.php", "param": [], "comment" : "default api, must be defined." },
+		{ "api": "hello", "url" : "hello.php", "param": [ "name" ], "comment" : "return msg.done=true/false, msg.name" }
+	]
+} 

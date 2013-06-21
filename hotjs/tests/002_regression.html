@@ -96,9 +96,9 @@ test("Object inherit and override", function() {
 	
 });
 
-module('Random APIs');
+module('Random');
 
-test("Random APIs", function() {
+test("Random functions", function() {
 	// test random 
 	ok( hotjs.Random.Float(10,20) >= 10, 'random(10,20) >= 10');
 	ok( hotjs.Random.Float(10,20) < 20, 'random(10,20) < 20');
@@ -107,9 +107,9 @@ test("Random APIs", function() {
 
 });
 
-module('Vector APIs');
+module('Vector');
 
-test("Vector APIs", function() {
+test("Vector functions", function() {
 	// test Vector operation 
 	notEqual(hotjs.Vector.copy([1,2]), [1,2], 'vector copy  return different object.');
 	deepEqual(hotjs.Vector.copy([1,2]), [1,2], 'vector copy value should be same, if use deepEqual compare.');
@@ -126,9 +126,9 @@ test("Vector APIs", function() {
 	
 });
 
-module('HashMap APIs');
+module('HashMap');
 
-test("HashMap APIs", function() {
+test("HashMap class", function() {
 	// test HashMap 
 	var hm = new hotjs.HashMap();
 	ok( hm.isEmpty(), 'hashmap is empty after created.');
@@ -147,9 +147,9 @@ test("HashMap APIs", function() {
 	ok( hm.isEmpty(), 'hashmap is empty after clear() called.');
 });
 
-module('Resource Manager');
+module('Resource');
 
-test("resource preload", function() {
+test("Resource preload", function() {
 	resources.onLoading( function(url,n,all) {
 		var per = Math.round( n * 100 / all );
 		var d = document.getElementById('loading_msg');
@@ -165,7 +165,7 @@ test("resource preload", function() {
 	resources.onError(function(url){
 		var d = document.getElementById('loading_msg');
 		if( d ) {
-			d.innerHTML = '<br>' + url.substring(url.lastIndexOf('/')+1) + ' not found.'; 
+			d.innerHTML += '<br>' + url.substring(url.lastIndexOf('/')+1) + ' not found.'; 
 		}
 	});
 	resources.onReady(function(){
@@ -205,9 +205,9 @@ test("resource preload", function() {
 	ok( resources.getLoaded() <5, 'it is async loading, so only loaded ' + resources.getLoaded() + ' of 5 now.' );
 });
 
-module('AjaxClient APIs');
+module('AjaxClient');
 
-test("Basic operations of AjaxClient APIs", function() {
+test("Basic AjaxClient APIs", function() {
 
 	equal( typeof [], "object", "typeof [] is object.");
 	ok( Array.isArray( [] ), "Array.isArray([]) == true");
@@ -227,13 +227,11 @@ test("Basic operations of AjaxClient APIs", function() {
 	
 	aj.configAPI( {
 		_default_ : './sns/hello.php',
-		hello : './sns/hello.php',
-		registerAccount : './sns/user.php'
+		hello : './sns/hello.php'
 	});
 	equal( aj.settings.url, './sns/hello.php', "config url locally.");
 	equal( aj.urls["_default_"], './sns/hello.php', "config url locally.");
 	equal( aj.urls["hello"], './sns/hello.php', "config url locally.");
-	equal( aj.urls["registerAccount"], './sns/user.php', "config url locally.");
 
 	// sync call
 	msg = aj.requestMsg( { a:3 } );
@@ -247,6 +245,11 @@ test("Basic operations of AjaxClient APIs", function() {
 	// call local API 
 	equal( aj.hello(), "msghub", "call hello(), return remote name 'msghub'." );
 
+	aj.loadAPI( './sns/hello.inf' );
+	equal( aj.settings.url, './sns/hello.php', "load API from remote.");
+	equal( aj.urls["_default_"], './sns/hello.php', "load API from remote.");
+	equal( aj.urls["hello"], './sns/hello.php', "load API from remote.");
+	
 });
 
 	</script>
