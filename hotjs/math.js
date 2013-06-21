@@ -77,18 +77,91 @@ var Vector = {
 // TODO: to implement
 
 var Matrix = {
-	copy : function(){
-		
+	create : function(m,n){
+		var mtx = [];
+		for(var i=0; i<m; i++) {
+			var r = [];
+			for(var j=0; j<n; j++) {
+				r.push(0);
+			}
+			mtx.push( r );
+		}
+		return mtx;
 	},
-	add : function() {
-		
+	copy : function(src){
+		var dest = [];
+		for(var i=0, m=src.length; i<m; i++) {
+			var r = [], s = src[i];
+			for(var j=0, n=s.length; j<n; j++) {
+				r[j] = s[j];
+			}
+			dest.push( r );
+		}
+		return dest;
 	},
-	sub : function() {
+	inverse : function(src) {
+		var m = src.length;
+		var n = src[0].length;
+		var dest = Matrix.create(n, m);
+		for(var i=0; i<m; i++) {
+			var s = src[i];
+			for(var j=0; j<n; j++) {
+				dest[j][i] = s[j];
+			}
+		}
+		return dest;
+	},
+	isEqual : function(a1, a2) {
+		if(a1.length < 1 || a2.length < 1) return false;
+		if(a1.length != a2.length) return false;
+		if(a1[0].length != a2[0].length) return false;
 		
+		for(var i=0, m=a1.length; i<m; i++) {
+			var r1 = a1[i], r2 = a2[i];
+			for(var j=0, n=r1.length; j<n; j++) {
+				if(r1[j] != r2[j]) {
+					return false;
+				}
+			}
+		}
+		return true;
+	},
+	add : function(a1, a2) {
+		var dest = [];
+		for(var i=0, m=a1.length; i<m; i++) {
+			var r = [], s = a1[i], t = a2[i];
+			for(var j=0, n=s.length; j<n; j++) {
+				r[j] = s[j] + t[j];
+			}
+			dest.push( r );
+		}
+		return dest;
+	},
+	sub : function(a1, a2) {
+		var dest = [];
+		for(var i=0, m=a1.length; i<m; i++) {
+			var r = [], s = a1[i], t = a2[i];
+			for(var j=0, n=s.length; j<n; j++) {
+				r[j] = s[j] - t[j];
+			}
+			dest.push( r );
+		}
+		return dest;
 	},
 	mul : function() {
 		
-	}
+	},
+	toString : function(mtx, sep_col, sep_row) {
+		if(sep_col == undefined) sep_col = '';
+		if(sep_row == undefined) sep_row = '';
+		var str = '';
+		for(var i=0, m=mtx.length; i<m; i++) {
+			var r = mtx[i];
+			str += r.join(sep_col);
+			str += sep_row;
+		}
+		return str;
+	}	
 };
 
 hotjs.Random = Random;

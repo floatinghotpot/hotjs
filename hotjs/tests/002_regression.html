@@ -20,9 +20,10 @@
 <script src="../math.js"></script>
 <script src="../canvas.js"></script>
 <script src="../physics.js"></script>
-<script src="../social.js"></script>
 <script src="../resource.js"></script>
 <script src="../util.js"></script>
+<script src='../ai.js'></script>
+<script src="../social.js"></script>
 
 <script>
 	
@@ -204,6 +205,72 @@ test("Resource preload", function() {
 	equal( resources.getTotal(), 5, 'will totally load 5.' );
 	ok( resources.getLoaded() <5, 'it is async loading, so only loaded ' + resources.getLoaded() + ' of 5 now.' );
 });
+
+module('Matrix');
+
+test('Math matrix functions & hotjs.AI.Matrix', function(){
+	var m1 = [[1,2,3],
+	          [4,5,6],
+	          [7,8,9]];
+	var m2 = [[1,4,7],
+	          [2,5,8],
+	          [3,6,9]];
+	var m3 = [[2,6,10],
+	          [6,10,14],
+	          [10,14,18]];
+	
+	ok( hotjs.Matrix.isEqual( hotjs.Matrix.copy(m1), m1), 'copy matrix');
+	ok( hotjs.Matrix.isEqual( hotjs.Matrix.inverse(m1), m2), 'inverse matrix');
+	ok( hotjs.Matrix.isEqual( hotjs.Matrix.add(m1,m2), m3), 'add matrix');
+	ok( hotjs.Matrix.isEqual( hotjs.Matrix.sub(m3,m1), m2), 'add matrix');
+	
+	var mtx1 = new hotjs.AI.Matrix();
+	mtx1.copyData( m1 );
+	ok( hotjs.Matrix.isEqual( mtx1.data, m1), 'copy data');
+	
+	var mtx2 = mtx1.clone();
+	ok( hotjs.Matrix.isEqual( mtx1.data, mtx2.data), 'clone matrix');
+	
+	mtx2.copy( mtx1 );
+	ok( hotjs.Matrix.isEqual( mtx1.data, mtx2.data), 'copy matrix');
+	
+	mtx2.exchangeValue(2,4).exchangeValue(3,7).exchangeValue(6,8);
+	ok( hotjs.Matrix.isEqual( mtx2.data, m2), 'exchangeValue');
+	
+	var m4 = mtx1.getPosByValue(2);
+	var m5 = [[1,0]];
+	ok( hotjs.Matrix.isEqual( m4, m5), 'getPosByValue, return one');
+	ok( hotjs.Matrix.isEqual( mtx1.getPosByValue(7), [[0,2]]), 'getPosByValue, return one');
+	
+	m4 = mtx2.copyData(m3).getPosByValue(10);
+	m5 = [[2,0],[1,1],[0,2]];
+	ok( hotjs.Matrix.isEqual( m4, m5), 'getPosByValue, return several');
+	
+	var str = mtx1.toString('*','|');
+	equal( str, '1*2*3|4*5*6|7*8*9|', 'matrix to string with seperators.')
+	
+	str = mtx1.clone().inverse().toString();
+	equal( str, '147258369', 'matrix inverse and to string.')
+	
+	str = mtx1.clone().leanRight45().toString('*','|');
+	m6x = [[1],[4,2],[7,5,3],[8,6],[9]];
+	str2 = hotjs.Matrix.toString(m6x, '*', '|');
+	equal( str, str2, 'leanRight45 -> ' + str2);
+	
+	str = mtx1.clone().flipLeftRight().toString('*','|');
+	m6x = [[3,2,1],[6,5,4],[9,8,7]];
+	str2 = hotjs.Matrix.toString(m6x, '*', '|');
+	equal( str, str2, 'flipLeftRight -> ' + str2);
+	
+	str = mtx1.clone().leanLeft45().toString('*','|');
+	m6x = [[3],[2,6],[1,5,9],[4,8],[7]];
+	str2 = hotjs.Matrix.toString(m6x, '*', '|');
+	equal( str, str2, 'flipLeftRight -> ' + str2);
+	
+	str3 = mtx1.clone().flipLeftRight().inverse().leanRight45().toString('*','|');
+	equal( str3, str2, 'flipLeftRight workaround -> ' + str2);
+});
+
 
 module('AjaxClient');
 
