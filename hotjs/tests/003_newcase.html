@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>QUnit: New test cases</title>
+<link rel="stylesheet" href="lib/qunit-1.11.0.css">
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+
+<script src="lib/qunit-1.11.0.js"></script>
+<script src="lib/jquery-1.9.js"></script>
+
+<script src="../hotjs.js"></script>
+<script src="../social.js"></script>
+<script>
+
+module('Social APIs');
+
+test("Basic operations of Social APIs", function() {
+
+	var user = new hotjs.Social.User();
+
+	// load API from remote inf file. 
+	var ret = user.loadAPI( "./sns/user.inf", "user", 1.05 );
+	equal( ret, true, "Load API definition from sns inf." );
+	
+	user.onMsgParse = function(msg) {
+		//console.log( msg );
+		//if( msg.api == "say" ) alert( msg.who + " say: " + msg.what );
+	};
+	
+	ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to sns, start heartbeat." );
+	
+});
+
+	</script>
+</body>
+</html>

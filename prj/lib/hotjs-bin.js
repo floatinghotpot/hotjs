@@ -6,32 +6,6 @@ var hotjs = hotjs || {};
 
 (function(){
 
-// object oriented (done)
-	
-// app (done) -> view (done) -> scene (done) -> node (layer -> node -> sub node ...) (done)
-
-// event: mouse (done), multi-touch (done), keyboard, user-defined
-
-// resource: image (done), sprite (done), audio/video (done)
-
-// animation: move, rotate, scale, fade
-
-// math: point/vector (done), matrix,
-
-// physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
-
-// util: UT (done), getDeviceInfo (done), benchmark (done), debug (using chrome), profiling,
-
-// AI: pathfinding
-
-// lang: i18n
-
-// effect: light, flash, explosion, fire, smoke, fireworks, magic, f()
-	
-// addon: 
-	
-// scenes: goboard (done), snooker (done)
-
 hotjs.version = 1.0;
 
 // tool for inherit
@@ -123,88 +97,6 @@ if (!Array.prototype.indexOf) {
 		return -1;
 	};
 }
-
-// A cross-browser requestAnimationFrame
-// See
-// https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
-var requestAnimFrame = (function() {
-	return window.requestAnimationFrame || window.webkitRequestAnimationFrame
-			|| window.mozRequestAnimationFrame || window.oRequestAnimationFrame
-			|| window.msRequestAnimationFrame || function(callback) {
-				window.setTimeout(callback, 1000 / 60);
-			};
-})();
-
-// TODO: random functions
-var Random = {
-	// extend random
-	Float : function(min, max) {
-		return ((Math.random() * (max - min)) + min);
-	},
-	Integer : function(min, max) {
-		return Math.floor((Math.random() * (max - min)) + min);
-	},
-	Color : function(min, max) {
-		var R = Random.Integer(min, max);
-		var G = Random.Integer(min, max);
-		var B = Random.Integer(min, max);
-		return ("#" + R.toString(16) + G.toString(16) + B.toString(16));	
-	}
-};
-
-// TODO: Vector functions
-var Vector = {
-	copy : function(v) {
-		return [ v[0], v[1] ];
-	},
-	vert : function(v) {
-		return [ v[1], -v[0] ];
-	},
-	add : function (v1, v2) {
-		return [ v1[0]+v2[0], v1[1]+v2[1] ];
-	},
-	sub : function (v1, v2) {
-		return [ v1[0]-v2[0], v1[1]-v2[1] ];
-	},
-	mul : function (v, n) {
-		return [v[0] * n, v[1] * n ];
-	},
-	scale : function (v, n) {
-		return [v[0] * n[0], v[1] * n[1] ];
-	},
-	scaleDown : function(v, n) {
-		return [v[0] / n[0], v[1] / n[1] ];
-	},
-	getLength : function(v) {
-		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);
-	},
-	norm : function(v) {
-		var n = 1 / Math.sqrt(v[0]*v[0] + v[1]*v[1]);
-		return [v[0] * n, v[1] * n ];
-	},
-	angle : function(v) {
-		var a = Math.acos( v[0] / Math.sqrt(v[0]*v[0] + v[1]*v[1]) );
-		if( v[1] < 0 ) a = - a; 
-		return a;
-	},
-	project : function (v1, v2) {
-		var v1x = v1[0], v1y = v1[1];
-		var v2x = v2[0], v2y = v2[1];
-		var ang1 = Math.atan2(v1y,v1x);
-		var ang2 = Math.atan2(v2y,v2x);
-		var ang = ang1 - ang2;
-		var v = Math.sqrt( v1x * v1x + v1y * v1y ) * Math.cos(ang);
-		var vx = v * Math.cos(ang2);
-		var vy = v * Math.sin(ang2);
-		return [vx, vy];
-	},
-	inRect : function(v, r) { // [x,y,w,h]
-		return ((v[0]>=r[0]) && (v[0]<r[0]+r[2])) && ((v[1]>=r[1]) && (v[1]<r[1]+r[3]));
-	},
-	inCircle : function(v1, v2, r) {
-		return ((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]) <= (r*r));
-	}
-};
 
 // class HashMap
 var HashMap = function() {
@@ -352,7 +244,7 @@ var App = function(){
 	hotjs_lastTime = Date.now();
 	
 	this.views = [];
-	this.upTime = 0;
+	this.runningTime = 0;
 };
 
 hotjs.inherit(App, hotjs.Class, {
@@ -361,41 +253,331 @@ hotjs.inherit(App, hotjs.Class, {
 		return this;
 	},
 	start : function() {
-		// using closure, me is accessable to inner function, but 'this' changed.
-		var me = this;
-		var lastTime = Date.now();
-		
-		function app_loop(){
-			var now = Date.now();
-			var dt = (now - lastTime) / 1000.0;
-			
-			me.update( dt );
-			me.render();
-			
-			lastTime = now;
-			requestAnimFrame( app_loop );
-		}
-		
-		app_loop();
-
-		return this;
-	},
-	update : function(dt) {
-		this.upTime += dt;
-		
 		for(var i=0; i<this.views.length; i++) {
-			this.views[i].update(dt);
+			this.views[i].start();
 		}
 		return this;
 	},
-	render : function() {
+	resume : function( true_or_false ) {
 		for(var i=0; i<this.views.length; i++) {
-			this.views[i].render();
+			this.views[i].resume( true_or_false );
+		}
+		return this;
+	},	
+	pause : function() {
+		for(var i=0; i<this.views.length; i++) {
+			this.views[i].resume( false );
 		}
 		return this;
 	}
 });
 
+// TODO: export to external
+
+hotjs.HashMap = HashMap;
+hotjs.App = App;
+
+})(); 
+
+
+// ------- math.js ------------- 
+
+
+hotjs = hotjs || {};
+
+(function(){
+
+//TODO: random functions
+var Random = {
+	// extend random
+	Float : function(min, max) {
+		return ((Math.random() * (max - min)) + min);
+	},
+	Integer : function(min, max) {
+		return Math.floor((Math.random() * (max - min)) + min);
+	},
+	Color : function(min, max) {
+		var R = Random.Integer(min, max);
+		var G = Random.Integer(min, max);
+		var B = Random.Integer(min, max);
+		return ("#" + R.toString(16) + G.toString(16) + B.toString(16));	
+	}
+};
+
+// TODO: Vector functions
+var Vector = {
+	copy : function(v) {
+		return [ v[0], v[1] ];
+	},
+	vert : function(v) {
+		return [ v[1], -v[0] ];
+	},
+	add : function (v1, v2) {
+		return [ v1[0]+v2[0], v1[1]+v2[1] ];
+	},
+	sub : function (v1, v2) {
+		return [ v1[0]-v2[0], v1[1]-v2[1] ];
+	},
+	mul : function (v, n) {
+		return [v[0] * n, v[1] * n ];
+	},
+	scale : function (v, n) {
+		return [v[0] * n[0], v[1] * n[1] ];
+	},
+	scaleDown : function(v, n) {
+		return [v[0] / n[0], v[1] / n[1] ];
+	},
+	getLength : function(v) {
+		return Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+	},
+	norm : function(v) {
+		var n = 1 / Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+		return [v[0] * n, v[1] * n ];
+	},
+	angle : function(v) {
+		var a = Math.acos( v[0] / Math.sqrt(v[0]*v[0] + v[1]*v[1]) );
+		if( v[1] < 0 ) a = - a; 
+		return a;
+	},
+	project : function (v1, v2) {
+		var v1x = v1[0], v1y = v1[1];
+		var v2x = v2[0], v2y = v2[1];
+		var ang1 = Math.atan2(v1y,v1x);
+		var ang2 = Math.atan2(v2y,v2x);
+		var ang = ang1 - ang2;
+		var v = Math.sqrt( v1x * v1x + v1y * v1y ) * Math.cos(ang);
+		var vx = v * Math.cos(ang2);
+		var vy = v * Math.sin(ang2);
+		return [vx, vy];
+	},
+	inRect : function(v, r) { // [x,y,w,h]
+		return ((v[0]>=r[0]) && (v[0]<r[0]+r[2])) && ((v[1]>=r[1]) && (v[1]<r[1]+r[3]));
+	},
+	inCircle : function(v1, v2, r) {
+		return ((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]) <= (r*r));
+	}
+};
+
+// TODO: to implement
+
+var Matrix = {
+	copy : function(){
+		
+	},
+	add : function() {
+		
+	},
+	sub : function() {
+		
+	},
+	mul : function() {
+		
+	}
+};
+
+hotjs.Random = Random;
+hotjs.Vector = Vector;
+hotjs.Matrix = Matrix;
+
+})();
+
+// ------- resource.js ------------- 
+
+
+// merged into hotjs.js as a basic class.
+
+(function() {
+	var resourceCache = {};
+	//var loading = [];
+	
+	var readyCallbacks = [];
+	var loadingCallbacks = [];
+	var errorCallbacks = [];
+	
+	var total = 0;
+	var loaded = 0;
+
+	function getTotal() {
+		return total;
+	}
+	function getLoaded() {
+		return loaded;
+	}
+	
+	// func() {}
+	function onReady(func) {
+		readyCallbacks.push(func);
+	}
+
+	// func( url, loaded, total ) {}
+	function onLoading(func) {
+		loadingCallbacks.push(func);
+	}
+	
+	// func( url ) {}
+	function onError(func) {
+		errorCallbacks.push(func);
+	}
+
+	// Load an resource url or an array of resource urls
+	function load(urlOrArr) {
+		if (urlOrArr instanceof Array) {
+			urlOrArr.forEach(function(url) {
+				_load(url);
+			});
+		} else {
+			_load(urlOrArr);
+		}
+	}
+	
+	function unload(urlOrArr) {
+		if (urlOrArr instanceof Array) {
+			urlOrArr.forEach(function(url) {
+				if ( resourceCache.hasOwnProperty(url) ) {
+					delete resourceCache[ url ];
+				}
+			});
+		} else {
+			if ( resourceCache.hasOwnProperty(urlOrArr) ) {
+				delete resourceCache[ url ];				
+			}
+		}
+	}
+
+	function isVideo(url) {
+		var ext = url.substring( url.lastIndexOf('.') +1 );
+		if( (ext == 'ogg') ) {
+			return ( url.indexOf('video') > -1 );
+		} else {
+			return ( ['mp4', 'webm'].indexOf(ext) > -1);
+		}
+	}
+	
+	function isAudio(url) {
+		var ext = url.substring( url.lastIndexOf('.') +1 );
+		if( (ext == 'ogg') ) {
+			return ( url.indexOf('video') == -1 );
+		} else {
+			return ( ['mp3', 'wav'].indexOf(ext) > -1);
+		}
+	}
+	
+	function _load(url) {
+		if (resourceCache[url]) {
+			return resourceCache[url];
+		} else {
+			resourceCache[url] = false;
+			total ++;
+
+			var res;
+			var isvideo = isVideo(url), isaudio = isAudio(url);
+			if( isvideo ) {
+				res = new Video();
+			} else if( isaudio ) {
+				res = new Audio();
+			} else {
+				res = new Image();
+			}
+			
+			var onload = function(){
+				resourceCache[url] = res;
+				loaded ++;
+
+				loadingCallbacks.forEach(function(func){
+					func(res.src, loaded, total);
+				});
+
+				if (isReady()) {
+					readyCallbacks.forEach(function(func) {
+						func();
+					});
+				}
+			};
+			var onerror = function() {
+				errorCallbacks.forEach(function(func){
+					func(res.src);
+				});
+			};
+			
+			if( isvideo || isaudio ) {
+				res.addEventListener('canplaythrough', onload);
+				res.addEventListener('error', onerror);
+				res.setAttribute('src', url);
+				res.load();
+			} else {
+				res = new Image();
+				res.onload = onload;
+				res.onerror = onerror;
+				res.setAttribute('src', url);
+			}
+			
+			return res;
+		}
+	}
+
+	function get(url) {
+		var res = resourceCache[url];
+		if(! res) {
+			var isvideo = isVideo(url), isaudio = isAudio(url);
+			if( isvideo ) {
+				res = new Video();
+				res.setAttribute('src', url);
+				res.load();
+			} else if( isaudio ) {
+				res = new Audio();
+				res.setAttribute('src', url);
+				res.load();
+			} else {
+				res = new Image();
+				res.setAttribute('src', url);
+			}			
+		}
+		return res;
+	}
+
+	function isReady() {
+		var ready = true;
+		for ( var k in resourceCache) {
+			if (resourceCache.hasOwnProperty(k) && !resourceCache[k]) {
+				ready = false;
+			}
+		}
+		return ready;
+	}
+
+	window.resources = {
+		load : load,
+		unload : unload,
+		get : get,
+		getTotal : getTotal,
+		getLoaded : getLoaded,
+		onReady : onReady,
+		onLoading : onLoading,
+		onError : onError,
+		isReady : isReady
+	};
+})();
+
+// ------- canvas.js ------------- 
+
+// name space
+var hotjs = hotjs || {};
+
+(function(){
+	
+var Vector = hotjs.Vector;
+
+// A cross-browser requestAnimationFrame
+// See
+// https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
+var requestAnimFrame = (function() {
+	return window.requestAnimationFrame || window.webkitRequestAnimationFrame
+			|| window.mozRequestAnimationFrame || window.oRequestAnimationFrame
+			|| window.msRequestAnimationFrame || function(callback) {
+				window.setTimeout(callback, 1000 / 60);
+			};
+})();
+	
 //------------------------
 // TODO: class View
 var View = function(){
@@ -422,8 +604,8 @@ var View = function(){
 	this.frames = 0;
 	this.fps = 60;
 	
-	this.upTime = 0;
-	this.upTimeShow = "0 : 00 : 00"; // h:m:s
+	this.runningTime = 0;
+	this.runningTimeStr = "0 : 00 : 00"; // h:m:s
 	
 	this.infoPos = [40, 40];
 	
@@ -437,7 +619,7 @@ var View = function(){
 	this.touch_accuracy = 3;
 	
 	// using closure, 'me' is accessable to inner function, but 'this' changed.
-	var me = this; 
+	var me = this;
 	var cv = this.canvas;
 	this.canvas.addEventListener('click',function(e){
 		me.onClick(e);
@@ -502,6 +684,38 @@ var View = function(){
 };
 
 hotjs.inherit(View, hotjs.Class, {
+	start : function() {
+		// using closure, me is accessable to inner function, but 'this' changed.
+		var me = this;
+		var lastTime = Date.now();
+		
+		function view_loop(){
+			var now = Date.now();
+			var dt = (now - lastTime) / 1000.0;
+			
+			if( me.running ) {
+				me.update( dt );
+				me.render();
+			}
+			
+			lastTime = now;
+			requestAnimFrame( view_loop );
+		}
+		
+		this.running = true;
+		view_loop();
+
+		return this;
+	},
+	resume : function( r ) {
+		if(r == undefined) r = true;
+		this.running = r;
+		return this;
+	},
+	pause : function() {
+		this.rusume( false );
+		return this;
+	},
 	setContainer : function(id){
 		this.container = document.getElementById(id);
 		if( ! this.container ) {
@@ -607,22 +821,22 @@ hotjs.inherit(View, hotjs.Class, {
 		if( this.dtSum > 1.0 ) {
 			this.rect = this.canvas.getBoundingClientRect();
 
-			this.upTime += this.dtSum;
-			this.fps = Math.round( this.frames / this.dtSum );
-			
-			this.dtSum = 0;
-			this.frames = 0;
-
+			this.runningTime += this.dtSum;
 			if(this.bFps) {
-				var s = Math.floor(this.upTime);
+				var s = Math.floor(this.runningTime);
 				var m = Math.floor( s / 60 );
 				s %= 60;
 				if(s<10) s="0"+s;
 				h = Math.floor( m / 60 );
 				m %= 60;
 				if(m<10) m="0"+m;
-				this.upTimeShow = h + " : " + m + " : " + s;
+				this.runningTimeStr = h + " : " + m + " : " + s;
 			}
+
+			this.fps = Math.round( this.frames / this.dtSum );
+			this.dtSum = 0;
+			this.frames = 0;
+
 		}
 
 		return this;
@@ -651,7 +865,7 @@ hotjs.inherit(View, hotjs.Class, {
 			c.strokeStyle = "black";
 			c.fillStyle = "black";
 			
-			c.fillText( this.upTimeShow, this.infoPos[0], this.infoPos[1] + 20 );
+			c.fillText( this.runningTimeStr, this.infoPos[0], this.infoPos[1] + 20 );
 			c.fillText( this.fps + ' fps: ' + this.frames, this.infoPos[0], this.infoPos[1] + 40 );
 			c.fillText( '(' + this.canvas.width + " x " + this.canvas.height + ')', this.infoPos[0], this.infoPos[1] + 60 ); 
 			var rectInfo = '(' + this.rect.width + ' x ' + this.rect.height + ')' 
@@ -1601,299 +1815,78 @@ hotjs.inherit( Scene, Node, {
 	}
 });
 
-//-----------------------
-// TODO: all packages, classes, and function set
-hotjs.Random = Random;
-hotjs.Vector = Vector;
-hotjs.HashMap = HashMap;
-hotjs.App = App;
-hotjs.View = View;
-hotjs.Node = Node;
-hotjs.Scene = Scene;
+// TODO: Sprite
 
-})(); 
+function Sprite(url, pos, size, speed, frames, dir, once) {
+    this.pos = pos;
+    this.size = size;
+    this.speed = typeof speed === 'number' ? speed : 0;
+    this.frames = frames;
+    this._index = 0;
+    this.url = url;
+    this.dir = dir || 'horizontal';
+    this.once = once;
+};
 
-(function() {
-    function Sprite(url, pos, size, speed, frames, dir, once) {
-        this.pos = pos;
-        this.size = size;
-        this.speed = typeof speed === 'number' ? speed : 0;
-        this.frames = frames;
-        this._index = 0;
-        this.url = url;
-        this.dir = dir || 'horizontal';
-        this.once = once;
-    };
-
-    Sprite.prototype = {
-		update : function(dt) {
-			this._index += this.speed * dt;
-		},
-
-		render : function(ctx, w, h) {
-			var frame;
-
-			if (this.speed > 0) {
-				var max = this.frames.length;
-				var idx = Math.floor(this._index);
-				frame = this.frames[idx % max];
-
-				if (this.once && idx >= max) {
-					this.done = true;
-					return;
-				}
-			} else {
-				frame = 0;
-			}
-
-			var x = this.pos[0];
-			var y = this.pos[1];
-
-			if (this.dir == 'vertical') {
-				y += frame * this.size[1];
-			} else {
-				x += frame * this.size[0];
-			}
-			
-			if(! w) w = this.size[0];
-			if(! h) h = this.size[1];
-			
-			var img = resources.get(this.url);
-
-			ctx.drawImage( img, 
-					x, y, this.size[0], this.size[1], 
-					0, 0, w, h);
-		}
-    };
-
-    window.Sprite = Sprite;
-})();
-
-
-
-
-
-// ------- resource.js ------------- 
-
-
-// merged into hotjs.js as a basic class.
-
-(function() {
-	var resourceCache = {};
-	//var loading = [];
-	
-	var readyCallbacks = [];
-	var loadingCallbacks = [];
-	var errorCallbacks = [];
-	
-	var total = 0;
-	var loaded = 0;
-
-	function getTotal() {
-		return total;
-	}
-	function getLoaded() {
-		return loaded;
-	}
-	
-	// func() {}
-	function onReady(func) {
-		readyCallbacks.push(func);
-	}
-
-	// func( url, loaded, total ) {}
-	function onLoading(func) {
-		loadingCallbacks.push(func);
-	}
-	
-	// func( url ) {}
-	function onError(func) {
-		errorCallbacks.push(func);
-	}
-
-	// Load an resource url or an array of resource urls
-	function load(urlOrArr) {
-		if (urlOrArr instanceof Array) {
-			urlOrArr.forEach(function(url) {
-				_load(url);
-			});
-		} else {
-			_load(urlOrArr);
-		}
-	}
-	
-	function unload(urlOrArr) {
-		if (urlOrArr instanceof Array) {
-			urlOrArr.forEach(function(url) {
-				if ( resourceCache.hasOwnProperty(url) ) {
-					delete resourceCache[ url ];
-				}
-			});
-		} else {
-			if ( resourceCache.hasOwnProperty(urlOrArr) ) {
-				delete resourceCache[ url ];				
-			}
-		}
-	}
-
-	function isVideo(url) {
-		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( (ext == 'ogg') ) {
-			return ( url.indexOf('video') > -1 );
-		} else {
-			return ( ['mp4', 'webm'].indexOf(ext) > -1);
-		}
-	}
-	
-	function isAudio(url) {
-		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( (ext == 'ogg') ) {
-			return ( url.indexOf('video') == -1 );
-		} else {
-			return ( ['mp3', 'wav'].indexOf(ext) > -1);
-		}
-	}
-	
-	function _load(url) {
-		if (resourceCache[url]) {
-			return resourceCache[url];
-		} else {
-			resourceCache[url] = false;
-			total ++;
-
-			var res;
-			var isvideo = isVideo(url), isaudio = isAudio(url);
-			if( isvideo ) {
-				res = new Video();
-			} else if( isaudio ) {
-				res = new Audio();
-			} else {
-				res = new Image();
-			}
-			
-			var onload = function(){
-				resourceCache[url] = res;
-				loaded ++;
-
-				loadingCallbacks.forEach(function(func){
-					func(res.src, loaded, total);
-				});
-
-				if (isReady()) {
-					readyCallbacks.forEach(function(func) {
-						func();
-					});
-				}
-			};
-			var onerror = function() {
-				errorCallbacks.forEach(function(func){
-					func(res.src);
-				});
-			};
-			
-			if( isvideo || isaudio ) {
-				res.addEventListener('canplaythrough', onload);
-				res.addEventListener('error', onerror);
-				res.setAttribute('src', url);
-				res.load();
-			} else {
-				res = new Image();
-				res.onload = onload;
-				res.onerror = onerror;
-				res.setAttribute('src', url);
-			}
-			
-			return res;
-		}
-	}
-
-	function get(url) {
-		var res = resourceCache[url];
-		if(! res) {
-			var isvideo = isVideo(url), isaudio = isAudio(url);
-			if( isvideo ) {
-				res = new Video();
-				res.setAttribute('src', url);
-				res.load();
-			} else if( isaudio ) {
-				res = new Audio();
-				res.setAttribute('src', url);
-				res.load();
-			} else {
-				res = new Image();
-				res.setAttribute('src', url);
-			}			
-		}
-		return res;
-	}
-
-	function isReady() {
-		var ready = true;
-		for ( var k in resourceCache) {
-			if (resourceCache.hasOwnProperty(k) && !resourceCache[k]) {
-				ready = false;
-			}
-		}
-		return ready;
-	}
-
-	window.resources = {
-		load : load,
-		unload : unload,
-		get : get,
-		getTotal : getTotal,
-		getLoaded : getLoaded,
-		onReady : onReady,
-		onLoading : onLoading,
-		onError : onError,
-		isReady : isReady
-	};
-})();
-
-// ------- sprite.js ------------- 
-
-
-// already merged into hotjs.js as a basic class.
-
-// ------- math.js ------------- 
-
-
-(function(){
-
-hotjs = hotjs || {};
-
-// Random, often used, so merged into hotjs.js.
-
-// Vector, often used, so merged into hotjs.js.
-
-// TODO: to implement
-
-var Matrix = {
-	copy : function(){
-		
+Sprite.prototype = {
+	update : function(dt) {
+		this._index += this.speed * dt;
 	},
-	add : function() {
+
+	render : function(ctx, w, h) {
+		var frame;
+
+		if (this.speed > 0) {
+			var max = this.frames.length;
+			var idx = Math.floor(this._index);
+			frame = this.frames[idx % max];
+
+			if (this.once && idx >= max) {
+				this.done = true;
+				return;
+			}
+		} else {
+			frame = 0;
+		}
+
+		var x = this.pos[0];
+		var y = this.pos[1];
+
+		if (this.dir == 'vertical') {
+			y += frame * this.size[1];
+		} else {
+			x += frame * this.size[0];
+		}
 		
-	},
-	sub : function() {
+		if(! w) w = this.size[0];
+		if(! h) h = this.size[1];
 		
-	},
-	mul : function() {
-		
+		var img = resources.get(this.url);
+
+		ctx.drawImage( img, 
+				x, y, this.size[0], this.size[1], 
+				0, 0, w, h);
 	}
 };
 
-hotjs.Matrix = Matrix;
+//-----------------------
+// TODO: all core packages, classes, and function set
+hotjs.View = View;
+hotjs.Node = Node;
+hotjs.Scene = Scene;
+hotjs.Sprite = Sprite;
 
-})();
+})(); 
+
 
 // ------- physics.js ------------- 
 
 
-(function(){
-	
+hotjs = hotjs || {};
 hotjs.Physics = hotjs.Physics || {};
 
+(function(){
+	
 var Constant = {
 	g : 9.8,
 	RESTITUTION_V : 0.8,
@@ -2182,10 +2175,12 @@ hotjs.Physics.Ball = Ball;
 
 // ------- social.js ------------- 
 
-(function(){
-	
+
+hotjs = hotjs || {};
 hotjs.Social = hotjs.Social || {};
 
+(function(){
+	
 // TODO: AjaxClient 
 // using jQuery/AJAX to handle network request 
 var AjaxClient = function(){
@@ -2779,10 +2774,12 @@ hotjs.Social.User = User;
 })();
 // ------- util.js ------------- 
 
-(function(){
-	
+
+hotjs = hotjs || {};
 hotjs.Util = hotjs.Util || {};
 
+(function(){
+	
 // borrow from collie.js
 var _htDeviceInfo = null;
 

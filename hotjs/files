@@ -1,7 +1,7 @@
 hotjs.js
-resource.js
-sprite.js
 math.js
+resource.js
+canvas.js
 physics.js
 social.js
 util.js

@@ -7,101 +7,23 @@
 <meta http-equiv="Pragma" CONTENT="no-cache">
 <link rel="apple-touch-icon" href="img/icon.png" />
 <link rel="icon" type="image/png" href="img/icon.png" />
+<link rel="stylesheet" href="gomoku.css">
 <meta name="viewport"
 	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-<script type="text/javascript" src="../../lib/jquery-1.9.js"></script>
-<script type="text/javascript" src="../../../hotjs/hotjs.js"></script>
-<script type="text/javascript" src="../../../hotjs/social.js"></script>
-<script type="text/javascript" src="../../../hotjs/resource.js"></script>
-<script type="text/javascript" src="goboard.js"></script>
-<script type="text/javascript" src="goplayer.js"></script>
+
+<script src="../../lib/jquery-1.9.js"></script>
+
+<script src="../../../hotjs/hotjs.js"></script>
+<script src="../../../hotjs/resource.js"></script>
+<script src="../../../hotjs/math.js"></script>
+<script src="../../../hotjs/canvas.js"></script>
+<script src="../../../hotjs/social.js"></script>
+
+<script src="goboard.js"></script>
+<script src="goplayer.js"></script>
+
 <style type="text/css">
-html, body {
-	width: 100%;
-	height: 100%;
-	overflow: hidden;
-	margin: 0;
-	padding: 0;
-}
-div#mainView {
-	display: inline-block;
-	border: solid green 0px;
-	margin: 0px;
-	padding: 0px;
-	-moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px;
-    border-radius: 10px;	
-}
-div#user1 {
-	left: 2px;
-	top: 2px;
-	display: inline-block;
-	position: absolute;
-	border: solid black 2px;
-	margin: 0px;
-	padding: 2px;
-	background: #669966;
-	opacity:0.9;
-	-moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px;
-    border-radius: 10px;	
-}
-div#user2 {
-	right: 2px;
-	top: 2px;
-	display: inline-block;
-	position: absolute;
-	border: solid black 2px;
-	margin: 0px;
-	padding: 2px;
-	background: #669966;
-	opacity:0.9;	
-	-moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px;
-    border-radius: 10px;	
-}
-div#control {
-	display: inline-block;
-	position: absolute;
-	border: solid green 0px;
-	margin: 0px;
-	padding: 10px;
-	top: 4px;
-	right: 120px;
-}
-div#menu {
-	display: inline-block;
-	position: absolute;
-	border: solid green 0px;
-	margin: 0px;
-	padding: 0px;
-	bottom: 0px;
-	left: 0px;
-	right: 0px;
-	text-align: center;
-	color: #aaaaaa;
-	background: #333333;
-}
-input.btn {
-	width: 100px;
-}
-img {
-	v-space: 0px;
-	padding-bottom: 0px;
-}
-table {
-	width: 100%;
-	padding: 0;
-	margin: 0;
-	text-align: center;
-	border: solid green 0px;
-}
-td.m {
-	width: 20%;
-}
+
 </style>
 </head>
 <body>

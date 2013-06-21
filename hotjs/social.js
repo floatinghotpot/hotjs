@@ -1,7 +1,9 @@
-(function(){
-	
+
+hotjs = hotjs || {};
 hotjs.Social = hotjs.Social || {};
 
+(function(){
+	
 // TODO: AjaxClient 
 // using jQuery/AJAX to handle network request 
 var AjaxClient = function(){

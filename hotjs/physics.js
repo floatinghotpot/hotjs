@@ -1,8 +1,9 @@
 
-(function(){
-	
+hotjs = hotjs || {};
 hotjs.Physics = hotjs.Physics || {};
 
+(function(){
+	
 var Constant = {
 	g : 9.8,
 	RESTITUTION_V : 0.8,
