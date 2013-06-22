@@ -174,8 +174,8 @@ test("Resource preload", function() {
 		if( d ) {
 			d.innerHTML += '<br>Resource loaded.'; 
 		}
-		//var d = document.getElementById('res_loading_msg_win');
-		d = document.getElementById('loading_img');
+		d = document.getElementById('res_loading_msg_win');
+		//d = document.getElementById('loading_img');
 		if( d ) {
 			d.setAttribute('style', 'display:none');
 		}
@@ -206,9 +206,9 @@ test("Resource preload", function() {
 	ok( resources.getLoaded() <5, 'it is async loading, so only loaded ' + resources.getLoaded() + ' of 5 now.' );
 });
 
-module('Matrix');
+module('Math Matrix');
 
-test('Math matrix functions & hotjs.AI.Matrix', function(){
+test('Math matrix functions', function(){
 	var m1 = [[1,2,3],
 	          [4,5,6],
 	          [7,8,9]];
@@ -219,14 +219,48 @@ test('Math matrix functions & hotjs.AI.Matrix', function(){
 	          [6,10,14],
 	          [10,14,18]];
 	
+	// Math Matrix functions
 	ok( hotjs.Matrix.isEqual( hotjs.Matrix.copy(m1), m1), 'copy matrix');
-	ok( hotjs.Matrix.isEqual( hotjs.Matrix.inverse(m1), m2), 'inverse matrix');
 	ok( hotjs.Matrix.isEqual( hotjs.Matrix.add(m1,m2), m3), 'add matrix');
-	ok( hotjs.Matrix.isEqual( hotjs.Matrix.sub(m3,m1), m2), 'add matrix');
+	ok( hotjs.Matrix.isEqual( hotjs.Matrix.sub(m3,m1), m2), 'sub matrix');
+
+	var mtx_str = '1000|0100|0010|0001';
+	var mtx = hotjs.Matrix.fromString( mtx_str, '', '|' );
 	
+	var str = hotjs.Matrix.toString( mtx, '', '|' );
+	equal( str, mtx_str, mtx_str + 'fromString -> toString -> ' + mtx_str );
+	ok( true, mtx_str + ' -> fromString -> toString -> ' + hotjs.Matrix.toString( mtx, ',', '|' ) );
+
+	var m4 = hotjs.Matrix.create(4,4,1);
+	ok( true, 'create matrix with 1 -> ' + hotjs.Matrix.toString( m4, '','|' ) );
+	
+	m4 = hotjs.Matrix.set(m4, 2);
+	ok( true, 'set matrix with 2 -> ' + hotjs.Matrix.toString( m4, '','|' ) );
+	
+	var m4 = hotjs.Matrix.convert( mtx, window.Number );
+	ok( true, 'convert to number: ' + hotjs.Matrix.toString( m3, ',', '|') );
+	
+	ok( hotjs.Matrix.isEqual( hotjs.Matrix.inverse(m1), m2), 'inverse matrix');
+});
+
+
+module('AI Matrix');
+
+test('hotjs.AI.Matrix', function(){
+	var m1 = [[1,2,3],
+	          [4,5,6],
+	          [7,8,9]];
+	var m2 = [[1,4,7],
+	          [2,5,8],
+	          [3,6,9]];
+	var m3 = [[2,6,10],
+	          [6,10,14],
+	          [10,14,18]];
+
+	// AI.Matrix class
 	var mtx1 = new hotjs.AI.Matrix();
-	mtx1.copyData( m1 );
-	ok( hotjs.Matrix.isEqual( mtx1.data, m1), 'copy data');
+	mtx1.importData( m1 );
+	ok( hotjs.Matrix.isEqual( mtx1.data, m1), 'import data');
 	
 	var mtx2 = mtx1.clone();
 	ok( hotjs.Matrix.isEqual( mtx1.data, mtx2.data), 'clone matrix');
@@ -238,37 +272,55 @@ test('Math matrix functions & hotjs.AI.Matrix', function(){
 	ok( hotjs.Matrix.isEqual( mtx2.data, m2), 'exchangeValue');
 	
 	var m4 = mtx1.getPosByValue(2);
-	var m5 = [[1,0]];
-	ok( hotjs.Matrix.isEqual( m4, m5), 'getPosByValue, return one');
+	ok( hotjs.Matrix.isEqual( m4, [[1,0]]), 'getPosByValue, return one');
 	ok( hotjs.Matrix.isEqual( mtx1.getPosByValue(7), [[0,2]]), 'getPosByValue, return one');
 	
-	m4 = mtx2.copyData(m3).getPosByValue(10);
+	m4 = mtx2.importData(m3).getPosByValue(10);
 	m5 = [[2,0],[1,1],[0,2]];
 	ok( hotjs.Matrix.isEqual( m4, m5), 'getPosByValue, return several');
 	
-	var str = mtx1.toString('*','|');
-	equal( str, '1*2*3|4*5*6|7*8*9|', 'matrix to string with seperators.')
+	var str = mtx1.toString(',', '|');
+	equal( str, '1,2,3|4,5,6|7,8,9', 'matrix to string with seperators.')
 	
-	str = mtx1.clone().inverse().toString();
-	equal( str, '147258369', 'matrix inverse and to string.')
+	// now, start transit 
+	mtx2 = mtx1.clone();
+	ok( true, 'clone, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
+
+	mtx2 = mtx1.clone().inverse();
+	str = mtx2.toString();
+	equal( str, '147|258|369', 'inverse -> ' + str)
+	ok( true, 'inverse, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
 	
-	str = mtx1.clone().leanRight45().toString('*','|');
-	m6x = [[1],[4,2],[7,5,3],[8,6],[9]];
-	str2 = hotjs.Matrix.toString(m6x, '*', '|');
-	equal( str, str2, 'leanRight45 -> ' + str2);
-	
-	str = mtx1.clone().flipLeftRight().toString('*','|');
+	mtx2 = mtx1.clone().flipLeftRight();
+	str = mtx2.toString(',', '|');
 	m6x = [[3,2,1],[6,5,4],[9,8,7]];
-	str2 = hotjs.Matrix.toString(m6x, '*', '|');
+	str2 = hotjs.Matrix.toString(m6x, ',', '|');
 	equal( str, str2, 'flipLeftRight -> ' + str2);
+	ok( true, 'flipLeftRight, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
 	
-	str = mtx1.clone().leanLeft45().toString('*','|');
+	mtx2 = mtx1.clone().flipUpDown();
+	ok( true, 'flipUpDown -> ' + hotjs.Matrix.toString(mtx2.getData()) );
+	ok( true, 'flipUpDown, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
+
+	mtx2 = mtx1.clone().leanRight45();
+	str = mtx2.toString(',', '|');
+	m6x = [[1],[4,2],[7,5,3],[8,6],[9]];
+	str2 = hotjs.Matrix.toString(m6x, ',', '|');
+	equal( str, str2, 'leanRight45 -> ' + str2);
+	ok( true, 'leanRight45, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
+	
+	mtx2 = mtx1.clone().leanLeft45();
+	str = mtx2.toString(',', '|');
 	m6x = [[3],[2,6],[1,5,9],[4,8],[7]];
-	str2 = hotjs.Matrix.toString(m6x, '*', '|');
-	equal( str, str2, 'flipLeftRight -> ' + str2);
+	str2 = hotjs.Matrix.toString(m6x, ',', '|');
+	equal( str, str2, 'leanLeft -> ' + str2);
+	ok( true, 'leanLeft45, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
 	
-	str3 = mtx1.clone().flipLeftRight().inverse().leanRight45().toString('*','|');
-	equal( str3, str2, 'flipLeftRight workaround -> ' + str2);
+	mtx2 = mtx1.clone().flipLeftRight().inverse().leanRight45();
+	str = mtx2.toString(',','|');
+	equal( str, str2, 'leanLeft workaround -> ' + str2);
+	ok( true, 'leanLeft45 workarround, mapping -> ' + hotjs.Matrix.toString(mtx2.getMapping(),';','|') );
+	
 });
 
 

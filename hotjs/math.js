@@ -77,12 +77,13 @@ var Vector = {
 // TODO: to implement
 
 var Matrix = {
-	create : function(m,n){
+	create : function(m, n, v){
+		if(v == undefined) v = 0;
 		var mtx = [];
 		for(var i=0; i<m; i++) {
 			var r = [];
 			for(var j=0; j<n; j++) {
-				r.push(0);
+				r.push( v );
 			}
 			mtx.push( r );
 		}
@@ -91,7 +92,7 @@ var Matrix = {
 	copy : function(src){
 		var dest = [];
 		for(var i=0, m=src.length; i<m; i++) {
-			var r = [], s = src[i];
+			var s = src[i], r = [];
 			for(var j=0, n=s.length; j<n; j++) {
 				r[j] = s[j];
 			}
@@ -99,17 +100,16 @@ var Matrix = {
 		}
 		return dest;
 	},
-	inverse : function(src) {
-		var m = src.length;
-		var n = src[0].length;
-		var dest = Matrix.create(n, m);
-		for(var i=0; i<m; i++) {
-			var s = src[i];
-			for(var j=0; j<n; j++) {
-				dest[j][i] = s[j];
+	copyDeep : function copyDeep(src) {
+		if( Array.isArray(src) ) {
+			var dest = [];
+			for(var i=0, m=src.length; i<m; i++) {
+				dest.push( Matrix.copyDeep(src[i]) );
 			}
-		}
-		return dest;
+			return dest;
+		} else {
+			return src;
+		}		
 	},
 	isEqual : function(a1, a2) {
 		if(a1.length < 1 || a2.length < 1) return false;
@@ -151,17 +151,62 @@ var Matrix = {
 	mul : function() {
 		
 	},
+	set : function(src, v) {
+		var dest = [];
+		for(var i=0, m=src.length; i<m; i++) {
+			var s = src[i], d = [];
+			for(var j=0, n=s.length; j<n; j++) {
+				d.push( v );
+			}
+			dest.push( d );
+		}
+		return dest;
+	},
+	convert : function(src, func) {
+		var dest = [];
+		for(var i=0, m=src.length; i<m; i++) {
+			var s = src[i], d = [];
+			for(var j=0, n=s.length; j<n; j++) {
+				d.push( func(s[j]) );
+			}
+			dest.push( d );
+		}
+		return dest;
+	},
+	inverse : function(src) {
+		var m = src.length;
+		var n = src[0].length;
+		var dest = Matrix.create(n, m);
+		for(var i=0; i<m; i++) {
+			var s = src[i];
+			for(var j=0; j<n; j++) {
+				dest[j][i] = s[j];
+			}
+		}
+		return dest;
+	},
 	toString : function(mtx, sep_col, sep_row) {
 		if(sep_col == undefined) sep_col = '';
-		if(sep_row == undefined) sep_row = '';
-		var str = '';
+		if(sep_row == undefined) sep_row = '|';
+		var rows = [];
 		for(var i=0, m=mtx.length; i<m; i++) {
-			var r = mtx[i];
-			str += r.join(sep_col);
-			str += sep_row;
+			rows.push( mtx[i].join(sep_col) );
 		}
-		return str;
-	}	
+		return rows.join(sep_row);
+	},
+	fromString : function(str, sep_col, sep_row) {
+		var mtx = [];
+		var rowstrs = str.split(sep_row);
+		for(var i=0; i<rowstrs.length; i++) {
+			mtx.push( rowstrs[i].split(sep_col) );
+		}
+		return mtx;
+	},
+	log : function(mtx) {
+		for(var i=0, m=mtx.length; i<m; i++) {
+			console.log( mtx[i] );
+		}		
+	}
 };
 
 hotjs.Random = Random;
