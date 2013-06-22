@@ -20,7 +20,7 @@
 <script src="../../../hotjs/social.js"></script>
 
 <script src="goboard.js"></script>
-<script src="goplayer.js"></script>
+<script src="net_go.js"></script>
 
 <style type="text/css">
 
@@ -70,7 +70,68 @@ var api_url = '../../sns/gomoku/api.inf';
 
 var viewX;
 var board;
-var netplay;
+var net_go;
+
+var worker = new Worker('ai_go.js');
+
+worker.onmessage = function(evt) {
+	var msg = evt.data;
+	console.log( 'main received: ', msg.api, msg );
+	
+	switch(msg.api) {
+	case 'confirmColor':
+		var c = (msg.color == 2) ? 1 : 2;
+		board.confirmColor( c );	
+		break;
+	case 'go':
+		var s = msg.solution;
+		board.setTip( s );
+
+		var bestMove = s.bestMove;
+		console.log( bestMove.x, bestMove.y );
+		board.go( bestMove.x, bestMove.y );
+		break;
+	case 'undo':
+		break;
+	}
+}
+
+var AIPlayer = function(){
+	hotjs.base(this);
+	
+	this.mycolor = 2;
+};
+
+hotjs.inherit(AIPlayer, hotjs.Class, {
+	setPeerColor : function(c) {
+		work.postMessage({
+			api: 'setColor',
+			color: c
+		});
+	},
+	go : function( move, mtx_str) {
+		worker.postMessage({
+			api: 'go',
+			move: {
+				x: move[0],
+				y: move[1],
+				color:move[2]
+			},
+			matrix_str: mtx_str
+		});
+	},
+	undo : function( move, mtx_str) {
+		worker.postMessage({
+			api: 'undo',
+			move: {
+				x: move[0],
+				y: move[1],
+				color:move[2]
+			},
+			matrix_str: mtx_str
+		});
+	}
+});
 
 function main() {
 	var w = window.innerWidth, h = window.innerHeight;
@@ -106,7 +167,11 @@ function main() {
 		.resetGame()
 		.addTo( viewX );
 	
-	var app = (new hotjs.App()).addNode(viewX).start();
+	board.setPeerPlayer( new AIPlayer() );
+	
+	var app = (new hotjs.App())
+		.addNode(viewX)
+		.start();
 	
 }
 

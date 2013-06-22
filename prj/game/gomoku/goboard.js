@@ -1,6 +1,11 @@
 
 var GoBoard = function(){
 	hotjs.base(this);
+	
+	this.matrix = [];
+	this.undos = [];
+	this.player = 1;
+	this.hostColor = 1;
 };
 
 hotjs.inherit( GoBoard, hotjs.Scene, {
@@ -35,18 +40,9 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		
 		// [ x, y, 1/2 ] 
 		this.undos = [];
-		
 		this.player = 1;
 		
 		return this;
-	},
-	undo : function() {
-		if( this.undos.length > 0 ) {
-			var go = this.undos.pop();
-			this.matrix[ go[0] ][ go[1] ] = 0;
-			
-			this.changePlayer();
-		}
 	},
 	posToMatrix : function(p) {
 		var a = this.getArea();
@@ -74,11 +70,23 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 
 		return false;
 	},
-	changePlayer : function() {
-		// change to another player 
-		if( this.player == 1 ) this.player = 2;
-		else this.player = 1;
+	setHostColor : function(c) {
+		var c2 = (c == 1) ? 2 : 1;
+		this.peerPlayer.setGoColor(c2);
+		return this;
+	},
+	confirmColor : function(c) {
+		this.hostColor = c;
+		return this;
+	},
+	setPeerPlayer : function(p) {
+		this.peerPlayer = p;
 		
+		return this;
+	},
+	setTip : function( s ) {
+		this.tip = s;
+
 		return this;
 	},
 	go : function(x, y) {
@@ -88,12 +96,38 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			resources.get('audio/move.mp3').play();
 			
 			// record for undo
-			this.undos.push( [x, y, this.player] );
+			var lastMove = [x, y, this.player];
+			this.undos.push( lastMove );
+
+			// change turn to another player 
+			if( this.player == 1 ) this.player = 2;
+			else this.player = 1;
 			
-			this.changePlayer();
+			if( this.player != this.hostColor ) {
+				this.peerPlayer.go( lastMove, hotjs.Matrix.toString(this.matrix) );
+			}
 		}
 		
 		return this;
+	},
+	undo : function() {
+		if( this.undos.length >= 2 ) {
+			var lastMove = this.undos.pop();
+			this.matrix[ lastMove[0] ][ lastMove[1] ] = 0;
+			resources.get('audio/move.mp3').play();
+
+			lastMove = this.undos.pop();
+			this.matrix[ lastMove[0] ][ lastMove[1] ] = 0;
+			resources.get('audio/move.mp3').play();
+			
+			// change turn to another player 
+			//if( this.player == 1 ) this.player = 2;
+			//else this.player = 1;
+			
+			if( this.player != this.hostColor ) {
+				this.peerPlayer.undo( lastMove, hotjs.Matrix.toString(this.matrix) );
+			}
+		}
 	},
 	onClick : function(t){
 		var p = this.posFromContainer( [t.x, t.y] );
@@ -117,6 +151,38 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		this.drawGoGrid(c);
 		
 		this.drawGo(c);
+		
+		this.drawTip(c);
+	},
+	drawTip : function(c) {
+		if(!! this.tip ) {
+			c.save();
+			var bestMove = this.tip.bestMove;
+			var hitRating = this.tip.hitRating;
+			var hitMax = bestMove.hit;
+			
+			var a = this.getArea();
+			var ux = a.w / this.rows, uy = a.h / this.rows;
+			
+			for( var i=0; i<this.rows; i++ ) {
+				for( var j=0; j<this.rows; j++ ) {
+					var x = Math.floor(a.l + i * ux);
+					var y = Math.floor(a.t + j * uy);
+					var g = hitRating[i][j];
+					if( g > 0 ) {
+						c.globalAlpha = g / hitMax / 2;
+						var idx = 1;
+						c.drawImage( this.goimg, 
+								this.goimgrect[0] + idx * this.goimgrect[2], 0, 
+								this.goimgrect[2], this.goimgrect[3],
+								x, y, ux, uy );
+					}
+				}
+			}
+			c.restore();
+
+			return this;
+		}
 	},
 	drawGo : function(c) {
 		var a = this.getArea();

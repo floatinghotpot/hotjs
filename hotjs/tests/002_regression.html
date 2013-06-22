@@ -234,7 +234,7 @@ test('Math matrix functions', function(){
 	var m4 = hotjs.Matrix.create(4,4,1);
 	ok( true, 'create matrix with 1 -> ' + hotjs.Matrix.toString( m4, '','|' ) );
 	
-	m4 = hotjs.Matrix.set(m4, 2);
+	m4 = hotjs.Matrix.setValue(m4, 2);
 	ok( true, 'set matrix with 2 -> ' + hotjs.Matrix.toString( m4, '','|' ) );
 	
 	var m4 = hotjs.Matrix.convert( mtx, window.Number );

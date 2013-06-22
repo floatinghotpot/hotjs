@@ -1,10 +1,12 @@
 // TODO: GoPlayer, also works for Gomoku.
 
-var GoPlayer = function(){
+var NetPlayer = function(){
 	hotjs.base(this);
+	
+	this.mycolor = 2;
 };
 
-hotjs.inherit( GoPlayer, hotjs.Social.User, {
+hotjs.inherit( NetPlayer, hotjs.Social.User, {
 	// override to handle incoming msessages
 	onMsgParse : function() {
 
@@ -20,6 +22,10 @@ hotjs.inherit( GoPlayer, hotjs.Social.User, {
 			return this.mycolor;
 		} 
 		return false;
+	},
+	setGoColor : function() {
+		
+		return true;
 	},
 	changeColor : function changeColor() {
 		var msg = this.callAPI( arguments.callee.name, {

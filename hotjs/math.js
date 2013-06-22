@@ -151,7 +151,7 @@ var Matrix = {
 	mul : function() {
 		
 	},
-	set : function(src, v) {
+	setValue : function(src, v) {
 		var dest = [];
 		for(var i=0, m=src.length; i<m; i++) {
 			var s = src[i], d = [];
@@ -174,6 +174,7 @@ var Matrix = {
 		return dest;
 	},
 	inverse : function(src) {
+		//console.log( src );
 		var m = src.length;
 		var n = src[0].length;
 		var dest = Matrix.create(n, m);
@@ -195,6 +196,8 @@ var Matrix = {
 		return rows.join(sep_row);
 	},
 	fromString : function(str, sep_col, sep_row) {
+		if(sep_col == undefined) sep_col = '';
+		if(sep_row == undefined) sep_row = '|';
 		var mtx = [];
 		var rowstrs = str.split(sep_row);
 		for(var i=0; i<rowstrs.length; i++) {
