@@ -361,17 +361,138 @@ var Vector = {
 // TODO: to implement
 
 var Matrix = {
-	copy : function(){
-		
+	create : function(m, n, v){
+		if(v == undefined) v = 0;
+		var mtx = [];
+		for(var i=0; i<m; i++) {
+			var r = [];
+			for(var j=0; j<n; j++) {
+				r.push( v );
+			}
+			mtx.push( r );
+		}
+		return mtx;
 	},
-	add : function() {
-		
+	copy : function(src){
+		var dest = [];
+		for(var i=0, m=src.length; i<m; i++) {
+			var s = src[i], r = [];
+			for(var j=0, n=s.length; j<n; j++) {
+				r[j] = s[j];
+			}
+			dest.push( r );
+		}
+		return dest;
 	},
-	sub : function() {
+	copyDeep : function copyDeep(src) {
+		if( Array.isArray(src) ) {
+			var dest = [];
+			for(var i=0, m=src.length; i<m; i++) {
+				dest.push( Matrix.copyDeep(src[i]) );
+			}
+			return dest;
+		} else {
+			return src;
+		}		
+	},
+	isEqual : function(a1, a2) {
+		if(a1.length < 1 || a2.length < 1) return false;
+		if(a1.length != a2.length) return false;
+		if(a1[0].length != a2[0].length) return false;
 		
+		for(var i=0, m=a1.length; i<m; i++) {
+			var r1 = a1[i], r2 = a2[i];
+			for(var j=0, n=r1.length; j<n; j++) {
+				if(r1[j] != r2[j]) {
+					return false;
+				}
+			}
+		}
+		return true;
+	},
+	add : function(a1, a2) {
+		var dest = [];
+		for(var i=0, m=a1.length; i<m; i++) {
+			var r = [], s = a1[i], t = a2[i];
+			for(var j=0, n=s.length; j<n; j++) {
+				r[j] = s[j] + t[j];
+			}
+			dest.push( r );
+		}
+		return dest;
+	},
+	sub : function(a1, a2) {
+		var dest = [];
+		for(var i=0, m=a1.length; i<m; i++) {
+			var r = [], s = a1[i], t = a2[i];
+			for(var j=0, n=s.length; j<n; j++) {
+				r[j] = s[j] - t[j];
+			}
+			dest.push( r );
+		}
+		return dest;
 	},
 	mul : function() {
 		
+	},
+	setValue : function(src, v) {
+		var dest = [];
+		for(var i=0, m=src.length; i<m; i++) {
+			var s = src[i], d = [];
+			for(var j=0, n=s.length; j<n; j++) {
+				d.push( v );
+			}
+			dest.push( d );
+		}
+		return dest;
+	},
+	convert : function(src, func) {
+		var dest = [];
+		for(var i=0, m=src.length; i<m; i++) {
+			var s = src[i], d = [];
+			for(var j=0, n=s.length; j<n; j++) {
+				d.push( func(s[j]) );
+			}
+			dest.push( d );
+		}
+		return dest;
+	},
+	inverse : function(src) {
+		//console.log( src );
+		var m = src.length;
+		var n = src[0].length;
+		var dest = Matrix.create(n, m);
+		for(var i=0; i<m; i++) {
+			var s = src[i];
+			for(var j=0; j<n; j++) {
+				dest[j][i] = s[j];
+			}
+		}
+		return dest;
+	},
+	toString : function(mtx, sep_col, sep_row) {
+		if(sep_col == undefined) sep_col = '';
+		if(sep_row == undefined) sep_row = '|';
+		var rows = [];
+		for(var i=0, m=mtx.length; i<m; i++) {
+			rows.push( mtx[i].join(sep_col) );
+		}
+		return rows.join(sep_row);
+	},
+	fromString : function(str, sep_col, sep_row) {
+		if(sep_col == undefined) sep_col = '';
+		if(sep_row == undefined) sep_row = '|';
+		var mtx = [];
+		var rowstrs = str.split(sep_row);
+		for(var i=0; i<rowstrs.length; i++) {
+			mtx.push( rowstrs[i].split(sep_col) );
+		}
+		return mtx;
+	},
+	log : function(mtx) {
+		for(var i=0, m=mtx.length; i<m; i++) {
+			console.log( mtx[i] );
+		}		
 	}
 };
 
@@ -530,7 +651,8 @@ hotjs.Matrix = Matrix;
 			} else {
 				res = new Image();
 				res.setAttribute('src', url);
-			}			
+			}
+			resourceCache[ url ] = res;
 		}
 		return res;
 	}
@@ -2262,11 +2384,9 @@ AjaxClient.prototype = {
 		
 		for( var i=0; i<msg.list.length; i++ ) {
 			var entry = msg.list[i];
-			if( entry.url.indexOf("://") > -1) {
-				this.urls[ entry.api ] = entry.url;
-			} else {
-				this.urls[ entry.api ] = base_url + entry.url;
-			}
+			var url = ( entry.url.indexOf("://") > -1) ? entry.url : (base_url + entry.url);
+			url = url.replace('/./', '/');
+			this.urls[ entry.api ] =  url;
 		}
 		
 		return true;
@@ -3101,3 +3221,227 @@ hotjs.Util.BenchLab = BenchLab;
 
 })();
 
+
+// ------- ai.js ------------- 
+
+
+hotjs = hotjs || {};
+hotjs.AI = hotjs.AI || {};
+
+(function(){
+
+// TODO: AI Common Interface
+var BasicAI = function(){
+	hotjs.base(this);
+};
+
+hotjs.inherit( BasicAI, hotjs.Class, {
+	startup : function(conf) {
+	},
+	solve : function( puzzle ) {
+		return {};
+	},
+	reset : function() {
+		
+	},
+	shutdown : function() {
+	}
+});
+
+// TODO: Matrix
+var Matrix = function(){
+	hotjs.base(this);
+
+	this.data = [];
+	this.mapping = [];
+};
+
+hotjs.inherit(Matrix, BasicAI, {
+	init : function(m, n, v) {
+		this.data = hotjs.Matrix.create(m, n, v);
+		this.resetMapping();
+		
+		return this;
+	},
+	setValue : function(v) {
+		this.data = hotjs.Matrix.setValue( this.data, v );
+		
+		return this;
+	},
+	resetMapping : function() {
+		var mtx = this.data;
+		var map = [];
+		for(var i=0, m=mtx.length; i<m; i++) {
+			var r = mtx[i], mr = [];
+			for(var j=0, n=r.length; j<n; j++) {
+				mr.push( [j, i] );
+			} 
+			map.push( mr );
+		}
+		this.mapping = map;
+		
+		return this;
+	},
+	clone : function() {
+		var o = new (this.constructor)();
+		o.data = hotjs.Matrix.copy( this.data );
+		o.mapping = hotjs.Matrix.copy( this.mapping );
+		
+		return o;
+	},
+	copy : function(mtx) {
+		this.data = hotjs.Matrix.copy( mtx.data );
+		this.mapping = hotjs.Matrix.copy( mtx.mapping );
+		
+		return this;
+	},
+	getData : function() {
+		return this.data;
+	},
+	getMapping : function() {
+		return this.mapping;
+	},
+	importData : function(data) {
+		this.data = hotjs.Matrix.copy( data );
+		this.resetMapping();
+		
+		return this;
+	},
+	importDataFromString : function(str, sep_col, sep_row) {
+		this.data = hotjs.Matrix.fromString(str, sep_col, sep_row);
+		this.resetMapping();
+		
+		return this;
+	},
+	toString : function(sep_col, sep_row){
+		return hotjs.Matrix.toString(this.data, sep_col, sep_row);
+	},
+	exchangeValue : function(x,y){
+		var mtx = this.data;
+		for(var i=0, m=mtx.length; i<m; i++) {
+			var r = mtx[i];
+			for(var j=0, n=r.length; j<n; j++) {
+				if( r[j] == x ) {
+					r[j] = y;
+				} else if( r[j] == y) {
+					r[j] = x;
+				}
+			}
+		}
+		return this;
+	},
+	getPosByValue : function(v) {
+		var points = [];
+		var mtx = this.data;
+		for(var i=0, m=mtx.length; i<m; i++) {
+			var r = mtx[i];
+			if(Number(r.join('')) === 0) continue;
+			for(var j=0, n=r.length; j<n; j++) {
+				if( r[j] === v ) {
+					points.push([j,i]);
+				}
+			}
+		}
+		return points;
+	},
+	inverse : function() {
+		this.data = hotjs.Matrix.inverse( this.data );
+		this.mapping = hotjs.Matrix.inverse( this.mapping );
+		
+		return this;
+	},
+	flipLeftRight : function() {
+		var dest = [], mapping = [];
+		var mtx = this.data, mtxm = this.mapping;
+		for(var i=0, m=mtx.length; i<m; i++) {
+			var s = mtx[i], t = [], sm = mtxm[i], tm = [];
+			for(var j=0, n=s.length; j<n; j++) {
+				t.push( s[n-1 -j] );
+				tm.push( sm[n-1 -j] );
+			}
+			dest.push( t );
+			mapping.push( tm );
+		}
+		this.data = dest;
+		this.mapping = mapping;
+		
+		return this;
+	},
+	flipUpDown : function() {
+		var dest = [], mapping = [];
+		var mtx = this.data, mtxm = this.mapping;
+		for(var i=mtx.length-1; i>=0; i--) {
+			dest.push( mtx[i] );
+			mapping.push( mtxm[i] );
+		}
+		this.data = dest;
+		this.mapping = mapping;
+		
+		return this;
+	},
+	leanRight45 : function() {
+		var dest = [], mapping = [];
+		var mtx = this.data, mtxm = this.mapping;
+		var m = mtx.length, n = mtx[0].length;
+		var mm = m + n -1;
+		for(var i=0; i<mm; i++) {
+			var t = [], tm = [];
+			for(var j=0; j<=i; j++) {
+				if( (i-j)<m && j<n ) {
+					t.push( mtx[i-j][j] );
+					tm.push( mtxm[i-j][j] ); // x,y || col,row
+				}
+			}
+			dest.push(t);
+			mapping.push(tm);
+		}
+		this.data = dest;
+		this.mapping = mapping;
+		
+		return this;
+	},
+	leanLeft45 : function() {
+		var dest = [], mapping = [];
+		var mtx = this.data, mtxm = this.mapping;
+		var m = mtx.length, n = mtx[0].length;
+		var mm = m + n -1;
+		for(var i=0; i<mm; i++) {
+			var t = [], tm = [];
+			for(var j=i; j>=0; j--) {
+				if( (i-j)<m && j<n ) {
+					t.push( mtx[i-j][n-1-j] );
+					tm.push( mtxm[i-j][n-1-j] ); // x,y || col,row
+				}
+			}
+			dest.push(t);
+			mapping.push( tm );
+		}
+		this.data = dest;
+		this.mapping = mapping;
+		
+		return this;
+	}
+});
+
+// TODO: PathFinder
+var PathFinder = function(){
+	hotjs.base(this);
+};
+
+hotjs.inherit(PathFinder, BasicAI, {
+	solve : function( puzzle ) {
+		var matrix = puzzle.matrix;
+		var from = puzzle.from;
+		var to = puzzle.to;
+		var path = [];
+		
+		
+		return path;
+	}
+});
+
+hotjs.AI.BasicAI = BasicAI;
+hotjs.AI.Matrix = Matrix;
+hotjs.AI.PathFinder = PathFinder;
+
+})();

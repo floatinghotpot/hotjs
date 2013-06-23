@@ -18,22 +18,10 @@
 <script src="../social.js"></script>
 <script>
 
-module('Social APIs');
+module('Pending');
 
-test("Basic operations of Social APIs", function() {
-
-	var user = new hotjs.Social.User();
-
-	// load API from remote inf file. 
-	var ret = user.loadAPI( "./sns/user.inf", "user", 1.05 );
-	equal( ret, true, "Load API definition from sns inf." );
-	
-	user.onMsgParse = function(msg) {
-		//console.log( msg );
-		//if( msg.api == "say" ) alert( msg.who + " say: " + msg.what );
-	};
-	
-	//ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to sns, start heartbeat." );
+test("Pending tests", function() {
+	ok( true, 'hello, world!');
 	
 });
 

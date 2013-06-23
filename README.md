@@ -1,17 +1,21 @@
 
 HotJS
-=======
+=======================
 
 A web game/app framework, for mobile & PC.
 
+Target platform: Android (50%) / iOS (25%) / WP (25%)
+
 Using javascript & HTML5 Canvas.
 
-Road Map
-========
+Features / Road Map
+=======================
 
 // object oriented (done)
 	
-// app (done) -> view (done) -> scene (done) -> node (layer -> node -> sub node ...) (done)
+// app (done) 
+
+// canvas 2d, view (done) -> scene (done) -> node (layer -> node -> sub node ...) (done)
 
 // event: mouse (done), multi-touch (done), keyboard, user-defined
 
@@ -19,13 +23,15 @@ Road Map
 
 // animation: move, rotate, scale, fade
 
-// math: point/vector (done), matrix,
+// math: point/vector (done), matrix (partially),
 
 // physics: physical node (done), physical scene (done), ball collision (done), momentum (done), angular momentum, 
 
 // util: UT (done), getDeviceInfo (done), benchmark (done), debug (using chrome), profiling,
 
-// AI: pathfinding
+// AI: gomoku (done), pathfinding
+
+// social: AjaxClient (done), User (done)
 
 // lang: i18n
 
