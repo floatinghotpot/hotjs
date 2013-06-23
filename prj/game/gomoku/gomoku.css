@@ -51,9 +51,9 @@ div#control {
 	position: absolute;
 	border: solid green 0px;
 	margin: 0px;
-	padding: 10px;
-	top: 4px;
-	right: 120px;
+	padding: 0px;
+	top: 120px;
+	right: 2px;
 }
 div#menu {
 	display: inline-block;

@@ -30,28 +30,40 @@
 <div>
 <div id="mainView"></div>
 
-<div id="user1">
+<div id="user1" style='display:none;'>
 <table>
-<tr><td align='left' colspan=2>级别: 6<br>金币: $ 1500</td></tr>
+<tr><td align='left' colspan=2>级别: 6<br>财富: $ 1500</td></tr>
 <tr><td><img src='img/user1.png'><br>曹操</td><td><img width=32 src='img/whitego.png'/></td></tr>
 </table>
 </div>
 
-<div id="user2">
+<div id="user2" style='display:none;'>
 <table>
-<tr><td align='left' colspan=2>级别: 7<br>金币: $ 2100</td></tr>
+<tr><td align='left' colspan=2>级别: 7<br>财富: $ 2100</td></tr>
 <tr><td><img width=32 src='img/blackgo.png'/></td><td><img src='img/user2.png'><br>刘备</td></tr>
 </table>
 </div>
 
-<div id="control">
+<div id="control" style='display:none;'>
 <table>
+<tr><td><img width=32 src='img/restart.png' onClick='board.resetGame();'/><br>新局</td></tr>
 <tr><td><img width=32 src='img/undo.png' onClick='board.undo();'/><br>悔棋</td></tr>
-<tr><td><img width=32 src='img/tips.png' onClick=''/><br>提示</td></tr>
+<tr><td><img width=32 src='img/tipoff.png' onClick='board.showTip();this.src = board.getTipStatus() ? "img/tipon.png" : "img/tipoff.png";'/><br>提示</td></tr>
 </table>
 </div>
 
-<div id='menu'>
+<div id='menu' style='display:block;'>
+<table>
+<tr>
+<td class='m'><img width=32 src='img/menu.png'/><br>菜单</td>
+<td class='m'><img width=32 src='img/restart.png' onClick='board.resetGame();'/><br>新局</td>
+<td class='m'><img width=32 src='img/undo.png' onClick='board.undo();'/><br>悔棋</td>
+<td class='m'><img width=32 src='img/tipoff.png' onClick='board.showTip();this.src = board.getTipStatus() ? "img/tipon.png" : "img/tipoff.png";'/><br>提示</td>
+<td class='m'><img width=32 src='img/settings.png'/><br>设置</td>
+</tr></table>
+</div>
+
+<div id='menuX' style='display:none;'>
 <table>
 <tr>
 <td class='m'><img width=32 src='img/menu.png'/><br>菜单</td>
@@ -70,28 +82,46 @@ var api_url = '../../sns/gomoku/api.inf';
 
 var viewX;
 var board;
-var net_go;
+var ai_player;
+var net_player;
 
 var worker = new Worker('ai_go.js');
 
 worker.onmessage = function(evt) {
 	var msg = evt.data;
-	console.log( 'main received: ', msg.api, msg );
+	//console.log( 'main received: ', msg.api, msg );
 	
 	switch(msg.api) {
 	case 'confirmColor':
 		var c = (msg.color == 2) ? 1 : 2;
 		board.confirmColor( c );	
 		break;
+	case 'judge':
+		var s = msg.solution;
+		board.setTip( s );
+		if( s.myWinHits.length > 0 ) {
+			//console.log( ai_player.mycolor + ' win', s.myWinHits );	
+			//console.log( 'Computer win!' );
+			board.gameOver = true;
+		}
+		if ( s.peerWinHits.length > 0 ) {
+			//console.log( board.hostColor + ' win', s.peerWinHits );
+			//console.log( 'You win! ' );
+			board.gameOver = true;
+		}
+		break;
 	case 'go':
+		var s = msg.solution;
+		var bestMove = s.bestMove;
+		board.go( bestMove.x, bestMove.y );
+		break;
+	case 'undo':
 		var s = msg.solution;
 		board.setTip( s );
 
 		var bestMove = s.bestMove;
-		console.log( bestMove.x, bestMove.y );
-		board.go( bestMove.x, bestMove.y );
-		break;
-	case 'undo':
+		console.log( bestMove );
+		
 		break;
 	}
 }
@@ -107,6 +137,12 @@ hotjs.inherit(AIPlayer, hotjs.Class, {
 		work.postMessage({
 			api: 'setColor',
 			color: c
+		});
+	},
+	judge : function( mtx_str) {
+		worker.postMessage({
+			api: 'judge',
+			matrix_str: mtx_str
 		});
 	},
 	go : function( move, mtx_str) {
@@ -133,6 +169,8 @@ hotjs.inherit(AIPlayer, hotjs.Class, {
 	}
 });
 
+ai_player = new AIPlayer();
+
 function main() {
 	var w = window.innerWidth, h = window.innerHeight;
 	h -= $("#menu").height();
@@ -156,7 +194,7 @@ function main() {
 		.setSize(w,h)
 		.showFPS(false);
 
-	board = (new GoBoard(19))
+	board = (new GoBoard(15))
 		.setSize(w, h)
 		.setColor("black").showGrid(false)
 		.setBgImage( true, resources.get('img/woodfloor.jpg') )
@@ -167,13 +205,23 @@ function main() {
 		.resetGame()
 		.addTo( viewX );
 	
-	board.setPeerPlayer( new AIPlayer() );
+	board.setPeerPlayer( ai_player );
 	
 	var app = (new hotjs.App())
 		.addNode(viewX)
 		.start();
 	
 }
+
+$(window).resize(function(){
+	var w = window.innerWidth, h = window.innerHeight;
+	h -= $("#menu").height();
+	var m = Math.min(w, h);
+	
+	viewX.setSize(w,h);
+
+	board.setSize(w,h).setArea( (w-m)/2, (h-m)/2, m, m );
+});
 
 resources.load([
                 'img/woodfloor.jpg',

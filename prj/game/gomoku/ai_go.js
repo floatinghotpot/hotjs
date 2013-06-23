@@ -1,7 +1,10 @@
 
-importScripts('../../../hotjs/hotjs.js');
-importScripts('../../../hotjs/math.js');
-importScripts('../../../hotjs/ai.js');
+if( typeof(importScripts) == 'function') {
+	// only works for web worker
+	importScripts('../../../hotjs/hotjs.js');
+	importScripts('../../../hotjs/math.js');
+	importScripts('../../../hotjs/ai.js');
+}
 
 // TODO: GomokuAI
 var GomokuAI = function(){
@@ -17,7 +20,7 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 	genPattern : function genPattern(str) {
 		if(str == undefined) str = '';
 		if( str.length < 5 ) {
-			var ar = genPattern(str+'1'), ar2 = genPattern(str+'.');
+			var ar = genPattern(str+'2'), ar2 = genPattern(str+'.');
 			while( s = ar2.shift() ) {
 				ar.push( s );
 			}
@@ -33,7 +36,7 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 			var n = 0;
 			var loc = [];
 			for(var j=str.length-1; j>=0; j--) {
-				if(str[j] == '1') n++;
+				if(str[j] == '2') n++;
 				else loc.push(j);
 			}
 			if( n >= 1 ) {
@@ -46,8 +49,20 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 		}
 		
 		// another patten that must win
-		this.patterns.push( ['.1111.', 0, 5000, [0,5] ] );
+		this.addPattern( ['.2222.', 0, 5000, [0,5] ] );
 		
+		return this;
+	},
+	addPattern : function( p ) {
+		var pts = this.patterns;
+		for(var i=pts.length-1; i>=0; i--) {
+			var pt = pts[i];
+			if(pt[0] == p[0]) { 
+				pt[2] = p[2]; // replace the hit score
+				return this;
+			}
+		}
+		this.patterns.push(p);
 		return this;
 	},
 	setColor : function( c ) {
@@ -101,16 +116,18 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 					var pn = pt[1];
 					var phit = pt[2] + myself;
 					var ploc = pt[3];
-					//console.log( rstr, pt[0], pt[1], pt[2], pt[3] );
 					
 					var n = -1;
 					while( (n = rstr.indexOf(pstr,n+1)) != -1 ) {
 						if( pn == 5 ) {
 							var win_hit = [];
-							for(var p=ploc.length-1; p>=0; p--) {
-								win_hit.push( rmap[ n + ploc[p] ] );
+							for(var p=4; p>=0; p--) {
+								win_hit.push( rmap[ n + p ] );
 							}
 							winHits.push( win_hit );
+							//console.log( rmap );
+							//console.log( n, ploc, pt );
+							//console.log( win_hit );
 						} else {
 							for(var p=ploc.length-1; p>=0; p--) {
 								var x = n + ploc[p];
@@ -144,8 +161,8 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 			for(var j=r.length-1; j>=0; j--) {
 				var h = r[j];
 				if( h > hit ) {
-					x = i;
-					y = j;
+					x = j;
+					y = i;
 					hit = h;
 				}
 			}
@@ -161,7 +178,7 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 			m1.importDataFromString( mtx_or_str );
 		}
 		
-		var myHits = this.findHits( m1, 10 );
+		var myHits = this.findHits( m1, 5 );
 		var peerHits = this.findHits( m1.clone().exchangeValue('1','2'), 0 );
 		
 		var mergedRating = hotjs.Matrix.add( myHits.hitRating, peerHits.hitRating );
@@ -201,6 +218,7 @@ onmessage = function(evt) {
 		}
 		break;
 	case 'go':
+	case 'judge':
 		var mtx_str = msg.matrix_str.replace(/0/g, '.');
 		var solution = robot.solve( mtx_str );
 		postMessage({

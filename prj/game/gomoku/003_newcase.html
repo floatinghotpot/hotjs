@@ -40,7 +40,7 @@ test('AI of Gomoku game', function(){
 	//hotjs.Matrix.log( g.patterns );
 	
 	g.setColor(2);
-	hotjs.Matrix.log( g.patterns );
+	//hotjs.Matrix.log( g.patterns );
 	
 	equal( g.patterns.length, 32, 'totally 32 patterns, exclude 00000' );
 
@@ -50,8 +50,8 @@ test('AI of Gomoku game', function(){
 				+'...............|'
 				+'.....111.......|'
 				+'......22.......|'
-				+'.....1..21.....|'
-				+'.....2121......|'
+				+'.....1..212....|'
+				+'.....21212.....|'
 				+'......212......|'
 				+'......12.......|'
 				+'......2........|'
@@ -65,15 +65,17 @@ test('AI of Gomoku game', function(){
     str = hotjs.Matrix.toString( mtx.getData() );
     ok(true, 'puzzle loaded: ' + str );
 
-    var solution;
     var tstart = Date.now();
-    for(var i=0; i<100; i++) {
-		solution = g.solve( puzzle );
-    }
+    //for(var i=0; i<100; i++) {
+	var s = g.solve( puzzle );
+	console.log( s.bestMove );
+	console.log( s.myWinHits.length, s.myWinHits );
+	console.log( s.peerWinHits.length, s.peerWinHits );
+    //}
 	var delta = Date.now() - tstart;
-	ok( true, 'time cost: ' + delta + ' ms');
-	//console.log( solution );
-	
+	var delta_str = 'time used: ' + delta + ' ms';
+	ok( true, delta_str );
+	console.log( delta_str );
 	
 });
 
