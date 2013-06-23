@@ -46,36 +46,49 @@
 
 <div id="control" style='display:none;'>
 <table>
-<tr><td><img width=32 src='img/restart.png' onClick='board.resetGame();'/><br>新局</td></tr>
-<tr><td><img width=32 src='img/undo.png' onClick='board.undo();'/><br>悔棋</td></tr>
-<tr><td><img width=32 src='img/tipoff.png' onClick='board.showTip();this.src = board.getTipStatus() ? "img/tipon.png" : "img/tipoff.png";'/><br>提示</td></tr>
+<tr><td><img width=48 class='menu-icon' src='img/restart.png' onClick='board.resetGame();'/><br>新局</td></tr>
+<tr><td><img width=48 class='menu-icon' src='img/undo.png' onClick='board.undo();'/><br>悔棋</td></tr>
+<tr><td><img width=48 class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td></tr>
 </table>
 </div>
 
 <div id='menu' style='display:block;'>
 <table>
 <tr>
-<td class='m'><img width=32 src='img/menu.png'/><br>菜单</td>
-<td class='m'><img width=32 src='img/restart.png' onClick='board.resetGame();'/><br>新局</td>
-<td class='m'><img width=32 src='img/undo.png' onClick='board.undo();'/><br>悔棋</td>
-<td class='m'><img width=32 src='img/tipoff.png' onClick='board.showTip();this.src = board.getTipStatus() ? "img/tipon.png" : "img/tipoff.png";'/><br>提示</td>
-<td class='m'><img width=32 src='img/settings.png'/><br>设置</td>
+<td class='m'><img width=48 class='menu-icon' src='img/restart.png' onClick='board.resetGame();'/><br>新局</td>
+<td class='m'><img width=48 class='menu-icon' src='img/undo.png' onClick='board.undo();'/><br>悔棋</td>
+<td class='m'><img width=48 class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td>
+<td class='m'><img width=48 class='menu-icon' src='img/settings.png'/><br>设置</td>
+<td class='m'><img width=48 class='menu-icon' src='img/menu.png'/><br>更多...</td>
 </tr></table>
 </div>
 
 <div id='menuX' style='display:none;'>
 <table>
 <tr>
-<td class='m'><img width=32 src='img/menu.png'/><br>菜单</td>
-<td class='m'><img width=32 src='img/games.png'/><br>微游</td>
-<td class='m'><img width=32 src='img/msg.png'/><br>聊天</td>
-<td class='m'><img width=32 src='img/friends.png'/><br>朋友们</td>
-<td class='m'><img width=32 src='img/settings.png'/><br>设置</td>
+<td class='m'><img width=48 src='img/menu.png'/><br>菜单</td>
+<td class='m'><img width=48 src='img/games.png'/><br>微游</td>
+<td class='m'><img width=48 src='img/msg.png'/><br>聊天</td>
+<td class='m'><img width=48 src='img/friends.png'/><br>朋友们</td>
+<td class='m'><img width=48 src='img/settings.png'/><br>设置</td>
 </tr></table>
 </div>
 
 </div>
 <script>
+
+$('.icon-tip').on('click', function(){
+	board.showTip();
+	if( board.getTipStatus() ) {
+		$('.icon-tip').attr('src', "img/tipon.png");
+	} else {
+		$('.icon-tip').attr('src', "img/tipoff.png");
+	}
+});
+
+$('.menu-icon').on('mousedown', function(){
+	resources.get('audio/click.mp3').play();
+});
 
 //var api_url = "http://cloud.rnjsoft.com/sns/gomoku/api.inf";
 var api_url = '../../sns/gomoku/api.inf';
@@ -103,17 +116,23 @@ worker.onmessage = function(evt) {
 			//console.log( ai_player.mycolor + ' win', s.myWinHits );	
 			//console.log( 'Computer win!' );
 			board.gameOver = true;
+			resources.get('audio/magic.mp3').play();
 		}
 		if ( s.peerWinHits.length > 0 ) {
 			//console.log( board.hostColor + ' win', s.peerWinHits );
 			//console.log( 'You win! ' );
 			board.gameOver = true;
+			resources.get('audio/magic.mp3').play();
 		}
 		break;
 	case 'go':
 		var s = msg.solution;
 		var bestMove = s.bestMove;
-		board.go( bestMove.x, bestMove.y );
+		setTimeout(function(){
+			if( ! board.gameOver ) {
+				board.go( bestMove.x, bestMove.y );
+			}
+		}, 500);
 		break;
 	case 'undo':
 		var s = msg.solution;
@@ -172,6 +191,8 @@ hotjs.inherit(AIPlayer, hotjs.Class, {
 ai_player = new AIPlayer();
 
 function main() {
+	resources.get('audio/magic.mp3').play();
+	
 	var w = window.innerWidth, h = window.innerHeight;
 	h -= $("#menu").height();
 	
@@ -180,14 +201,6 @@ function main() {
 	var v = document.getElementById('mainView');
 	v.style.width = w;
 	v.style.height = h;
-	
-	if( h > w ) {
-		var btn_w = w / 4;
-		var btn_h = (h-m)/2 / 7;
-		$(".btn").css('font-size', btn_h + 'pt');
-	} else {
-		
-	}
 	
 	viewX = (new hotjs.View())
 		.setContainer('mainView')

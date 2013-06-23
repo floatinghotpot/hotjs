@@ -145,7 +145,8 @@
 			} else {
 				res = new Image();
 				res.setAttribute('src', url);
-			}			
+			}
+			resourceCache[ url ] = res;
 		}
 		return res;
 	}

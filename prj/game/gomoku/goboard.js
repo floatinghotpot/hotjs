@@ -42,7 +42,7 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		
 		// [ x, y, 1/2 ] 
 		this.undos = [];
-		//this.player = 1;
+		this.player = 1;
 		
 		this.tip = null;
 		this.lastMove = null;
@@ -108,8 +108,11 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		if( this.matrix[y][x] == 0 ) {
 			// put a stone 
 			this.matrix[y][x] = this.player;
-			resources.get('audio/move.mp3').play();
-			
+			if( this.player == 1 ) {
+				resources.get('audio/move.mp3').play();
+			} else {
+				resources.get('audio/move2.mp3').play();
+			}
 			// record for undo
 			var lastMove = [x, y, this.player];
 			this.undos.push( lastMove );
@@ -119,10 +122,10 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			if( this.player == 1 ) this.player = 2;
 			else this.player = 1;
 			
+			this.peerPlayer.judge( hotjs.Matrix.toString(this.matrix) );
+			
 			if( this.player != this.hostColor ) {
 				this.peerPlayer.go( lastMove, hotjs.Matrix.toString(this.matrix) );
-			} else {
-				this.peerPlayer.judge( hotjs.Matrix.toString(this.matrix) );
 			}
 		}
 		
@@ -136,11 +139,10 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 
 			var lastMove = this.undos.pop();
 			this.matrix[ lastMove[1] ][ lastMove[0] ] = 0;
-			resources.get('audio/move.mp3').play();
 
 			lastMove = this.undos.pop();
 			this.matrix[ lastMove[1] ][ lastMove[0] ] = 0;
-			resources.get('audio/move.mp3').play();
+			//resources.get('audio/move.mp3').play();
 			
 			if(this.undos.length > 0) {
 				this.lastMove = this.undos[ this.undos.length -1 ];
