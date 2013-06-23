@@ -192,7 +192,7 @@ function main() {
 	viewX = (new hotjs.View())
 		.setContainer('mainView')
 		.setSize(w,h)
-		.showFPS(false);
+		.showFPS(true);
 
 	board = (new GoBoard(15))
 		.setSize(w, h)
@@ -226,8 +226,8 @@ $(window).resize(function(){
 resources.load([
                 'img/woodfloor.jpg',
                 'img/wood.jpg',
-                'img/gostones.png'
-                //, 'audio/move.mp3'
+                'img/gostones.png',
+                'audio/move.mp3'
         	]);
 
 resources.onReady( main );

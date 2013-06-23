@@ -198,10 +198,11 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		}
 
 		c.save();
+		c.lineWidth = 3;
+		c.strokeStyle = 'red';
 		for(var i=hits.length-1; i>=0; i--) {
 			var hit = hits[i];
 			var xy = posToDraw( hit[0] );
-			c.strokeStyle = 'red';
 			c.beginPath();
 			c.moveTo(xy[0], xy[1]);
 			for(var j=1; j<hit.length; j++) {
@@ -268,10 +269,11 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		if(!! this.lastMove ) {
 			var m = this.lastMove;
 			c.save();
+			c.strokeStyle = 'red';
+			c.lineWidth = 3;
 			
 			var x = Math.floor(a.l + m[0] * ux);
 			var y = Math.floor(a.t + m[1] * uy);
-			c.strokeStyle = 'red';
 			c.beginPath();
 			c.moveTo( x+ux/3, y+uy/2 ); c.lineTo( x+ux*2/3, y+uy/2 );
 			c.moveTo( x+ux/2, y+uy/3 ); c.lineTo( x+ux/2, y+uy*2/3 );
@@ -287,7 +289,6 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		var a = this.getArea();
 		var ux = a.w / this.rows, uy = a.h / this.rows;
 		
-		//console.log( ux + ',' + uy );
 		c.lineWidth = 0.5;
 		c.strokeStyle = this.color;
 		c.beginPath();
