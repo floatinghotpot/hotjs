@@ -17,21 +17,6 @@ div#mainView {
     border-radius: 10px;	
 }
 div#user1 {
-	left: 2px;
-	top: 2px;
-	display: inline-block;
-	position: absolute;
-	border: solid black 2px;
-	margin: 0px;
-	padding: 2px;
-	background: #669966;
-	opacity:0.9;
-	-moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px;
-    border-radius: 10px;	
-}
-div#user2 {
 	right: 2px;
 	top: 2px;
 	display: inline-block;
@@ -39,7 +24,22 @@ div#user2 {
 	border: solid black 2px;
 	margin: 0px;
 	padding: 2px;
-	background: #669966;
+	background: #ffffcc;
+	opacity:0.9;
+	-moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -khtml-border-radius: 10px;
+    border-radius: 10px;	
+}
+div#user2 {
+	left: 2px;
+	top: 2px;
+	display: inline-block;
+	position: absolute;
+	border: solid black 2px;
+	margin: 0px;
+	padding: 2px;
+	background: #ffffcc;
 	opacity:0.9;	
 	-moz-border-radius: 10px;
     -webkit-border-radius: 10px;
