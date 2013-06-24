@@ -24,6 +24,10 @@ test('UT of New Module', function(){
 	
 	ok( true, 'hello, hotjs.AI.');
 	
+	var a = { 'test': 1, 1001: 2 };
+	equal( a[ 'test' ], 1, 'use string as key of mapping' );
+	equal( a[ 1001 ], 2, 'use integer as key of mapping' );
+	
 });
 
 module('Social APIs');
