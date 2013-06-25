@@ -109,9 +109,9 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			// put a stone 
 			this.matrix[y][x] = this.player;
 			if( this.player == 1 ) {
-				resources.get('audio/move.mp3').play();
-			} else {
 				resources.get('audio/move2.mp3').play();
+			} else {
+				resources.get('audio/move.mp3').play();
 			}
 			// record for undo
 			var lastMove = [x, y, this.player];
@@ -132,7 +132,6 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		return this;
 	},
 	undo : function() {
-		//if( this.gameOver ) return;
 		
 		if( this.undos.length >= 2 ) {
 			this.gameOver = false;
@@ -142,7 +141,6 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 
 			lastMove = this.undos.pop();
 			this.matrix[ lastMove[1] ][ lastMove[0] ] = 0;
-			//resources.get('audio/move.mp3').play();
 			
 			if(this.undos.length > 0) {
 				this.lastMove = this.undos[ this.undos.length -1 ];

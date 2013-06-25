@@ -95,6 +95,28 @@ if (!Array.prototype.indexOf) {
 	};
 }
 
+hotjs.formatString = function () {
+    var param = [];
+    for (var i = 0, l = arguments.length; i < l; i++)
+    {
+        param.push(arguments[i]);
+    }
+    var statment = param[0]; // get the first element(the original statement)
+    param.shift(); // remove the first element from array
+    return statment.replace(/\{(\d+)\}/g, function(m, n)
+    {
+        return param[n];
+    });
+};
+
+hotjs.formatNumber = function(num, length) {
+    var r = "" + num;
+    while (r.length < length) {
+        r = "0" + r;
+    }
+    return r;
+};
+
 hotjs.getExtName = function(path) {
 	return path.substring( path.lastIndexOf('/')+1 );
 };

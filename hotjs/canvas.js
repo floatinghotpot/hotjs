@@ -27,6 +27,10 @@ var View = function(){
 	this.canvas.width = 480;
 	this.canvas.height = 320;
 	this.rect = this.canvas.getBoundingClientRect();
+	
+	this.bgrepeat = false;
+	this.bgimg = undefined;
+	this.bgimgrect = undefined;
 
 	this.container = undefined;
 
@@ -179,6 +183,16 @@ hotjs.inherit(View, hotjs.Class, {
 		this.rect = this.canvas.getBoundingClientRect();
 		return this;
 	},
+	setBgImage : function(repeat, img, r) {
+		this.bgrepeat = repeat;
+		this.bgimg = img;
+		if(! r) {
+			this.bgimgrect = [0,0, img.width, img.height];
+		} else {
+			this.bgimgrect = [ r[0], r[1], r[2], r[3] ];
+		}
+		return this;
+	},	
 	getSize : function() {
 		return [this.canvas.width, this.canvas.height];
 	},
@@ -282,8 +296,20 @@ hotjs.inherit(View, hotjs.Class, {
 	render : function() {
 		var c = this.ctx;
 		c.save();
-		c.fillStyle = "white";
-		c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
+		
+		if(!! this.bgimg) {
+			if( this.bgrepeat ) {
+				c.fillStyle = c.createPattern(this.bgimg, 'repeat');
+				c.fillRect( 0, 0, this.canvas.width,this.canvas.height);
+			} else {
+				c.drawImage(this.bgimg, 
+						this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
+						0, 0, this.canvas.width,this.canvas.height);
+			}
+		} else {		
+			c.fillStyle = "black";
+			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
+		}
 		
 		for(var i=0; i<this.scenes.length; i++) {
 			this.scenes[i].render(c);

@@ -98,7 +98,7 @@ hotjs.inherit(AIPlayer, hotjs.Class, {
 });
 
 function main() {
-	resources.get('audio/magic.mp3').play();
+	resources.get('audio/hello.mp3').play();
 	
 	var w = window.innerWidth, h = window.innerHeight;
 	h -= $("#menu").height();
@@ -110,6 +110,7 @@ function main() {
 	viewX = (new hotjs.View())
 		.setContainer('mainView')
 		.setSize(w,h)
+		.setBgImage( true, resources.get('img/woodfloor.jpg') )
 		.showFPS(false);
 
 	ai_player = new AIPlayer();
@@ -118,7 +119,6 @@ function main() {
 		.setSize(w, h)
 		.setColor("black").showGrid(false)
 		.setDraggable(true).setMoveable(true).setZoomable(true)
-		.setBgImage( true, resources.get('img/woodfloor.jpg') )
 		.setAreaImage( true, resources.get('img/wood.jpg') )
 		.setGoImage( resources.get('img/gostones.png'), [0,0,128,128] )
 		.showImg(true)
@@ -141,6 +141,8 @@ function main() {
 	
 }
 
+var bgindex = 1;
+
 $(document).ready(function(){
 	$('.icon-reset').on('click', function(){
 		board.resetGame();
@@ -150,6 +152,14 @@ $(document).ready(function(){
 		board.undo();
 	});
 
+	$('.icon-set').on('click', function(){
+		
+	});
+	
+	$('.icon-more').on('click', function(){
+		
+	});
+	
 	$('.icon-tip').on('click', function(){
 		board.showTip();
 		if( board.getTipStatus() ) {
@@ -163,12 +173,14 @@ $(document).ready(function(){
 		resources.get('audio/click.mp3').play();
 	});
 
-	resources.onReady( main );
 	resources.load([
-	                'img/woodfloor.jpg',
-	                'img/wood.jpg',
-	                'img/gostones.png'
-	                //, 'audio/move.mp3'
-	        	]);
+            'img/woodfloor.jpg',
+            'img/wood.jpg',
+            'img/gostones.png'
+            //, 'audio/move.mp3'
+    	],
+    	{
+			ready: main
+    	});
 
 });
