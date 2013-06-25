@@ -11,12 +11,12 @@
 
 <script src="lib/qunit-1.11.0.js"></script>
 <script src="lib/jquery-1.9.js"></script>
-
 <script src="../hotjs.js"></script>
-<script src='../math.js'></script>
-<script src='../ai.js'></script>
-<script src="../social.js"></script>
 <script>
+
+hotjs.require('../math.js');
+hotjs.require('../ai.js');
+hotjs.require('../social.js');
 
 module('New Module');
 
@@ -27,6 +27,18 @@ test('UT of New Module', function(){
 	var a = { 'test': 1, 1001: 2 };
 	equal( a[ 'test' ], 1, 'use string as key of mapping' );
 	equal( a[ 1001 ], 2, 'use integer as key of mapping' );
+
+	var ss = document.getElementsByTagName('script');
+	for(var i=0; i<ss.length; i++) {
+		ok( true, 'js: ' + ss[i].src );
+	}
+	
+	equal( hotjs.getDirPath('../../test.js'), '../..', 'getDirPath' );
+	str = hotjs.getAbsPath('../../../test.js', '../../hello.js');
+	equal( str, '../test.js', 'getAbsPath' );
+	
+	ok( typeof hotjs.require == 'function', 'hotjs.require is function.');
+	ok( typeof requireScripts == 'function', 'requireScripts fallback defined.');
 	
 });
 
@@ -35,17 +47,19 @@ module('Social APIs');
 test("Basic operations of Social APIs", function() {
 
 	var user = new hotjs.Social.User();
+	
+	ok( true, 'hello!' );
 
 	// load API from remote inf file. 
-	var ret = user.loadAPI( "./sns/user.inf", "user", 1.05 );
-	equal( ret, true, "Load API definition from sns inf." );
+	//var ret = user.loadAPI( "./sns/user.inf", "user", 1.05 );
+	//equal( ret, true, "Load API definition from sns inf." );
 	
 	user.onMsgParse = function(msg) {
 		//console.log( msg );
 		//if( msg.api == "say" ) alert( msg.who + " say: " + msg.what );
 	};
 	
-	ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to sns, start heartbeat." );
+	//ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to sns, start heartbeat." );
 	
 });
 

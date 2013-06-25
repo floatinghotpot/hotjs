@@ -95,6 +95,62 @@ if (!Array.prototype.indexOf) {
 	};
 }
 
+hotjs.getExtName = function(path) {
+	return path.substring( path.lastIndexOf('/')+1 );
+};
+
+hotjs.getDirPath = function(path) {
+	return path.substring(0, path.lastIndexOf('/'));
+};
+
+hotjs.getAbsPath = function(f, me) {
+	d = hotjs.getDirPath(me);
+
+	do { // './xx.js' or '../xx.js'
+		if (f.substring(0, 2) == './') {
+			f = f.substring(2);
+			continue;
+		}
+		if (d.length == 0)
+			break;
+		if (f.substring(0, 3) == '../') {
+			f = f.substring(3);
+			d = hotjs.getDirPath(d);
+			continue;
+		}
+		if (d.length > 0) {
+			f = d + '/' + f;
+			break;
+		}
+	} while (f.charAt(0) == '.');
+
+	return f;
+};
+
+// TODO: async call, may not fully loaded ... try check the github project require.js.
+hotjs.require = function( f ) {
+	var d = document, s = 'script';
+	var ss = d.getElementsByTagName(s);
+
+	var me = ss[ ss.length-1 ].src;
+	f = hotjs.getAbsPath( f, me );
+	
+	for(var i=0; i<ss.length; i++) {
+		if( ss[i].src == f ) return;
+	}
+	
+	o = d.createElement(s);
+	o.async = 0;
+	o.src = f;
+	ss[0].parentNode.insertBefore(o, ss[0]);
+};
+
+if( typeof requireScripts == 'function' ) {
+	hotjs.require = requireScripts;
+} else {
+	requireScripts = hotjs.require;
+}
+
 // class HashMap
 var HashMap = function() {
 	this.elements = new Array();

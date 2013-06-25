@@ -33,9 +33,30 @@
 	function onError(func) {
 		errorCallbacks.push(func);
 	}
+	
+	function clearCallback() {
+		readyCallbacks = [];
+		loadingCallbacks = [];
+		errorCallbacks = [];
+	}
 
 	// Load an resource url or an array of resource urls
-	function load(urlOrArr) {
+	function load( urlOrArr, callbacks ) {
+		if( callbacks != undefined ) {
+			if( typeof callbacks.ready == 'function' ) {
+				readyCallbacks = [];
+				readyCallbacks.push( callbacks.ready );
+			}
+			if( typeof callbacks.loading == 'function' ) {
+				loadingCallbacks = [];
+				loadingCallbacks.push( callbacks.loading );
+			}
+			if( typeof callbacks.error == 'function' ) {
+				errorCallbacks = [];
+				errorCallbacks.push( callbacks.error );
+			}
+		}
+		
 		if (urlOrArr instanceof Array) {
 			urlOrArr.forEach(function(url) {
 				_load(url);
@@ -170,6 +191,7 @@
 		onReady : onReady,
 		onLoading : onLoading,
 		onError : onError,
+		clearCallback : clearCallback,
 		isReady : isReady
 	};
 })();

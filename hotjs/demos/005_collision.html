@@ -136,11 +136,7 @@ var remove_ball = function(){};
 var viewX;
 var room;
 
-resources.load([
-    		'img/ball.png'
-    	]);
-        	
-resources.onReady(function() {
+function main() {
 	var w = window.innerWidth, h = window.innerHeight;
 	
 	var v = document.getElementById('mainView');
@@ -182,7 +178,7 @@ resources.onReady(function() {
 	}		
 	
 	var app = (new hotjs.App()).addNode( viewX ).start();
-});
+}
 
 function kick_ball(i){
 	var b = balls[i];
@@ -192,6 +188,9 @@ function kick_ball(i){
 		b.setVelocity(vx,vy);
 	}
 }	
+
+resources.load( ['img/ball.png'], { ready: main } );
+
 </script>
 </body>
 
