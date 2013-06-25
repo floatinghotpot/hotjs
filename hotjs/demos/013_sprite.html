@@ -12,6 +12,7 @@
 <script src="../resource.js"></script>
 <script src="../canvas.js"></script>
 <script src="../physics.js"></script>
+<script src="../sprite.js"></script>
 <style type="text/css">
 html, body {
 	width: 100%;
@@ -72,6 +73,7 @@ var view1 = (new hotjs.View())
 var room = (new WalkingRoom())
 	.setSize(w,h)
 	.setColor("blue").showGrid(false)
+	.setBgColor('white')
 	//.setGravity(0).setResistance(0).setRestitution(1)
 	.addTo(view1,'hello');
 

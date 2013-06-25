@@ -28,6 +28,9 @@ var View = function(){
 	this.canvas.height = 320;
 	this.rect = this.canvas.getBoundingClientRect();
 	
+	this.color = "black";
+	this.bgcolor = 'white';
+
 	this.bgrepeat = false;
 	this.bgimg = undefined;
 	this.bgimgrect = undefined;
@@ -183,6 +186,14 @@ hotjs.inherit(View, hotjs.Class, {
 		this.rect = this.canvas.getBoundingClientRect();
 		return this;
 	},
+	setBgColor : function(c) {
+		this.bgcolor = c;
+		return this;
+	},
+	setColor : function(c) {
+		this.color = c;
+		return this;
+	},
 	setBgImage : function(repeat, img, r) {
 		this.bgrepeat = repeat;
 		this.bgimg = img;
@@ -306,8 +317,8 @@ hotjs.inherit(View, hotjs.Class, {
 						this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
 						0, 0, this.canvas.width,this.canvas.height);
 			}
-		} else {		
-			c.fillStyle = "black";
+		} else {
+			if(!! this.bgcolor ) c.fillStyle = this.bgcolor;
 			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
 		
@@ -326,8 +337,9 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	draw : function(c) {
 		if( this.bFps ) {
-			c.strokeStyle = "black";
-			c.fillStyle = "black";
+			c.save();
+			c.strokeStyle = this.color;
+			c.fillStyle = this.color;
 			
 			c.fillText( this.runningTimeStr, this.infoPos[0], this.infoPos[1] + 20 );
 			c.fillText( this.fps + ' fps: ' + this.frames, this.infoPos[0], this.infoPos[1] + 40 );
@@ -346,6 +358,7 @@ hotjs.inherit(View, hotjs.Class, {
 			c.fillText( this.mouseInNode[2] + ': (' + this.mouseInNode[0] + ', ' + this.mouseInNode[1] +')', this.infoPos[0], this.infoPos[1] + 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
+			c.restore();
 		}
 	},
 	// listen input events & forward
@@ -411,7 +424,7 @@ hotjs.inherit(View, hotjs.Class, {
 
 		// finger is not accurate, so range in 5 pixel is okay.
 		var vect = [ t.x - this.t0[0], t.y - this.t0[1] ];
-		if( Vector.getLength(vect) <= this.touch_accuracy ) {
+		if( hotjs.Vector.getLength(vect) <= this.touch_accuracy ) {
 			this.click( t );
 		}
 
@@ -1027,7 +1040,7 @@ var Scene = function(){
 	this.gridOn = false;
 	this.imgOn = true;
 	this.color = "black";
-	this.bgcolor = "white";
+	this.bgcolor = undefined;
 
 	this.bgrepeat = false;
 	this.bgimg = undefined;
@@ -1113,6 +1126,7 @@ hotjs.inherit( Scene, Node, {
 	},
 	// ensure the scene is always in view
 	fixView : function() {
+		var Vector = hotjs.Vector;
 		var w = this.container.width(), h = this.container.height();
 		var min_sx = w / this.size[0], min_sy = h / this.size[1];
 		var min_scale = Math.min( min_sx, min_sy );
@@ -1226,7 +1240,11 @@ hotjs.inherit( Scene, Node, {
 							this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
 							0, 0, this.size[0], this.size[1]);
 				}
+			} else if( !! this.bgcolor ){
+				c.fillStyle = this.bgcolor;
+				c.fillRect(0, 0, this.size[0], this.size[1]);
 			}
+
 			if(!! this.areaimg) {
 				if( this.arearepeat ) {
 					c.fillStyle = c.createPattern(this.areaimg, 'repeat');
@@ -1236,12 +1254,7 @@ hotjs.inherit( Scene, Node, {
 							this.areaimgrect[0], this.areaimgrect[1], this.areaimgrect[2], this.areaimgrect[3], 
 							a.l, a.t, a.w, a.h);
 				}
-			}
-		} else {
-			if( !! this.bgcolor ){
-				c.fillStyle = this.bgcolor;
-				c.fillRect(0, 0, this.size[0], this.size[1]);
-			}
+			}		
 		}
 		
 		if( this.gridOn ) {
@@ -1279,66 +1292,12 @@ hotjs.inherit( Scene, Node, {
 	}
 });
 
-// TODO: Sprite
-
-function Sprite(url, pos, size, speed, frames, dir, once) {
-    this.pos = pos;
-    this.size = size;
-    this.speed = typeof speed === 'number' ? speed : 0;
-    this.frames = frames;
-    this._index = 0;
-    this.url = url;
-    this.dir = dir || 'horizontal';
-    this.once = once;
-};
-
-Sprite.prototype = {
-	update : function(dt) {
-		this._index += this.speed * dt;
-	},
-
-	render : function(ctx, w, h) {
-		var frame;
-
-		if (this.speed > 0) {
-			var max = this.frames.length;
-			var idx = Math.floor(this._index);
-			frame = this.frames[idx % max];
-
-			if (this.once && idx >= max) {
-				this.done = true;
-				return;
-			}
-		} else {
-			frame = 0;
-		}
-
-		var x = this.pos[0];
-		var y = this.pos[1];
-
-		if (this.dir == 'vertical') {
-			y += frame * this.size[1];
-		} else {
-			x += frame * this.size[0];
-		}
-		
-		if(! w) w = this.size[0];
-		if(! h) h = this.size[1];
-		
-		var img = resources.get(this.url);
-
-		ctx.drawImage( img, 
-				x, y, this.size[0], this.size[1], 
-				0, 0, w, h);
-	}
-};
 
 //-----------------------
 // TODO: all core packages, classes, and function set
 hotjs.View = View;
 hotjs.Node = Node;
 hotjs.Scene = Scene;
-hotjs.Sprite = Sprite;
 
 })(); 
 

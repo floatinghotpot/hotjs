@@ -117,8 +117,12 @@ hotjs.formatNumber = function(num, length) {
     return r;
 };
 
-hotjs.getExtName = function(path) {
+hotjs.getFileName = function(path) {
 	return path.substring( path.lastIndexOf('/')+1 );
+};
+
+hotjs.getExtName = function(path) {
+	return path.substring( path.lastIndexOf('.')+1 );
 };
 
 hotjs.getDirPath = function(path) {
@@ -127,7 +131,6 @@ hotjs.getDirPath = function(path) {
 
 hotjs.getAbsPath = function(f, me) {
 	d = hotjs.getDirPath(me);
-
 	do { // './xx.js' or '../xx.js'
 		if (f.substring(0, 2) == './') {
 			f = f.substring(2);
@@ -144,13 +147,15 @@ hotjs.getAbsPath = function(f, me) {
 			f = d + '/' + f;
 			break;
 		}
-	} while (f.charAt(0) == '.');
+	} while (1);
 
 	return f;
 };
 
 // TODO: async call, may not fully loaded ... try check the github project require.js.
 hotjs.require = function( f ) {
+	//var f = hotjs.getAbsPath(f, document.location.href);
+	
 	var d = document, s = 'script';
 	var ss = d.getElementsByTagName(s);
 

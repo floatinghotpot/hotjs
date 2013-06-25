@@ -121,7 +121,7 @@ resources.onReady(function() {
 	room = (new BenchScene())
 		.setSize(w, h)
 		.setColor("blue").showGrid(false)
-		.setBgImage( false, resources.get('img/room.jpg')).showImg(false)
+		.setBgImage( false, resources.get('img/room.jpg')).showImg(true)
 		.addTo( viewX );
 	
 	var app = (new hotjs.App()).addNode(viewX).start();

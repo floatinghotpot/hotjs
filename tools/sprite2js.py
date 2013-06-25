@@ -98,12 +98,15 @@ def convert(spritefile):
                 else:
                     w = line.split()
                     if w[0] == 'FM':
+                        w4 = 0
                         if( len(w) > 4 ):
-                            fm = ( int(w[1], 16), int(w[2]), int(w[3]), w[4] )
-                            str = '[%d,%d,%d,\'%s\']' % fm
-                        else:
-                            fm = ( int(w[1], 16), int(w[2]), int(w[3]) )
-                            str = '[%d,%d,%d]' % fm
+                            if( w[4] == '+HYPER_FM' ): w4 = 1
+                            elif ( w[4] == '+FLIP_X' ): w4 = 2
+                            elif ( w[4] == '+FLIP_Y' ): w4 = 3
+                            elif ( w[4] == '+ROT_90' ): w4 = 4
+                            else: w4 = 0
+                        fm = ( int(w[1], 16), int(w[2]), int(w[3]), w4 )
+                        str = '[%d,%d,%d,%d]' % fm
                         frame.append( str )
                     else: 
                         frame_id = int( w[0], 16 )
@@ -119,13 +122,14 @@ def convert(spritefile):
                     w = line.split()
                     if w[0] == 'AF':
                         
-                        af = [  ]
+                        w5 = 0
                         if len(w) > 5:
-                            af = (int(w[1], 16), int(w[2]), int(w[3]), int(w[4]), w[5])
-                            str = '[%d,%d,%d,%d,\'%s\']' % af
-                        else:
-                            af = (int(w[1], 16), int(w[2]), int(w[3]), int(w[4]))
-                            str = '[%d,%d,%d,%d]' % af
+                            if ( w[5] == '+FLIP_X' ): w5 = 2
+                            elif ( w[5] == '+FLIP_Y' ): w5 = 3
+                            elif ( w[5] == '+ROT_90' ): w5 = 4
+                            else: w5 = 0                           
+                        af = (int(w[1], 16), int(w[2]), int(w[3]), int(w[4]), w5)
+                        str = '[%d,%d,%d,%d,%d]' % af
                         anim.append( str )
                     else: 
                         anim_id = int( w[0], 16 )
@@ -139,7 +143,7 @@ def convert(spritefile):
     
     fout.write('\n// converted by sprite2js.py v0.1 (HotJS v1.0)\n')
     fout.write( '\nvar sprites = sprites || {};\n')
-    head, tail = os.path.split(spritefile)
+    head, tail = os.path.split( outfile )
     fout.write( '\nsprites[\'%s\'] = {\n' % tail )
     
     fout.write( '\'version\' : %d,\n' % version )
@@ -149,19 +153,19 @@ def convert(spritefile):
     fout.write( '// frames:\t%d\n' % len(frames) )
     fout.write( '// anims:\t%d\n' % len(anims) )
 
-    fout.write( '\'images\' : {\n' );
+    fout.write( '\'images\' : { // img_file, transp color\n' );
     fout.write( ',\n'.join(images) )
     fout.write( '\n},\n' );
     
-    fout.write( '\'modules\' : {\n' );
+    fout.write( '\'modules\' : { // id: type, img_id, x, y, w, h\n' );
     fout.write( ',\n'.join(modules) )
     fout.write( '\n},\n' );
 
-    fout.write( '\'frames\' : {\n' );
+    fout.write( '\'frames\' : { // id: mod_id, ox, oy, flag (0:none, 1:hyper_fm, 2:flip_x, 3:flip_y, 4:rot_90)\n' );
     fout.write( ',\n'.join(frames) )
     fout.write( '\n},\n' );
 
-    fout.write( '\'anims\' : {\n' );
+    fout.write( '\'anims\' : { // id: frame_id, time, ox, oy, flag (0:none, 2:flip_x, 3:flip_y, 4:rot_90)\n' );
     fout.write( ',\n'.join(anims) )
     fout.write( '\n}\n' );
     

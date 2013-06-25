@@ -19,27 +19,6 @@
 		return loaded;
 	}
 	
-	// func() {}
-	function onReady(func) {
-		readyCallbacks.push(func);
-	}
-
-	// func( url, loaded, total ) {}
-	function onLoading(func) {
-		loadingCallbacks.push(func);
-	}
-	
-	// func( url ) {}
-	function onError(func) {
-		errorCallbacks.push(func);
-	}
-	
-	function clearCallback() {
-		readyCallbacks = [];
-		loadingCallbacks = [];
-		errorCallbacks = [];
-	}
-
 	function loadingProgress(url,n,all) {
 		var per = Math.round( n * 100 / all );
 		var d = document.getElementById('loading_bar');
@@ -63,6 +42,21 @@
 		}
 	}
 
+	// func() {}
+	function onReady(func) {
+		readyCallbacks = [ loadingDone, func ];
+	}
+
+	// func( url, loaded, total ) {}
+	function onLoading(func) {
+		loadingCallbacks = [ loadingProgress, func ];
+	}
+	
+	// func( url ) {}
+	function onError(func) {
+		errorCallbacks = [ loadingError, func ];
+	}
+	
 	function showLoadingDialog(){
 		var w = window.innerWidth, h = window.innerHeight;
 		var tw = 300, th = 300;
@@ -81,22 +75,14 @@
 		showLoadingDialog();
 		
 		if( callbacks != undefined ) {
-			readyCallbacks = [];
-			loadingCallbacks = [];
-			errorCallbacks = [];
-			
-			readyCallbacks.push( loadingDone );
-			loadingCallbacks.push( loadingProgress );
-			errorCallbacks.push( loadingError );
-
 			if( typeof callbacks.ready == 'function' ) {
-				readyCallbacks.push( callbacks.ready );
+				readyCallbacks = [ loadingDone, callbacks.ready ];
 			}
 			if( typeof callbacks.loading == 'function' ) {
-				loadingCallbacks.push( callbacks.loading );
+				loadingCallbacks = [ loadingProgress, callbacks.loading ];
 			}
 			if( typeof callbacks.error == 'function' ) {
-				errorCallbacks.push( callbacks.error );
+				errorCallbacks = [ loadingError, callbacks.error ];
 			}
 		}
 		
@@ -141,27 +127,54 @@
 		}
 	}
 	
+	function isScript(url) {
+		return url.indexOf('.js') > -1;
+	}
+	
 	function _load(url) {
 		if (resourceCache[url]) {
 			return resourceCache[url];
 		} else {
-			resourceCache[url] = false;
-			total ++;
-
 			var res;
-			var isvideo = isVideo(url), isaudio = isAudio(url);
-			if( isvideo ) {
+			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
+			if( is_video ) {
 				res = new Video();
-			} else if( isaudio ) {
+			} else if( is_audio ) {
 				res = new Audio();
+			} else if( is_script ){
+				var abs_url = hotjs.getAbsPath(url, document.location.href);
+				var ss = document.getElementsByTagName('script');
+				for(var i=0; i<ss.length; i++) {
+					if( ss[i].src == abs_url ) return ss[i];
+				}
+				res = document.createElement('script');
 			} else {
 				res = new Image();
 			}
 			
+			resourceCache[url] = false;
+			total ++;
+
 			var onload = function(){
 				resourceCache[url] = res;
 				loaded ++;
+				console.log( url + ' preloaded.' );
 
+				if( is_script ) {
+					var f = hotjs.getFileName(url);
+					if( f in sprites ) {
+						var sprite = sprites[ f ];
+						sprite['url'] = url;
+						var images = sprite['images'];
+						for( id in images ) {
+							var image = images[ id ];
+							var imgurl = hotjs.getAbsPath( image[0], url );							
+							image[2] = imgurl; // image[1] is transp color							
+							_load( imgurl );
+						}
+					}
+				}
+				
 				loadingCallbacks.forEach(function(func){
 					func(res.src, loaded, total);
 				});
@@ -178,16 +191,26 @@
 				});
 			};
 			
-			if( isvideo || isaudio ) {
+			if( is_video || is_audio ) {
 				res.addEventListener('canplaythrough', onload);
 				res.addEventListener('error', onerror);
 				res.setAttribute('src', url);
-				res.load();
+				res.setAttribute('preload', 'auto');
+				//document.body.appendChild( res );
+				
+			} else if ( is_script ) {
+				res.async = 1;
+				res.addEventListener('load', onload);
+				res.addEventListener('error', onerror);
+				res.setAttribute('src', url);
+				var ss = document.getElementsByTagName('script');
+				ss[0].parentNode.insertBefore(res, ss[0]);
+				
 			} else {
-				res = new Image();
 				res.onload = onload;
 				res.onerror = onerror;
 				res.setAttribute('src', url);
+				
 			}
 			
 			return res;
@@ -197,15 +220,21 @@
 	function get(url) {
 		var res = resourceCache[url];
 		if(! res) {
-			var isvideo = isVideo(url), isaudio = isAudio(url);
-			if( isvideo ) {
+			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
+			if( is_video ) {
 				res = new Video();
 				res.setAttribute('src', url);
 				res.load();
-			} else if( isaudio ) {
+			} else if( is_audio ) {
 				res = new Audio();
 				res.setAttribute('src', url);
 				res.load();
+			} else if( is_script ){
+				res = document.createElement('script');
+				res.async = 1;
+				res.setAttribute('src', url);
+				var ss = document.getElementsByTagName('script');
+				ss[0].parentNode.insertBefore(res, ss[0]);				
 			} else {
 				res = new Image();
 				res.setAttribute('src', url);
@@ -234,7 +263,6 @@
 		onReady : onReady,
 		onLoading : onLoading,
 		onError : onError,
-		clearCallback : clearCallback,
 		isReady : isReady
 	};
 })();

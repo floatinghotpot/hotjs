@@ -56,7 +56,7 @@ div#btn_zoom {
 <script>
 
 //var w = window.innerWidth, h = window.innerHeight;
-var w = 480, h = 240;
+var w = 640, h = 360;
 var v = document.getElementById('mainView');
 v.style.width = w;
 v.style.height = h;
@@ -68,7 +68,7 @@ var viewX = (new hotjs.View())
 
 var room = (new hotjs.Scene())
 	.setSize(1900,1200)
-	.setColor("black").showGrid(true)
+	.setBgColor('white').setColor("black").showGrid(true)
 	.setDraggable(true).setMoveable(true)
 	.addTo( viewX );
 

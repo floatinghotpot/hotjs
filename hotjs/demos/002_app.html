@@ -42,7 +42,7 @@ resources.onReady(function(){
 
 	var room = (new hotjs.Scene())
 		.setSize(w,h)
-		.setColor("blue").showGrid(true)
+		.setBgColor('white').setColor("black").showGrid(true)
 		.addTo( viewX );
 	
 	var app = (new hotjs.App()).addNode( viewX ).start();

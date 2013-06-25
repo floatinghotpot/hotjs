@@ -7,11 +7,11 @@ var board;
 var ai_player;
 var net_player;
 
+// only through network, if local file, need embedded into html
 var ai_go = new Worker('ai_go.js');
 
 ai_go.onmessage = function(evt) {
 	var msg = evt.data;
-	//console.log( 'main received: ', msg.api, msg );
 	
 	switch(msg.api) {
 	case 'confirmColor':
@@ -139,6 +139,7 @@ function main() {
 		board.setSize(w,h).setArea( (w-m)/2, (h-m)/2, m, m );
 	});
 	
+	console.log( sprites );
 }
 
 var bgindex = 1;
@@ -177,6 +178,7 @@ $(document).ready(function(){
             'img/woodfloor.jpg',
             'img/wood.jpg',
             'img/gostones.png'
+            , '../../../hotjs/demos/img/yeti.sprite.js'
             //, 'audio/move.mp3'
     	],
     	{
