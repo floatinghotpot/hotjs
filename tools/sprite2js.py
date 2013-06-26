@@ -63,8 +63,10 @@ def convert(spritefile):
                     status = 'MODULES'
                 elif w[0] == 'FRAME':
                     status = 'FRAME'
+                    desc = w[1]
                 elif w[0] == 'ANIM':
                     status = 'ANIM'
+                    desc = w[1]
                 elif w[0] == 'SPRITE_END':
                     status = 'SPRITE_END'
                 elif w[0] == '}':
@@ -104,10 +106,13 @@ def convert(spritefile):
                             elif ( w[4] == '+FLIP_X' ): w4 = 2
                             elif ( w[4] == '+FLIP_Y' ): w4 = 3
                             elif ( w[4] == '+ROT_90' ): w4 = 4
+                            elif ( w[4] == '+FREE_ROT' ): w4 = 5
                             else: w4 = 0
                         fm = ( int(w[1], 16), int(w[2]), int(w[3]), w4 )
                         str = '[%d,%d,%d,%d]' % fm
                         frame.append( str )
+                    elif w[0] == 'RC':
+                        pass
                     else: 
                         frame_id = int( w[0], 16 )
                         
@@ -115,7 +120,7 @@ def convert(spritefile):
                 if line == '{':
                     anim = []
                 elif line == '}':
-                    str = ('%d: [\n' % anim_id) + (',\n'.join(anim)) + '\n]';
+                    str = ('%d: // %s\n[\n' % (anim_id, desc)) + (',\n'.join(anim)) + '\n]';
                     anims.append( str )
                     status = 'root'
                 else:

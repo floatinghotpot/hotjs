@@ -78,7 +78,7 @@ hotjs.inherit(Animat, hotjs.Class, {
 		}
 	},
 	render: function(c) {
-//		c.save();
+		c.save();
 		var modules = this.sheet['modules'];
 		var images = this.sheet['images'];
 		var frames = this.sheet['frames'];
@@ -87,11 +87,12 @@ hotjs.inherit(Animat, hotjs.Class, {
 		var frame_id = f[0], ox = f[2], oy = f[3], oflag = f[4];
 		var mods = frames[ frame_id ];
 		
-//		switch(oflag) {
-//		case 2: c.scale(-1,1); break;
-//		case 3: c.scale(1,-1); break;
-//		case 4: c.scale(-1,-1); break;
-//		}
+		c.translate(ox, oy);
+		switch( oflag ) {
+		case 2: c.scale(-1,1); break;
+		case 3: c.scale(1,-1); break;
+		case 4: c.scale(-1,-1); break;
+		}
 		
 		for( var i=0; i<mods.length; i++ ) {
 			// each piece in this frame
@@ -100,22 +101,24 @@ hotjs.inherit(Animat, hotjs.Class, {
 
 			// mapping to image
 			var mod = modules[ mod_id ];
-			var img_id = mod[1], x = mod[2], y = mod[3], w = mod[4], h = mod[5];
-			
-			var img = images[ img_id ];
-			var img_url = img[2], transp = img[1];
-			var oImg = resources.get( img_url );
-			
-//			c.save();
-//			switch(ooflag) {
-//			case 2: c.scale(-1,1); break;
-//			case 3: c.scale(1,-1); break;
-//			case 4: c.scale(-1,-1); break;
-//			}
-			c.drawImage( oImg, x, y, w, h, ox+oox, oy+ooy, w, h );
-//			c.restore();
+			if( mod[0] == 'MD_IMAGE' ) {
+				var img_id = mod[1], x = mod[2], y = mod[3], w = mod[4], h = mod[5];
+				var img = images[ img_id ];
+				var img_url = img[2], transp = img[1];
+				var oImg = resources.get( img_url );
+				
+				c.save();
+				c.translate( oox +w/2, ooy+h/2 );
+				switch(ooflag) {
+				case 2: c.scale(-1,1); break;
+				case 3: c.scale(1,-1); break;
+				case 4: c.scale(-1,-1); break;
+				}
+				c.drawImage( oImg, x, y, w, h, -w/2, -h/2, w, h );
+				c.restore();
+			}
 		}
-//		c.restore();
+		c.restore();
 	}
 });
 

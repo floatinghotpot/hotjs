@@ -72,20 +72,44 @@ function main(){
 		.setBgColor('white')
 		.addTo(viewX,'hello');
 
-	var anims = [12288, 12289, 12290, 12291, 12292];
-	for( var i=0; i<anims.length; i++ ) {
-		ani = new hotjs.Animat('img/yeti.sprite.js', anims[i]);
+	var x = 200, y = 100;
+	var anims = sprites['yeti.sprite.js']['anims'];
+	for( var i in anims ) {
 		monster = (new hotjs.Node())
-			.setSprite( ani )
-			.setPos( hotjs.Random.Integer(100, room.width()), hotjs.Random.Integer(100, room.height()) )
+			.setSprite( new hotjs.Animat('img/yeti.sprite.js', i) )
+			.setPos( x, y )
 			//.setPos( room.width()/2, room.height()/2 )
 			.addTo( room );
+		
+		x += 150;
+		if( x+100 > room.width() ) {
+			x = 200;
+			y += 150;
+		}		
 	}
 	
+	var anims = sprites['BING_male.sprite.js']['anims'];
+	for( var i in anims ) {
+		npc = (new hotjs.Node())
+			.setSprite( new hotjs.Animat('img/BING_male.sprite.js', i) )
+			.setPos( x, y )
+			//.setPos( room.width()/2, room.height()/2 )
+			.addTo( room );
+		
+		x += 150;
+		if( x+100 > room.width() ) {
+			x = 200;
+			y += 150;
+		}
+	}
+
 	var app = (new hotjs.App()).addNode( viewX ).start();
 }
 
-resources.load(['img/yeti.sprite.js'], { ready: main });
+resources.load([
+                'img/yeti.sprite.js',
+                'img/BING_male.sprite.js'
+                ], { ready: main });
 
 </script>
 </body>
