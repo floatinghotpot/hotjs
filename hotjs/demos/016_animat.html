@@ -64,7 +64,7 @@ function main(){
 	var viewX = (new hotjs.View())
 		.setContainer('viewX')
 		.setSize(w,h)
-		.setFps( 25 )
+		.setMaxFps( 25 )
 		.showFPS(true);
 
 	var room = (new hotjs.Scene())
@@ -73,7 +73,8 @@ function main(){
 		.setBgColor('white')
 		.addTo(viewX,'hello');
 
-	var x = 200, y = 100;
+	var dx = room.width() / 5, dy = room.height() / 5;
+	var x = dx/2, y = dy/2;
 	var anims = sprites['yeti.sprite.js']['anims'];
 	for( var i in anims ) {
 		monster = (new hotjs.Node())
@@ -82,10 +83,10 @@ function main(){
 			//.setPos( room.width()/2, room.height()/2 )
 			.addTo( room );
 		
-		x += 150;
-		if( x+100 > room.width() ) {
-			x = 200;
-			y += 150;
+		x += dx;
+		if( x > room.width() ) {
+			x = dx/2;
+			y += dy;
 		}		
 	}
 	
@@ -97,10 +98,10 @@ function main(){
 			//.setPos( room.width()/2, room.height()/2 )
 			.addTo( room );
 		
-		x += 150;
-		if( x+100 > room.width() ) {
-			x = 200;
-			y += 150;
+		x += dx;
+		if( x > room.width() ) {
+			x = dx/2;
+			y += dy;
 		}
 	}
 

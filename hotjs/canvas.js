@@ -50,7 +50,6 @@ var View = function(){
 	this.fps = 60;
 	
 	this.maxFps = 60;
-	this.minDt = 1.0 / 60;
 	
 	this.runningTime = 0;
 	this.runningTimeStr = "0 : 00 : 00"; // h:m:s
@@ -136,18 +135,19 @@ hotjs.inherit(View, hotjs.Class, {
 		// using closure, me is accessable to inner function, but 'this' changed.
 		var me = this;
 		var lastTime = Date.now();
+		var step = 1000 / this.maxFps;
+		var nextTime = lastTime + step;
 		
 		function view_loop(){
 			var now = Date.now();
-			var dt = (now - lastTime) / 1000.0;
-			
-			if( dt >= me.minDt ) { // control the fps
-				
+			if( now > nextTime ) {
 				if( me.running ) {
+					var dt = (now - lastTime) / 1000.0;
 					me.update( dt );
 					me.render();
 				}
 				lastTime = now;
+				nextTime += step;
 			}
 			
 			requestAnimFrame( view_loop );
@@ -158,9 +158,8 @@ hotjs.inherit(View, hotjs.Class, {
 
 		return this;
 	},
-	setFps : function( f ) {
+	setMaxFps : function( f ) {
 		this.maxFps = Math.max(1, Math.min(f, 60));
-		this.minDt = 1.0 / this.maxFps;
 		return this;
 	},
 	resume : function( r ) {
