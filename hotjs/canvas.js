@@ -49,6 +49,9 @@ var View = function(){
 	this.frames = 0;
 	this.fps = 60;
 	
+	this.maxFps = 60;
+	this.minDt = 1.0 / 60;
+	
 	this.runningTime = 0;
 	this.runningTimeStr = "0 : 00 : 00"; // h:m:s
 	
@@ -138,18 +141,26 @@ hotjs.inherit(View, hotjs.Class, {
 			var now = Date.now();
 			var dt = (now - lastTime) / 1000.0;
 			
-			if( me.running ) {
-				me.update( dt );
-				me.render();
+			if( dt >= me.minDt ) { // control the fps
+				
+				if( me.running ) {
+					me.update( dt );
+					me.render();
+				}
+				lastTime = now;
 			}
 			
-			lastTime = now;
 			requestAnimFrame( view_loop );
 		}
 		
 		this.running = true;
 		view_loop();
 
+		return this;
+	},
+	setFps : function( f ) {
+		this.maxFps = Math.max(1, Math.min(f, 60));
+		this.minDt = 1.0 / this.maxFps;
 		return this;
 	},
 	resume : function( r ) {
