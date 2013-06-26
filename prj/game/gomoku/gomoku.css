@@ -6,18 +6,20 @@ html, body {
 	margin: 0;
 	padding: 0;
 }
-div#mainView {
-	display: inline-block;
-	border: solid green 0px;
+div.page {
 	margin: 0px;
 	padding: 0px;
+	border: solid green 0px;
 	-moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     -khtml-border-radius: 10px;
-    border-radius: 10px;	
+    border-radius: 10px;
+    display: none;
 }
-div#user1 {
-	right: 2px;
+div#mainView {
+	display: inline-block;
+}
+div.userinfo {
 	top: 2px;
 	display: inline-block;
 	position: absolute;
@@ -33,18 +35,9 @@ div#user1 {
 }
 div#user2 {
 	left: 2px;
-	top: 2px;
-	display: inline-block;
-	position: absolute;
-	border: solid black 2px;
-	margin: 0px;
-	padding: 2px;
-	background: #ffffcc;
-	opacity:0.9;	
-	-moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -khtml-border-radius: 10px;
-    border-radius: 10px;	
+}
+div#user1 {
+	right: 2px;
 }
 div#control {
 	display: inline-block;
@@ -74,6 +67,10 @@ input.btn {
 img {
 	v-space: 0px;
 	padding-bottom: 0px;
+}
+img.menu-icon {
+	width: 48px;
+	height: 48px;
 }
 table {
 	width: 100%;

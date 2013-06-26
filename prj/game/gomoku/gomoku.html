@@ -10,35 +10,29 @@
 <link rel="stylesheet" href="gomoku.css">
 <meta name="viewport"
 	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-
 <script src="../../lib/jquery-1.9.js"></script>
-
 <script src="../../../hotjs/hotjs.js"></script>
 <script src="../../../hotjs/resource.js"></script>
 <script src="../../../hotjs/math.js"></script>
 <script src="../../../hotjs/canvas.js"></script>
 <script src="../../../hotjs/social.js"></script>
-
 <script src="goboard.js"></script>
 <script src="net_go.js"></script>
 <script src="main.js"></script>
-
-<style type="text/css">
-
-</style>
 </head>
 <body>
-<div>
-<div id="mainView"></div>
 
-<div id="user2" style='display:none;'>
+<div>
+<div id="mainView" class='page'></div>
+
+<div id="user2" class='userinfo' style='display:none;'>
 <table>
 <tr><td align='left' colspan=2>级别: 6<br>财富: $ 1500</td></tr>
 <tr><td><img src='img/user1.png'><br>曹操</td><td><img width=32 src='img/whitego.png'/></td></tr>
 </table>
 </div>
 
-<div id="user1" style='display:none;'>
+<div id="user1" class='userinfo' style='display:none;'>
 <table>
 <tr><td align='left' colspan=2>级别: 7<br>财富: $ 2100</td></tr>
 <tr><td><img width=32 src='img/blackgo.png'/></td><td><img src='img/user2.png'><br>刘备</td></tr>
@@ -47,36 +41,44 @@
 
 <div id="control" style='display:none;'>
 <table>
-<tr><td><img width=48 class='menu-icon icon-reset' src='img/restart.png'/><br>新局</td></tr>
-<tr><td><img width=48 class='menu-icon icon-undo' src='img/undo.png'/><br>悔棋</td></tr>
-<tr><td><img width=48 class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td></tr>
+<tr><td><img class='menu-icon icon-reset' src='img/restart.png'/><br>新局</td></tr>
+<tr><td><img class='menu-icon icon-undo' src='img/undo.png'/><br>悔棋</td></tr>
+<tr><td><img class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td></tr>
 </table>
 </div>
 
 <div id='menu' style='display:block;'>
 <table>
 <tr>
-<td class='m'><img width=48 class='menu-icon icon-reset' src='img/restart.png'/><br>新局</td>
-<td class='m'><img width=48 class='menu-icon icon-undo' src='img/undo.png'/><br>悔棋</td>
-<td class='m'><img width=48 class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td>
-<td class='m'><img width=48 class='menu-icon icon-set' src='img/settings.png'/><br>设置</td>
-<td class='m'><img width=48 class='menu-icon icon-more' src='img/menu.png'/><br>更多...</td>
+<td class='m'><img class='menu-icon icon-reset' src='img/restart.png'/><br>新局</td>
+<td class='m'><img class='menu-icon icon-undo' src='img/undo.png'/><br>悔棋</td>
+<td class='m'><img class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td>
+<td class='m'><img class='menu-icon icon-set' src='img/settings.png'/><br>设置</td>
+<td class='m'><img class='menu-icon icon-more' src='img/menu.png'/><br>更多...</td>
 </tr></table>
 </div>
 
 <div id='menuX' style='display:none;'>
 <table>
 <tr>
-<td class='m'><img width=48 src='img/menu.png'/><br>菜单</td>
-<td class='m'><img width=48 src='img/games.png'/><br>微游</td>
-<td class='m'><img width=48 src='img/msg.png'/><br>聊天</td>
-<td class='m'><img width=48 src='img/friends.png'/><br>朋友们</td>
-<td class='m'><img width=48 src='img/settings.png'/><br>设置</td>
+<td class='m'><img id='menu'  class='menu-icon icon-menu' src='img/menu.png'/><br>菜单</td>
+<td class='m'><img id='weiyou' class='menu-icon icon-weiyou' src='img/games.png'/><br>微游</td>
+<td class='m'><img id='chat' class='menu-icon icon-chat' src='img/msg.png'/><br>聊天</td>
+<td class='m'><img id='friends' class='menu-icon icon-friends' src='img/friends.png'/><br>朋友们</td>
+<td class='m'><img id='set' class='menu-icon icon-set' src='img/settings.png'/><br>设置</td>
 </tr></table>
 </div>
 
+<div id='pagemenu' class='page' style='display:none;'></div>
+
+<div id='pageweiyou' class='page' style='display:none;'></div>
+
+<div id='pagechat' class='page' style='display:none;'></div>
+
+<div id='pagefriends' class='page' style='display:none;'></div>
+
+<div id='pageset' class='page' style='display:none;'></div>
+
 </div>
-
 </body>
-
 </html>

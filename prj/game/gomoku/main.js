@@ -172,13 +172,15 @@ $(document).ready(function(){
 
 	$('.menu-icon').on('mousedown', function(){
 		resources.get('audio/click.mp3').play();
+		
+		id = $(this).attr('id');
+		
 	});
 
 	resources.load([
             'img/woodfloor.jpg',
             'img/wood.jpg',
             'img/gostones.png'
-            , '../../../hotjs/demos/img/yeti.sprite.js'
             //, 'audio/move.mp3'
     	],
     	{
