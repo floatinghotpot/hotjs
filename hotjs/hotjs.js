@@ -308,7 +308,12 @@ hotjs.Class.prototype = {
 	addNode : function(subnode, id){
 		return this;
 	},
+	setContainer : function(c) {
+		this.container = c;
+		return this;
+	},
 	addTo : function(container, id) {
+		this.setContainer( container );
 		container.addNode(this, id);
 		return this;
 	}	

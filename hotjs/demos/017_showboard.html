@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Expires" CONTENT="0">
+<meta http-equiv="Cache-Control" CONTENT="no-cache">
+<meta http-equiv="Pragma" CONTENT="no-cache">
+<meta name="viewport"
+	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+<script src="../hotjs.js"></script>
+<script src="../math.js"></script>
+<script src="../resource.js"></script>
+<script src="../canvas.js"></script>
+<script src="../ui.js"></script>
+<style type="text/css">
+html, body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+}
+div {
+	display: inline-block;
+	border: solid green 0px;
+	margin: 0px;
+	padding: 0px;
+}
+</style>
+</head>
+<body>
+<div>
+<div id="mainView"></div>
+</div>
+<script>
+	
+function main() {
+	var w = window.innerWidth, h = window.innerHeight;
+	
+	var v = document.getElementById('mainView');
+	v.style.width = w;
+	v.style.height = h;
+
+	var viewX = (new hotjs.View()).setContainer('mainView').setSize(w,h).showFPS(false);
+
+	var room = (new hotjs.Scene())
+		.setSize(w, h)
+		.setColor("blue").showGrid(false)
+		//.setBgImage( false, resources.get('img/room.jpg')).showImg(true)
+		.setDraggable(true).setMoveable(true)
+		.addTo( viewX );
+	
+	var board = (new hotjs.ShowBoard())
+		.setPos(0,0)
+		.setParam({
+			width : w, 
+			height: h,
+			rows : 5, 
+			cols : 5,
+			padding : 5,
+			spacing : 5,
+			margin : 10,
+			dir : 0
+		})
+		.addTo( room );
+	
+	for( var i=0; i<40; i++ ) {
+		item = (new hotjs.Node())
+			//.setImage( resources.get('img/balls.png'), [42 * (i%8), 0, 42, 42] )
+			.setSize(42,42)
+			.addTo( board )
+			;
+	}
+	
+	var app = (new hotjs.App()).addNode(viewX).start();
+}
+
+resources.load([
+        		'img/ball.png',
+        		'img/room.jpg'
+        	], { ready: main });
+
+</script>
+</body>
+
+</html>

@@ -538,10 +538,6 @@ var Node = function() {
 };
 
 hotjs.inherit(Node, hotjs.Class, {
-	setContainer : function(c) {
-		this.container = c;
-		return this;
-	},
 	setName : function(n) {
 		this.name = n;
 		return this;
@@ -586,18 +582,21 @@ hotjs.inherit(Node, hotjs.Class, {
 		var b = (p[0]>=0) && (p[0]<this.size[0]) && (p[1]>=0) && (p[1]<this.size[1]);
 		return b;
 	},
-	setDraggable : function(b) {
-		this.draggable = b;
-		if(b) {
+	setDraggable : function(x,y) {
+		this.draggableX = x;
+		this.draggableY = (y == undefined) ? x : y;
+		this.draggable = x || y;
+		if( this.draggable ) {
 			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
 			if(this.touches == undefined) this.touches = new hotjs.HashMap();
 		}
 		return this;
 	},
-	setMoveable : function(b) {
-		this.setDraggable( b );
+	setMoveable : function(x,y) {
+		this.setDraggable(x,y);
 		
-		this.moveable = b;
+		this.moveable = x || y;
+		
 		return this;
 	},
 	setZoomable : function(b) {
@@ -734,6 +733,8 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		return false;
 	},
+	fixPos : function(){
+	},
 	handleDragZoomRotate : function(t) {
 		if(! this.touches) return false;
 		if(! this.touches0) return false;
@@ -742,7 +743,10 @@ hotjs.inherit(Node, hotjs.Class, {
 			if( this.touches.size() == 1 ) {
 				var t0 = this.touches0.get( this.id0 );
 				var t1 = this.touches.get( this.id0 );
-				this.pos = [ (t1.x - t0.x + t0.px), (t1.y - t0.y + t0.py) ];
+				if( this.draggableX ) this.pos[0] = (t1.x - t0.x + t0.px);
+				if( this.draggableY ) this.pos[1] = (t1.y - t0.y + t0.py);
+				
+				this.fixPos();
 			}
 		}
 		
@@ -774,6 +778,8 @@ hotjs.inherit(Node, hotjs.Class, {
 				var center_t1 = [ (f1t1.x + f2t1.x)/2, (f1t1.y + f2t1.y)/2 ];
 				var center_delta = Vector.sub( center_t1, center_t0 );
 				this.pos = Vector.add( this.pos, center_delta );
+				
+				this.fixPos();
 			}
 		}
 		
@@ -1119,7 +1125,7 @@ hotjs.inherit( Scene, Node, {
 	onTouchMove : function(t) {
 		var ret = Scene.supClass.onTouchMove.call(this, t);
 		
-		this.fixView();
+		//this.fixPos();
 		//this.setVelocity(0,0);
 		//this.setSpin(0,0);
 		
@@ -1128,14 +1134,14 @@ hotjs.inherit( Scene, Node, {
 	onTouchEnd : function(t) {
 		var ret = Scene.supClass.onTouchEnd.call(this, t);
 
-		this.fixView();
+		//this.fixPos();
 		//this.setVelocity(0,0);
 		//this.setSpin(0,0);
 		
 		return ret;
 	},
 	// ensure the scene is always in view
-	fixView : function() {
+	fixPos : function() {
 		var Vector = hotjs.Vector;
 		var w = this.container.width(), h = this.container.height();
 		var min_sx = w / this.size[0], min_sy = h / this.size[1];
@@ -1163,7 +1169,7 @@ hotjs.inherit( Scene, Node, {
 		this.pos[0] += x;
 		this.pos[1] += y;
 		
-		this.fixView();
+		this.fixPos();
 		
 		return this;
 	},
@@ -1205,14 +1211,14 @@ hotjs.inherit( Scene, Node, {
 				this.scale = [sMin, sMin];
 			}
 			
-			this.fixView();
-
 		} else {
 			// by default, scale & center scene to fit view
 			this.scale = [sMin, sMin];
 			this.pos = [ (vSize[0] - this.size[0] * sMin) /2, (vSize[1] - this.size[1] * sMin)/2 ];
 		}
 		
+		this.fixPos();
+
 		return this;
 	},
 	
