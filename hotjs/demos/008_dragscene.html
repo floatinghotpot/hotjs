@@ -22,7 +22,7 @@ html, body {
 div#mainView {
 	display: inline-block;
 	border: solid green 0px;
-	margin: 40px;
+	margin: 0px;
 	padding: 0px;
 }
 div#btn_zoom {
@@ -67,7 +67,7 @@ resources.load([
 resources.onReady(function() {
 
 	viewX = (new hotjs.View())
-		.setContainer('mainView').setSize(640,320)
+		.setContainer('mainView').setSize(640,640)
 		.showFPS(false);
 
 	room = (new hotjs.Scene())
@@ -75,6 +75,7 @@ resources.onReady(function() {
 		.setColor("blue").showGrid(false)
 		.setBgImage( false, resources.get('img/room.jpg')).showImg(true)
 		.setDraggable(true).setMoveable(true).setZoomable(true)
+		//.setThrowable(true)
 		.addTo( viewX );
 	
 	var app = (new hotjs.App()).addNode( viewX ).start();

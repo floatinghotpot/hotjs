@@ -55,18 +55,20 @@ function main() {
 		.setParam({
 			width : w, 
 			height: h,
-			rows : 5, 
+			rows : 8, 
 			cols : 5,
 			padding : 5,
 			spacing : 5,
 			margin : 10,
 			dir : 0
 		})
+		.setColor('gray')
+		.setBgColor('#eeeeee')
 		.addTo( room );
 	
-	for( var i=0; i<40; i++ ) {
+	for( var i=0; i<100; i++ ) {
 		item = (new hotjs.Node())
-			//.setImage( resources.get('img/balls.png'), [42 * (i%8), 0, 42, 42] )
+			.setImage( resources.get('img/balls.png'), [42 * (i%8), 0, 42, 42] )
 			.setSize(42,42)
 			.addTo( board )
 			;

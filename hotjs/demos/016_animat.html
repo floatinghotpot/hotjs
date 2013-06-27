@@ -12,6 +12,7 @@
 <script src="../resource.js"></script>
 <script src="../canvas.js"></script>
 <script src="../sprite.js"></script>
+<script src="../ui.js"></script>
 <style type="text/css">
 html, body {
 	width: 100%;
@@ -64,51 +65,46 @@ function main(){
 	var viewX = (new hotjs.View())
 		.setContainer('viewX')
 		.setSize(w,h)
+		//.setBgColor('gray')
+		.setBgImage(true, resources.get('img/bg_1.jpg'))
 		.setMaxFps( 25 )
 		.showFPS(true);
 
 	var room = (new hotjs.Scene())
 		.setSize(w,h)
 		.setColor("blue").showGrid(false)
-		.setBgColor('white')
+		//.setBgColor('gray')
 		.addTo(viewX,'hello');
 
-	var dx = room.width() / 5, dy = room.height() / 5;
-	var x = dx/2, y = dy/2;
-	var anims = sprites['yeti.sprite.js']['anims'];
-	for( var i in anims ) {
-		monster = (new hotjs.Node())
-			.setSprite( new hotjs.Animat('img/yeti.sprite.js', i) )
-			.setPos( x, y )
-			//.setPos( room.width()/2, room.height()/2 )
-			.addTo( room );
-		
-		x += dx;
-		if( x > room.width() ) {
-			x = dx/2;
-			y += dy;
-		}		
-	}
+	var board = (new hotjs.ShowBoard())
+	.setPos(0,0)
+	.setParam({
+		width : w, 
+		height: h,
+		rows : 3, 
+		cols : 3,
+		padding : 0,
+		spacing : 10,
+		margin : 10,
+		dir : 0
+	})
+	.setColor('yellow')
+	.setBgColor('silver')
+	.addTo( room );
 	
 	var anims = sprites['BING_male.sprite.js']['anims'];
 	for( var i in anims ) {
 		npc = (new hotjs.Node())
 			.setSprite( new hotjs.Animat('img/BING_male.sprite.js', i) )
-			.setPos( x, y )
-			//.setPos( room.width()/2, room.height()/2 )
-			.addTo( room );
-		
-		x += dx;
-		if( x > room.width() ) {
-			x = dx/2;
-			y += dy;
-		}
+			.setSize(0,-150)
+			.addTo( board );
 	}
 
 	var app = (new hotjs.App()).addNode( viewX ).start();
 }
 
 resources.load([
+                'img/bg_1.jpg',
                 'img/yeti.sprite.js',
                 'img/BING_male.sprite.js'
                 ], { ready: main });

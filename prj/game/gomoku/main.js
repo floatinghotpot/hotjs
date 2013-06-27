@@ -118,7 +118,7 @@ function main() {
 	board = (new GoBoard(15))
 		.setSize(w, h)
 		.setColor("black").showGrid(false)
-		.setDraggable(true).setMoveable(true).setZoomable(true)
+		.setDraggable(true).setMoveable(true).setZoomable(true).setThrowable(true)
 		.setAreaImage( true, resources.get('img/wood.jpg') )
 		.setGoImage( resources.get('img/gostones.png'), [0,0,128,128] )
 		.showImg(true)
@@ -138,8 +138,6 @@ function main() {
 		viewX.setSize(w,h);
 		board.setSize(w,h).setArea( (w-m)/2, (h-m)/2, m, m );
 	});
-	
-	console.log( sprites );
 }
 
 var bgindex = 1;

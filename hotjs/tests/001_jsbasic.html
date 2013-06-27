@@ -58,6 +58,17 @@ test("String operations", function() {
 	equal( ['mp3', 'ogg', 'wav'].indexOf( 'ogg' ) > -1, true, 'mp3 in [mp3, ogg, wav]');
 });
 
+module('Math functions');
+test('Math functions', function(){
+	
+	ok( true, 'round(1.5) = ' + Math.round(1.5) );
+	ok( true, 'round(1.4) = ' + Math.round(1.4) );
+	ok( true, 'round(-1.51) = ' + Math.round(-1.51) );
+	ok( true, 'round(-1.5) = ' + Math.round(-1.5) );
+	ok( true, 'round(-1.4) = ' + Math.round(-1.4) );
+	
+});
+
 	</script>
 </body>
 </html>

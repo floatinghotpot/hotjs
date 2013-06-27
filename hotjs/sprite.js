@@ -89,6 +89,7 @@ hotjs.inherit(Animat, hotjs.Class, {
 		
 		c.translate(ox, oy);
 		switch( oflag ) {
+		case 0: c.scale(1,1); break;
 		case 2: c.scale(-1,1); break;
 		case 3: c.scale(1,-1); break;
 		case 4: c.scale(-1,-1); break;
@@ -110,9 +111,10 @@ hotjs.inherit(Animat, hotjs.Class, {
 				c.save();
 				c.translate( oox +w/2, ooy+h/2 );
 				switch(ooflag) {
-				case 2: c.scale(-1,1); break;
-				case 3: c.scale(1,-1); break;
-				case 4: c.scale(-1,-1); break;
+				case 0: c.scale(1.01, 1.01); break;
+				case 2: c.scale(-1.01, 1.01); break;
+				case 3: c.scale(1.01, -1.01); break;
+				case 4: c.scale(-1.01, -1.01); break;
 				}
 				c.drawImage( oImg, x, y, w, h, -w/2, -h/2, w, h );
 				c.restore();

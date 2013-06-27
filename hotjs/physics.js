@@ -35,7 +35,6 @@ var Node = function(){
 	hotjs.base(this);
 	
 	this.restitution = 0.9;
-	this.throwable = true;
 };
 
 hotjs.inherit(Node, hotjs.Node, {
@@ -48,52 +47,8 @@ hotjs.inherit(Node, hotjs.Node, {
 	getRestitution : function() {
 		return this.restitution;
 	},
-	setThrowable : function(th) {
-		if(! th) th = ! this.throwable;
-		this.throwable = th;
-		return this;
-	},
 	collide : function(another) {
 		return this;
-	},
-	onTouchStart : function(t) {
-		var ret = Node.supClass.onTouchStart.call(this, t);
-
-		this.dragTime = Date.now();
-		this.t1 = [ t.x, t.y ];
-		this.maxVel = [0, 0];
-		
-		return ret;
-	},
-	onTouchMove : function(t) {
-		if( this.dragging ) this.gainVelocityFromDrag(t);
-		
-		return Node.supClass.onTouchMove.call(this, t);
-	},
-	onTouchEnd : function(t) {
-		if( this.dragging ) {
-			if( this.throwable ) {
-				this.gainVelocityFromDrag(t);
-			} else {
-				this.setVelocity(0,0);
-			}
-		}
-
-		return Node.supClass.onTouchEnd.call(this, t);
-	},
-	gainVelocityFromDrag : function(t) {
-		var now = Date.now();
-		var dt = (now - this.dragTime) / 1000.0;
-
-		var f = 1.0/60/dt;
-		var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
-		this.setVelocity(v[0], v[1]);
-		//this.setSpin(0,0);
-
-		if( dt > 0.3 ) {
-			this.dragTime = now;
-			this.t1 = [ t.x, t.y ];
-		}
 	}
 });
 

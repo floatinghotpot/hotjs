@@ -508,7 +508,8 @@ var Node = function() {
 	this.index = {};
 	
 	this.size = [40,40];
-	this.color = undefined; // default: "black"
+	this.color = undefined; // default: 'black'
+	this.bgcolor = undefined; // default: 'white'
 	this.img = undefined;
 	this.imgrect = undefined; // [x,y,w,h]
 	this.sprite = undefined;
@@ -535,6 +536,7 @@ var Node = function() {
 	this.moveable = undefined;
 	this.zoomable = undefined;
 	this.rotateable = undefined;
+	this.throwable = undefined;
 };
 
 hotjs.inherit(Node, hotjs.Class, {
@@ -616,6 +618,12 @@ hotjs.inherit(Node, hotjs.Class, {
 			if(this.rotation == undefined) this.rotation = 0;
 		}
 		this.rotateable = b;
+		return this;
+	},
+	setThrowable : function(x,y) {
+		this.throwable = x || y;
+		this.throwableX = x;
+		this.throwableY = (y == undefined) ? x : y;
 		return this;
 	},
 	onClick : function(t) {
@@ -708,6 +716,12 @@ hotjs.inherit(Node, hotjs.Class, {
 				this.id0 = t.id;
 			}
 		}
+
+		if(!! this.throwable ) {
+			this.dragTime = Date.now();
+			this.t1 = [ t.x, t.y ];
+			this.maxVel = [0, 0];
+		}
 		
 		var pos = this.posFromContainer( [t.x, t.y] );
 		var ts = { id:t.id, x: pos[0], y: pos[1] };
@@ -785,6 +799,31 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		if( this.rotateable ) {
 			
+		}
+		
+		if( this.throwable ) {
+			this.gainVelocityFromDrag(t);
+		} else {
+			this.setVelocity(0,0);
+		}
+	},
+	gainVelocityFromDrag : function(t) {
+		var now = Date.now();
+		var dt = (now - this.dragTime) / 1000.0;
+
+		var f = 1.0/60/dt;
+		var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
+		if( this.throwableX ) {
+			this.velocity[0] = v[0];
+		}
+		if( this.throwableY ) {
+			this.velocity[1] = v[1];
+		}
+		//this.setSpin(0,0);
+
+		if( dt > 0.3 ) {
+			this.dragTime = now;
+			this.t1 = [ t.x, t.y ];
 		}
 	},
 	onTouchEnd : function(t) {
@@ -887,6 +926,10 @@ hotjs.inherit(Node, hotjs.Class, {
 	},
 	setColor : function(c) {
 		this.color = c;
+		return this;
+	},
+	setBgColor : function(c) {
+		this.bgcolor = c;
 		return this;
 	},
 	// alpha, range [0,1]
@@ -1118,10 +1161,6 @@ hotjs.inherit( Scene, Node, {
 		
 		return this.area;
 	},
-	setBgColor : function(c) {
-		this.bgcolor = c;
-		return this;
-	},
 	onTouchMove : function(t) {
 		var ret = Scene.supClass.onTouchMove.call(this, t);
 		
@@ -1134,7 +1173,7 @@ hotjs.inherit( Scene, Node, {
 	onTouchEnd : function(t) {
 		var ret = Scene.supClass.onTouchEnd.call(this, t);
 
-		//this.fixPos();
+		this.fixPos();
 		//this.setVelocity(0,0);
 		//this.setSpin(0,0);
 		
