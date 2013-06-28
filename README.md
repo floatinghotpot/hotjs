@@ -21,7 +21,7 @@ Features / Road Map
 
 // resource: image (done), sprite (done), audio/video (done)
 
-// animation: move, rotate, scale, fade
+// animation: move (done), rotate (done), scale (done), fade (done)
 
 // math: point/vector (done), matrix (partially),
 
