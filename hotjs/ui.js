@@ -29,10 +29,10 @@ hotjs.inherit(ShowBoard, hotjs.Node, {
 		}
 		if( this.param.dir == 0 ) {
 			this.setMoveable(true, false);
-			this.setThrowable(true, false);
+			//this.setThrowable(true, false);
 		} else {
 			this.setMoveable(false, true);
-			this.setThrowable(false, true);
+			//this.setThrowable(false, true);
 		}
 		this.updateLayout();
 		return this;
@@ -48,37 +48,35 @@ hotjs.inherit(ShowBoard, hotjs.Node, {
 	},
 	onTouchEnd : function(t) {
 		ShowBoard.supClass.onTouchEnd.call(this,t);
-		
-		this.autoFixPos = true;
-	},
-	update : function(dt) {
-		ShowBoard.supClass.update.call(this, dt);
-		
-		if(!! this.autoFixPos ) {
-			var p = this.param;
-			if(this.velocity == undefined) this.velocity = [0,0];
-			if( p.dir == 0 ) {
-				var anchor = Math.floor(this.pos[0]/p.width + 0.49) * p.width;
-				if( this.pos[0] != anchor ){
-					this.velocity[0] += (anchor-this.pos[0]) * 0.2;
-					this.velocity[0] = Math.floor( this.velocity[0]/2 + 0.49 );
-				} else {
-					this.velocity[0] = 0;
-					this.autoFixPos = false;
-				}
+
+		this.gainVelocityFromDrag(t);
+
+		var anchor = this.pos;
+		var p = this.param;
+		if( p.dir == 0 ) {
+			var left = Math.floor(this.pos[0]/p.width) * p.width;
+			var right = left + p.width;
+			if( right >= p.width ) right = 0;
+			
+			if( this.velocity[0] <= 0 ) {
+				anchor = [ left, anchor[1] ];
 			} else {
-				var anchor = Math.floor(this.pos[1]/p.height + 0.49) * p.height;
-				if( this.pos[1] != anchor ) {
-					this.velocity[1] += (anchor-this.pos[1]) * 0.2;
-					this.velocity[1] = Math.floor( this.velocity[1]/2 + 0.49 );
-				} else {
-					this.velocity[1] = 0;
-					this.autoFixPos = false;
-				}
+				anchor = [ right, anchor[1] ];
+			}
+		} else {
+			var top = Math.floor(this.pos[1]/p.height) * p.height;
+			var bottom = top + p.height;
+			if( bottom > p.height ) bottom = 0;
+			
+			if( this.velocity[1] <= 0 ) {
+				anchor = [ anchor[0], top ];
+			} else {
+				anchor = [ anchor[0], bottom ];
 			}
 		}
-		
-		return this;
+		this.velocity = [0,0];
+
+		hotjs.Anim.create( this, 'MoveTo', { to:anchor, duration:0.5 } ).play();
 	},
 	updateLayout : function(){
 		var nodes = this.subnodes;

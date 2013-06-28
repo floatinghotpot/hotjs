@@ -527,6 +527,8 @@ var Node = function() {
 	this.alpha = undefined; // default: 1, range: [0,1]
 	this.fade = undefined; // default: 0
 	
+	this.anims = [];
+	
 	// physical
 	this.accel = undefined; // default: [0,0]
 	this.mass = 1600; // default: 1600
@@ -717,12 +719,6 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 		}
 
-		if(!! this.throwable ) {
-			this.dragTime = Date.now();
-			this.t1 = [ t.x, t.y ];
-			this.maxVel = [0, 0];
-		}
-		
 		var pos = this.posFromContainer( [t.x, t.y] );
 		var ts = { id:t.id, x: pos[0], y: pos[1] };
 
@@ -742,6 +738,11 @@ hotjs.inherit(Node, hotjs.Class, {
 		if(!! this.draggable) {
 			this.dragging = true;
 			this.setVelocity(0, 0);
+
+			this.dragTime = Date.now();
+			this.t1 = [ t.x, t.y ];
+			this.maxVel = [0, 0];
+			
 			return true;
 		}
 		
@@ -803,22 +804,17 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		if( this.throwable ) {
 			this.gainVelocityFromDrag(t);
-		} else {
-			this.setVelocity(0,0);
 		}
+		if(! this.throwableX) this.velocity[0] = 0;
+		if(! this.throwableY) this.velocity[1] = 0;
 	},
 	gainVelocityFromDrag : function(t) {
 		var now = Date.now();
 		var dt = (now - this.dragTime) / 1000.0;
 
 		var f = 1.0/60/dt;
-		var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
-		if( this.throwableX ) {
-			this.velocity[0] = v[0];
-		}
-		if( this.throwableY ) {
-			this.velocity[1] = v[1];
-		}
+		this.velocity = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
+
 		//this.setSpin(0,0);
 
 		if( dt > 0.3 ) {
@@ -1035,7 +1031,22 @@ hotjs.inherit(Node, hotjs.Class, {
 				this.alpha = this.fade( this.alpha, dt );
 			}
 		}
+		
+		// process animation
+		if( this.anims.length > 0 ) {
+			for( var i=0; i<this.anims.length; i++ ) {
+				this.anims[i].update(dt);
+			}
+		}
 
+		return this;
+	},
+	addAnim : function(anim) {
+		this.anims.push( anim );
+		return this;
+	},
+	removeAnim : function(anim) {
+		this.anims.splice( this.anims.indexOf(anim), 1 );
 		return this;
 	},
 	render : function(c) {
@@ -1046,7 +1057,7 @@ hotjs.inherit(Node, hotjs.Class, {
 			c.translate(this.pos[0], this.pos[1]);
 		} else {
 			c.translate(this.pos[0] + this.size[0]/2, this.pos[1] + this.size[1]/2);
-			c.rotate(this.rotation * Math.PI / 180);
+			c.rotate( this.rotation * Math.PI / 180 );
 			c.translate( - this.size[0]/2, - this.size[1]/2 );
 		}
 		if( !! this.scale ) c.scale(this.scale[0],this.scale[1]);

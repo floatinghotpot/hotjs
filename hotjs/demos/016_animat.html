@@ -13,6 +13,7 @@
 <script src="../canvas.js"></script>
 <script src="../sprite.js"></script>
 <script src="../ui.js"></script>
+<script src="../animation.js"></script>
 <style type="text/css">
 html, body {
 	width: 100%;
@@ -98,6 +99,9 @@ function main(){
 			.setSprite( new hotjs.Animat('img/BING_male.sprite.js', i) )
 			.setSize(0,-150)
 			.addTo( board );
+		
+		//hotjs.Anim.create( npc, 'RotateBy', { spin:360, duration:60 } ).play();
+		//hotjs.Anim.create( npc, 'ScaleLoop', { range:[0.9,1.1], freq:1, duration:3600 } ).play();
 	}
 
 	var app = (new hotjs.App()).addNode( viewX ).start();
