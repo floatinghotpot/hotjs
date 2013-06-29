@@ -516,16 +516,11 @@ var Node = function() {
 
 	// geometry, 2D only
 	this.pos = [0,0];
-	this.velocity = undefined; // default [0,0]
+	this.velocity = [0,0]; // default [0,0]
 
 	this.rotation = undefined; // default: 0
-	this.spin = undefined; // default: 0
-
 	this.scale = undefined; // default: [1,1]
-	this.shrink = undefined; // default: 1
-
 	this.alpha = undefined; // default: 1, range: [0,1]
-	this.fade = undefined; // default: 0
 	
 	this.anims = [];
 	
@@ -539,6 +534,8 @@ var Node = function() {
 	this.zoomable = undefined;
 	this.rotateable = undefined;
 	this.throwable = undefined;
+	this.gesture = [0,0];
+	this.dragging = false;
 };
 
 hotjs.inherit(Node, hotjs.Class, {
@@ -587,20 +584,29 @@ hotjs.inherit(Node, hotjs.Class, {
 		return b;
 	},
 	setDraggable : function(x,y) {
+		this.draggable = x || y;
 		this.draggableX = x;
 		this.draggableY = (y == undefined) ? x : y;
-		this.draggable = x || y;
+
 		if( this.draggable ) {
 			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
 			if(this.touches == undefined) this.touches = new hotjs.HashMap();
 		}
+
 		return this;
 	},
 	setMoveable : function(x,y) {
 		this.setDraggable(x,y);
 		
 		this.moveable = x || y;
+		return this;
+	},
+	setThrowable : function(x,y) {
+		this.setMoveable(x,y);
 		
+		this.throwable = x || y;
+		this.throwableX = x;
+		this.throwableY = (y == undefined) ? x : y;
 		return this;
 	},
 	setZoomable : function(b) {
@@ -620,12 +626,6 @@ hotjs.inherit(Node, hotjs.Class, {
 			if(this.rotation == undefined) this.rotation = 0;
 		}
 		this.rotateable = b;
-		return this;
-	},
-	setThrowable : function(x,y) {
-		this.throwable = x || y;
-		this.throwableX = x;
-		this.throwableY = (y == undefined) ? x : y;
 		return this;
 	},
 	onClick : function(t) {
@@ -803,7 +803,7 @@ hotjs.inherit(Node, hotjs.Class, {
 		}
 		
 		if( this.throwable ) {
-			this.gainVelocityFromDrag(t);
+			this.velocity = this.gainVelocityFromDrag(t);
 		}
 		if(! this.throwableX) this.velocity[0] = 0;
 		if(! this.throwableY) this.velocity[1] = 0;
@@ -811,16 +811,15 @@ hotjs.inherit(Node, hotjs.Class, {
 	gainVelocityFromDrag : function(t) {
 		var now = Date.now();
 		var dt = (now - this.dragTime) / 1000.0;
-
-		var f = 1.0/60/dt;
-		this.velocity = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
-
-		//this.setSpin(0,0);
-
-		if( dt > 0.3 ) {
-			this.dragTime = now;
-			this.t1 = [ t.x, t.y ];
+		if( dt > 0 ) {
+			this.gesture = [ (t.x - this.t1[0]) / dt, (t.y - this.t1[1]) /dt ];
+			if( dt > 0.3 ) {
+				this.dragTime = now;
+				this.t1 = [ t.x, t.y ];
+			}
 		}
+		
+		return this.gesture;
 	},
 	onTouchEnd : function(t) {
 		if( !! this.touches ) {
@@ -843,13 +842,14 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		if( this.dragging ) {
 			this.dragging = false;
+			
 			if(!! this.moveable) {
 				this.handleDragZoomRotate(t);
 			} else {
 				var t0 = this.touches0.get( this.id0 );
 				this.pos = [ t0.px, t0.py ];
 			}
-
+			
 			if( !! this.touches ) this.touches.remove( t.id );
 			if( !! this.touches0 ) this.touches0.remove( t.id );
 			return true;
@@ -890,20 +890,6 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.velocity = [vx,vy];
 		return this;
 	},
-	setSpin : function(s) {
-		if( ! this.rotation ) {
-			this.rotation = 0;
-		}
-		this.spin = s;
-		return this;
-	},
-	setShrink : function(sx,sy) {
-		if( ! this.scale ) {
-			this.scale = [1,1];
-		}
-		this.shrink = [sx,sy];
-		return this;
-	},
 	setMass : function(m) {
 		this.mass = m;
 		return this;
@@ -931,12 +917,6 @@ hotjs.inherit(Node, hotjs.Class, {
 	// alpha, range [0,1]
 	setAlpha : function(a) {
 		this.alpha = a;
-		return this;
-	},
-	// f can be a small number, like 1.0/60; or function: alpha = f(alpha)
-	setFade : function(f) {
-		if(this.alpha == undefined) this.alpha=1;
-		this.fade = f;
 		return this;
 	},
 	setImage : function(img, r) {
@@ -1005,34 +985,18 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		if( !! this.dragging ) 	return this;
 		
-		// update pos / rotation / scale, according to velocity / spin / shrink
+		// update pos according to velocity
 		if(this.velocity !== undefined) {
-			this.pos[0] += this.velocity[0];
-			this.pos[1] += this.velocity[1];
+			this.pos[0] += this.velocity[0] * dt;
+			this.pos[1] += this.velocity[1] * dt;
 		}
-		if(this.spin !== undefined) {
-			this.rotation += this.spin;
-		}
-		if(this.shrink !== undefined) {
-			this.scale[0] *= this.shrink[0];
-			this.scale[1] *= this.shrink[1];
-		}
-		
-		// update velocity / alpha, according to accel / fade
+		// update velocity accoring to accel
 		if(this.accel !== undefined) {
-			this.velocity[0] += this.accel[0];
-			this.velocity[1] += this.accel[1];
-		}
-		if(this.fade !== undefined) {
-			if(typeof this.fade == 'number') {
-				this.alpha += this.fade;
-				if(this.alpha<0 || this.alpha>1) this.fade=undefined;
-			} else if (typeof this.fade == 'function') {
-				this.alpha = this.fade( this.alpha, dt );
-			}
+			this.velocity[0] += this.accel[0] * dt;
+			this.velocity[1] += this.accel[1] * dt;
 		}
 		
-		// process animation
+		// process other complex animation
 		if( this.anims.length > 0 ) {
 			for( var i=0; i<this.anims.length; i++ ) {
 				this.anims[i].update(dt);

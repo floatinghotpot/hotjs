@@ -34,7 +34,7 @@ var Formula = {
 var Node = function(){
 	hotjs.base(this);
 	
-	this.restitution = 0.9;
+	this.restitution = 0.95;
 };
 
 hotjs.inherit(Node, hotjs.Node, {
@@ -114,10 +114,10 @@ hotjs.inherit(Ball, Node, {
 var Scene = function(){
 	hotjs.base(this);
 
-	this.restitution = 0.5;
+	this.restitution = 0.6;
 	this.gravity = Constant.g;
-	this.resistance = 1/6;
-	
+	this.resistance = 1/2;
+	this.meter = 200;
 };
 
 hotjs.inherit(Scene, hotjs.Scene, {
@@ -129,6 +129,10 @@ hotjs.inherit(Scene, hotjs.Scene, {
 	},
 	getRestitution : function() {
 		return this.restitution;
+	},
+	setMeter: function(m) {
+		this.meter = m;
+		return this;
 	},
 	setGravity : function(n) {
 		this.gravity = n * Constant.g;
@@ -144,39 +148,23 @@ hotjs.inherit(Scene, hotjs.Scene, {
 	getResistance : function() {
 		return this.resistance;
 	},
-	applyEnvForce : function() {
-		for( var i=this.subnodes.length-1; i>=0; i-- ) {
-			var b = this.subnodes[i];
-			var vx = b.velocity[0], vy = b.velocity[1];
-
-			// media resistance (like air, water, floor, etc.)
-			var ax = - vx * this.resistance / 60;
-			var ay = - vy * this.resistance / 60;
-			//var ax -= vx / ry * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / b.density) / 60;
-			//var ay -= vy / rx * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / b.density) / 60;
-			
-			// gravity / air buoyancy
-			ay += (1 - Constant.AIR_DENSITY/b.density)  * this.gravity / 60;
-			
-			b.accel = [ax, ay];
-		}
-		
-		return this;
-	},
-	checkBorderCollision : function() {
+	checkBorderCollision : function(dt) {
 		var a = this.getArea();
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
 			var px = b.pos[0], py = b.pos[1];
 			var rx = b.size[0], ry = b.size[1];
-			
 			var vx = b.velocity[0], vy = b.velocity[1];
-	
+
 			// check area 
-			var x_hit = ((px + rx > a.r) && (vx >0)) || ((px <= a.l) && (vx <0));
-			var y_hit = ((py + ry > a.b) && (vy >0)) || ((py <= a.t) && (vy <0));
+			var x_hit = ((px <= a.l) && (vx <=0)) || ((px + rx >= a.r) && (vx >=0));
+			var y_hit = ((py <= a.t) && (vy <=0)) || ((py + ry >= a.b) && (vy >=0));
 			
+			// media resistance (like air, water, floor, etc.)
+			var ax = vx * (- this.resistance * dt);
+			var ay = vy * (- this.resistance * dt);
+
 			// bounce & collision loss
 			var tution = this.restitution * b.getRestitution();
 			if( x_hit ){
@@ -186,9 +174,13 @@ hotjs.inherit(Scene, hotjs.Scene, {
 			if( y_hit ) {
 				vy *= (- tution);
 				vx *= (0.9 + tution * 0.1);
+			} else {
+				// gravity / air buoyancy
+				ay += (1 - Constant.AIR_DENSITY/b.density)  * (this.gravity * this.meter);
 			}
 	
 			b.velocity = [vx, vy];
+			b.accel = [ax, ay];
 		}
 		
 		return this;
@@ -198,13 +190,12 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
-			var px = b.pos[0], py = b.pos[1];
 
 			// fix pos if out of area
 			px = Math.max( a.l, Math.min(a.r - b.size[0], b.pos[0]));
-			py = Math.max( a.t, Math.min(a.b - b.size[1], py = b.pos[1]));
+			py = Math.max( a.t, Math.min(a.b - b.size[1], b.pos[1]));
 			
-			b.pos = [px, py];			
+			b.pos = [ Math.round(px), Math.round(py) ];			
 		}
 		
 		return this;
@@ -224,10 +215,7 @@ hotjs.inherit(Scene, hotjs.Scene, {
 				}
 			}
 
-			this.applyEnvForce();
-			
-			this.checkBorderCollision();
-
+			this.checkBorderCollision(dt);
 			this.validatePos();
 		}
 		

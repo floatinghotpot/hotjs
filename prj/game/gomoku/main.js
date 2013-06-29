@@ -118,7 +118,7 @@ function main() {
 	board = (new GoBoard(15))
 		.setSize(w, h)
 		.setColor("black").showGrid(false)
-		.setDraggable(true).setMoveable(true).setZoomable(true).setThrowable(true)
+		.setDraggable(true).setMoveable(true).setZoomable(true)
 		.setAreaImage( true, resources.get('img/wood.jpg') )
 		.setGoImage( resources.get('img/gostones.png'), [0,0,128,128] )
 		.showImg(true)

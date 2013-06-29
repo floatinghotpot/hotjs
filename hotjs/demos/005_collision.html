@@ -183,8 +183,8 @@ function main() {
 function kick_ball(i){
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * room.width() * 0.1;   
-		var vy = - Math.random() * room.height() * 0.1;
+		var vx = hotjs.Random.Float(0.5, 1.0) * room.width() * 3;   
+		var vy = - hotjs.Random.Float(0.5, 1.0) * room.height() * 3;
 		b.setVelocity(vx,vy);
 	}
 }	

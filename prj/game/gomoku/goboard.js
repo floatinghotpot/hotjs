@@ -166,6 +166,16 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			}
 		}
 	},
+	onTouchEnd : function(t) {
+		GoBoard.supClass.onTouchEnd.call(this,t);
+		
+		this.velocity = this.gesture;
+		var param = { duration:0.2,
+				step:function(me,dt){ me.fixPos(); },
+				done:function(me){ me.fixPos(); }
+			};
+		hotjs.Anim.create( this, 'SlowDown', param ).play();
+	},
 	draw : function(c) {
 		GoBoard.supClass.draw.call(this, c);
 		

@@ -37,15 +37,19 @@ hotjs.inherit(Animation, hotjs.Class, {
 		this.dtSum += dt;
 		var timeout = ( this.dtSum >= this.param.duration ) && (! this.loop);
 		
-		var func = this.param.step;
-		var done = ( typeof func == 'function' ) ? func( this, dt ) : this.step(dt);
+		var done = this.step(dt);
 		
+		var func = this.param.step;
+		if( typeof func == 'function' ) {
+			func( this.who, dt );
+		}
+			
 		if( timeout || done ) {
 			this.who.removeAnim(this);
 			
 			var func = this.param.done;
 			if( typeof func == 'function') {
-				func( this );
+				func( this.who );
 			}
 		}
 	}

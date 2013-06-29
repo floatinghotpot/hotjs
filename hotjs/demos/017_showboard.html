@@ -71,6 +71,7 @@ function main() {
 		item = (new hotjs.Node())
 			.setImage( resources.get('img/balls.png'), [42 * (i%8), 0, 42, 42] )
 			.setSize(42,42)
+			.setMoveable(true)
 			.addTo( board )
 			;
 	}

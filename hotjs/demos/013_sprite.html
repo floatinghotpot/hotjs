@@ -90,7 +90,7 @@ resources.onReady(function(){
 		.setSize(90,120)
 		.setSprite( spritesheet.boy )
 		.setPos(room.width(), room.height()-120)
-		.setVelocity(-1,0).setAccel(0,0)
+		.setVelocity(-100,0).setAccel(0,0)
 		.addTo( room );
 
 	var b = (new hotjs.Physics.Node())
@@ -98,7 +98,7 @@ resources.onReady(function(){
 		.setSize(120,160)
 		.setSprite( spritesheet.bird )
 		.setPos(room.width(), room.height()/2)
-		.setVelocity(-3,0).setAccel(0,0)
+		.setVelocity(-300,0).setAccel(0,0)
 		.addTo( room );
 	
 	balls.push(b);

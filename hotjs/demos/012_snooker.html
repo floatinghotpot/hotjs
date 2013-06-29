@@ -156,7 +156,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			.setColor("blue").showGrid(false)
 			.setDraggable(false).setMoveable(false)
 			.setRestitution(0.8)
-			.setResistance(1/2)
+			.setResistance(1/5)
 			.setGravity(0);
 
 		return this;
@@ -277,12 +277,10 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			
 		} else if( this.noBallMoving() ) {
 			
+			// calculate speed of hit
 			var now = Date.now();
 			var dt = (now - this.dragTime) / 1000.0;
-	
-			// calculate speed of hit
-			var f = 1/dt/60;
-			var v = [ delta[0] * f, delta[1] * f ];
+			var v = [ delta[0] / dt, delta[1] / dt ];
 			var v_len = hotjs.Vector.getLength(v);
 
 			this.shootBall( v_len );

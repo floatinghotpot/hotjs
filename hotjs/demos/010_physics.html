@@ -101,6 +101,8 @@ resources.onReady(function() {
 		.setSize(w, h)
 		.setColor("blue").showGrid(false)
 		.setBgImage(false, resources.get('img/room.jpg')).showImg(true)
+		.setMeter(300)
+		.setRestitution( 0.4 )
 		.setDraggable(true).setMoveable(true)
 		.addTo( viewX );
 	
@@ -112,7 +114,8 @@ resources.onReady(function() {
 			.setImage(resources.get('img/baloon.png'))
 			.setSize(r*0.75,r)
 			.setDensity(hotjs.Physics.Constant.AIR_DENSITY*0.7)
-			.setDraggable(true).setMoveable(true)
+			.setRestitution( 0.6 )
+			.setThrowable(true)
 			.setPos(x + b.size[0]/2, room.height()/2).setVelocity(0,0).setAccel(0,0)
 			.addTo( room );
 	}
@@ -125,7 +128,8 @@ resources.onReady(function() {
 			.setImage(resources.get('img/ball.png'))
 			.setSize(r,r)
 			.setDensity(hotjs.Physics.Constant.IRON_DENSITY)
-			.setDraggable(true).setMoveable(true)
+			.setRestitution( 0.95 )
+			.setThrowable(true)
 			.setPos(x, room.height()/2).setVelocity(0,0).setAccel(0,0)
 			.addTo( room );
 

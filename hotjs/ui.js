@@ -49,8 +49,6 @@ hotjs.inherit(ShowBoard, hotjs.Node, {
 	onTouchEnd : function(t) {
 		ShowBoard.supClass.onTouchEnd.call(this,t);
 
-		this.gainVelocityFromDrag(t);
-
 		var anchor = this.pos;
 		var p = this.param;
 		if( p.dir == 0 ) {
@@ -58,7 +56,7 @@ hotjs.inherit(ShowBoard, hotjs.Node, {
 			var right = left + p.width;
 			if( right >= p.width ) right = 0;
 			
-			if( this.velocity[0] <= 0 ) {
+			if( this.gesture[0] <= 0 ) {
 				anchor = [ left, anchor[1] ];
 			} else {
 				anchor = [ right, anchor[1] ];
@@ -68,15 +66,14 @@ hotjs.inherit(ShowBoard, hotjs.Node, {
 			var bottom = top + p.height;
 			if( bottom > p.height ) bottom = 0;
 			
-			if( this.velocity[1] <= 0 ) {
+			if( this.gesture[1] <= 0 ) {
 				anchor = [ anchor[0], top ];
 			} else {
 				anchor = [ anchor[0], bottom ];
 			}
 		}
-		this.velocity = [0,0];
 
-		hotjs.Anim.create( this, 'MoveTo', { to:anchor, duration:0.5 } ).play();
+		hotjs.Anim.create( this, 'MoveTo', { to:anchor, duration:0.3 } ).play();
 	},
 	updateLayout : function(){
 		var nodes = this.subnodes;
