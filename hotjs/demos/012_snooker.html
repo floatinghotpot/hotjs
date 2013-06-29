@@ -154,9 +154,8 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 
 		this.setBgImage(false, this.images.table.img ).showImg(true)
 			.setColor("blue").showGrid(false)
-			.setDraggable(false).setMoveable(false)
 			.setRestitution(0.8)
-			.setResistance(1/5)
+			.setResistance(1/3)
 			.setGravity(0);
 
 		return this;
@@ -244,30 +243,11 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 
 		return true;
 	},
-	onTouchStart : function(t) {
-		var ret = SnookerPool.supClass.onTouchStart.call(this, t);
-
-		this.dragTime = Date.now();
-		this.t1 = [ t.x, t.y ];
-		this.maxVel = [0, 0];
-		
-		return ret;
-	},	
-	onTouchMove : function(t) {
-
-		var now = Date.now();
-		var dt = (now - this.dragTime) / 1000.0;
-		if( dt > 0.5 ) {
-			this.dragTime = now;
-			this.t1 = [ t.x, t.y ];
-		}
-		
-		return SnookerPool.supClass.onTouchMove.call(this, t);
-	},
 	onTouchEnd : function(t) {
-		var delta = [ t.x - this.t1[0], t.y - this.t1[1] ];
+		var v = this.getGesture();
+		var v_len = hotjs.Vector.getLength(v);
 		
-		if( hotjs.Vector.getLength(delta) <= this.container.touch_accuracy ) {
+		if( v_len == 0 ) {
 			
 			// if click only, adjust pole direction
 			var xy = [this.hitBall.pos[0] + this.hitBall.size[0]/2, 
@@ -276,12 +256,6 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			this.poleVector = [ xy[0] - t.x, xy[1] - t.y ];
 			
 		} else if( this.noBallMoving() ) {
-			
-			// calculate speed of hit
-			var now = Date.now();
-			var dt = (now - this.dragTime) / 1000.0;
-			var v = [ delta[0] / dt, delta[1] / dt ];
-			var v_len = hotjs.Vector.getLength(v);
 
 			this.shootBall( v_len );
 		}
@@ -323,7 +297,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 			
 			var vx = b.velocity[0], vy = b.velocity[1];
-	
+			
 			// check boundary 
 			var x_hit = (! y_in_hole) && ((px + rx > a.r) && (vx >0)) || ((px <= a.l) && (vx <0));
 			var y_hit = (! x_in_hole) && ((py + ry > a.b) && (vy >0)) || ((py <= a.t) && (vy <0));
@@ -340,6 +314,12 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 			}
 	
 			b.velocity = [vx, vy];
+
+			// media resistance (like air, water, floor, etc.)
+			var ax = vx * (- this.resistance);
+			var ay = vy * (- this.resistance);
+			
+			b.accel = [ax, ay];
 		}
 		
 		return this;
@@ -426,7 +406,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
 			if( b.dragging ) return false;
-			if( hotjs.Vector.getLength(b.velocity) > 0.5 ) return false;
+			if( hotjs.Vector.getLength(b.velocity) > 1.0 ) return false;
 		}
 		return true;
 	},
@@ -447,13 +427,7 @@ var viewX;
 var table;
 var pool;
 
-resources.load([
-    		'img/oldballs.png',
-    		'img/snookerpole.png',
-    		'img/snookertable.jpg'
-    	]);
-        	
-resources.onReady(function() {
+function main() {
 	var w = window.innerWidth, h = window.innerHeight;
 	
 	var v = document.getElementById('mainView');
@@ -491,7 +465,14 @@ resources.onReady(function() {
 		}).initGame().resetGame();
 
 	var app = (new hotjs.App()).addNode(viewX).start();
-});
+}
+
+resources.load([
+        		'img/oldballs.png',
+        		'img/snookerpole.png',
+        		'img/snookertable.jpg'
+        	], { ready: main } );            	
+
 </script>
 </body>
 

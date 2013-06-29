@@ -646,55 +646,7 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 		}
 	},
-	onTouchMove : function(t) {
-		if( !! this.touches ) {
-			var f = {
-				id : t.id,
-				x : t.x,
-				y : t.y,
-				px : this.pos[0],
-				py : this.pos[1]
-			};
-			if( this.zoomable ) {
-				f.sx = this.scale[0];
-				f.sy = this.scale[1];
-			}
-			if( this.rotateable ) {
-				f.r = this.rotation;
-			}
-			this.touches.put( t.id, f );
-		}
-		
-		if( !! this.dragging ) {
-			this.handleDragZoomRotate(t);
-			return true;
-		}
-		
-		var pos = this.posFromContainer( [t.x, t.y] );
-		var ts = { id:t.id, x: pos[0], y: pos[1] };
 
-		this.container.mouseInNode = [ts.x, ts.y, ts.id];
-
-		if( !! this.dragItems ) {
-			// if a sub node is being dragged, then drag it
-			var n = this.dragItems.get( t.id );
-			if( !! n ) {
-				return n.onTouchMove( ts );
-			}
-		}
-		
-		if( !! this.subnodes ) {
-			// pass to subnodes
-			for(var i=this.subnodes.length-1; i>=0; i--) {
-				var n = this.subnodes[i];
-				if( n.inRange( pos ) ) {
-					return n.onTouchMove( ts );
-				}
-			}
-		}
-		
-		return false;
-	},	
 	onTouchStart : function(t) {
 		if( !! this.touches0 ) {
 			var f = {
@@ -719,6 +671,11 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 		}
 
+		// introduce simple gesture of 1 touch
+		this.gestureTime = Date.now();
+		this.gesturePos = [ t.x, t.y ];
+		this.gesture = [0,0];
+
 		var pos = this.posFromContainer( [t.x, t.y] );
 		var ts = { id:t.id, x: pos[0], y: pos[1] };
 
@@ -738,10 +695,6 @@ hotjs.inherit(Node, hotjs.Class, {
 		if(!! this.draggable) {
 			this.dragging = true;
 			this.setVelocity(0, 0);
-
-			this.dragTime = Date.now();
-			this.t1 = [ t.x, t.y ];
-			this.maxVel = [0, 0];
 			
 			return true;
 		}
@@ -802,25 +755,77 @@ hotjs.inherit(Node, hotjs.Class, {
 			
 		}
 		
-		if( this.throwable ) {
-			this.velocity = this.gainVelocityFromDrag(t);
+		if( !! this.throwable ) {
+			var gesture = this.getGesture();
+			if( this.throwableX ) this.velocity[0] = gesture[0];
+			if( this.throwableY ) this.velocity[1] = gesture[1];
 		}
-		if(! this.throwableX) this.velocity[0] = 0;
-		if(! this.throwableY) this.velocity[1] = 0;
 	},
-	gainVelocityFromDrag : function(t) {
+	updateGesture : function(t) {
 		var now = Date.now();
-		var dt = (now - this.dragTime) / 1000.0;
+		var dt = (now - this.gestureTime) / 1000.0;
 		if( dt > 0 ) {
-			this.gesture = [ (t.x - this.t1[0]) / dt, (t.y - this.t1[1]) /dt ];
+			this.gesture = [ (t.x - this.gesturePos[0]) / dt, (t.y - this.gesturePos[1]) /dt ];
 			if( dt > 0.3 ) {
-				this.dragTime = now;
-				this.t1 = [ t.x, t.y ];
+				this.gestureTime = now;
+				this.gesturePos = [ t.x, t.y ];
+			}
+		}
+	},
+	getGesture: function(){
+		return this.gesture;
+	},
+	onTouchMove : function(t) {
+		if( !! this.touches ) {
+			var f = {
+				id : t.id,
+				x : t.x,
+				y : t.y,
+				px : this.pos[0],
+				py : this.pos[1]
+			};
+			if( this.zoomable ) {
+				f.sx = this.scale[0];
+				f.sy = this.scale[1];
+			}
+			if( this.rotateable ) {
+				f.r = this.rotation;
+			}
+			this.touches.put( t.id, f );
+		}
+		
+		this.updateGesture(t);
+		
+		if( !! this.dragging ) {
+			this.handleDragZoomRotate(t);
+			return true;
+		}
+		
+		var pos = this.posFromContainer( [t.x, t.y] );
+		var ts = { id:t.id, x: pos[0], y: pos[1] };
+
+		this.container.mouseInNode = [ts.x, ts.y, ts.id];
+
+		if( !! this.dragItems ) {
+			// if a sub node is being dragged, then drag it
+			var n = this.dragItems.get( t.id );
+			if( !! n ) {
+				return n.onTouchMove( ts );
 			}
 		}
 		
-		return this.gesture;
-	},
+		if( !! this.subnodes ) {
+			// pass to subnodes
+			for(var i=this.subnodes.length-1; i>=0; i--) {
+				var n = this.subnodes[i];
+				if( n.inRange( pos ) ) {
+					return n.onTouchMove( ts );
+				}
+			}
+		}
+		
+		return false;
+	},	
 	onTouchEnd : function(t) {
 		if( !! this.touches ) {
 			var f = {
@@ -839,6 +844,8 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 			this.touches.put( t.id, f );
 		}
+		
+		this.updateGesture(t);
 		
 		if( this.dragging ) {
 			this.dragging = false;

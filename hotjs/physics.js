@@ -162,8 +162,8 @@ hotjs.inherit(Scene, hotjs.Scene, {
 			var y_hit = ((py <= a.t) && (vy <=0)) || ((py + ry >= a.b) && (vy >=0));
 			
 			// media resistance (like air, water, floor, etc.)
-			var ax = vx * (- this.resistance * dt);
-			var ay = vy * (- this.resistance * dt);
+			var ax = vx * (- this.resistance);
+			var ay = vy * (- this.resistance);
 
 			// bounce & collision loss
 			var tution = this.restitution * b.getRestitution();
