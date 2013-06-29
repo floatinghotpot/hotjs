@@ -246,7 +246,10 @@ hotjs.inherit(FadeLoop, Animation, {
 
 var create = function(target, anim, param) {
 	var animClass = hotjs.Anim[ anim ];
-	if( typeof animClass != 'function') animClass = Animation;
+	if( typeof animClass != 'function') {
+		console.log( animClass + ' not exists.' );
+		animClass = Animation;
+	}
 	
 	return new animClass(target, param);
 };
@@ -266,7 +269,7 @@ hotjs.Anim = {
 	ScaleTo: ScaleTo,
 	ScaleLoop: ScaleLoop,
 	FadeTo: FadeTo,
-	FaceLoop: FadeLoop
+	FadeLoop: FadeLoop
 };
 
 })();

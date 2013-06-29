@@ -231,9 +231,9 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			if( this.tipOn ) {
 				c.save();
 				var bestMove = this.tip.bestMove;
+				var hitMax = bestMove[2];
+
 				var hitRating = this.tip.hitRating;
-				var hitMax = bestMove.hit;
-				
 				for( var i=0; i<this.rows; i++ ) {
 					for( var j=0; j<this.rows; j++ ) {
 						var x = Math.floor(a.l + j * ux);
@@ -249,6 +249,7 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 						}
 					}
 				}
+			
 				c.restore();
 			}
 

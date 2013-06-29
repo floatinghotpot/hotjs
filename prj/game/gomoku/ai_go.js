@@ -153,6 +153,7 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 			};
 	},
 	getBestMove : function( hits ) {
+		// default move is the center point
 		var x0 = Math.floor(hits.length/2);
 		var x = x0, y = x0, hit = 0;
 		
@@ -168,7 +169,34 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 			}
 		}
 		
-		return { x:x, y:y, hit:hit };
+		return [x,y,hit];
+	},
+	getTopMoves : function( hits, count ) {
+		var moves = [];
+		
+		for(var i=hits.length-1; i>=0; i--) {
+			var r = hits[i];
+			for(var j=r.length-1; j>=0; j--) {
+				var h = r[j];
+				var move = [j,i,h];
+				
+				var n = moves.length;
+				for( var k=0; k<n; k++) {
+					if( h > moves[k][2] ) {
+						moves.splice(k, 0, move);
+						break;
+					}
+				}
+				if( moves.length == n ) {
+					if( n < count ) moves.push(move);
+				}
+				if( moves.length > count ) {
+					moves.pop();
+				}
+			}
+		}
+		
+		return moves;
 	},
 	solve : function( mtx_or_str ) {
 		var m1 = new hotjs.AI.Matrix();
@@ -187,6 +215,7 @@ hotjs.inherit(GomokuAI, hotjs.AI.BasicAI, {
 			myWinHits : myHits.winHits,
 			peerWinHits : peerHits.winHits,
 			bestMove : this.getBestMove( mergedRating ),
+			topMoves : this.getTopMoves( mergedRating, 10 ),
 			hitRating : mergedRating
 		};
 	}

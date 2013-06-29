@@ -39,7 +39,7 @@ ai_go.onmessage = function(evt) {
 		var bestMove = s.bestMove;
 		setTimeout(function(){
 			if( ! board.gameOver ) {
-				board.go( bestMove.x, bestMove.y );
+				board.go( bestMove[0], bestMove[1] );
 			}
 		}, 500);
 		break;
