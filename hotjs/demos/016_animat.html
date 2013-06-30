@@ -97,7 +97,7 @@ function main(){
 	for( var i in anims ) {
 		npc = (new hotjs.Node())
 			.setSprite( new hotjs.Animat('img/BING_male.sprite.js', i) )
-			.setSize(0,-150)
+			.setSize(150,150)
 			.addTo( board );
 		
 		//hotjs.Anim.create( npc, 'RotateBy', { spin:360, duration:60 } ).play();

@@ -77,8 +77,9 @@ hotjs.inherit(Animat, hotjs.Class, {
 			if( this.index >= this.anim.length ) this.index = 0;
 		}
 	},
-	render: function(c) {
+	render: function(c, w, h) {
 		c.save();
+		c.translate( w * 0.5, h );
 		var modules = this.sheet['modules'];
 		var images = this.sheet['images'];
 		var frames = this.sheet['frames'];
