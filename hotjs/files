@@ -2,7 +2,10 @@ hotjs.js
 math.js
 resource.js
 canvas.js
+sprite.js
+animation.js
 physics.js
 social.js
 util.js
 ai.js
+ui.js

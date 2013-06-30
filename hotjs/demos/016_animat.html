@@ -96,7 +96,7 @@ function main(){
 	var anims = sprites['BING_male.sprite.js']['anims'];
 	for( var i in anims ) {
 		npc = (new hotjs.Node())
-			.setSprite( new hotjs.Animat('img/BING_male.sprite.js', i) )
+			.setSprite( new hotjs.Animat('sprite/BING_male.sprite.js', i) )
 			.setSize(150,150)
 			.addTo( board );
 		
@@ -110,8 +110,8 @@ function main(){
 
 resources.load([
                 'img/bg_1.jpg',
-                'img/yeti.sprite.js',
-                'img/BING_male.sprite.js'
+                'sprite/yeti.sprite.js',
+                'sprite/BING_male.sprite.js'
                 ], { ready: main });
 
 </script>
