@@ -8,6 +8,9 @@
 <node CREATED="1372095952063" ID="ID_1543855197" MODIFIED="1372095960787" TEXT="sprite2js.py">
 <icon BUILTIN="button_ok"/>
 </node>
+<node CREATED="1372680248510" ID="ID_1371395830" MODIFIED="1372680257723" TEXT="pst2js.py">
+<icon BUILTIN="button_ok"/>
+</node>
 </node>
 <node CREATED="1371385113505" ID="ID_1972818035" MODIFIED="1371385123568" POSITION="right" TEXT="client framework">
 <node CREATED="1371387885591" ID="ID_1791843390" MODIFIED="1371387901752" TEXT="core">
@@ -30,6 +33,12 @@
 <icon BUILTIN="button_ok"/>
 </node>
 <node CREATED="1371385211346" ID="ID_766390990" MODIFIED="1371742270259" TEXT="Audio/Video">
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1372680269512" ID="ID_103196624" MODIFIED="1372680314858" TEXT=".sprite.js">
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1372680281118" ID="ID_516920431" MODIFIED="1372680310997" TEXT=".pst.js">
 <icon BUILTIN="button_ok"/>
 </node>
 </node>
@@ -64,6 +73,9 @@
 <icon BUILTIN="button_ok"/>
 <node CREATED="1372000110271" ID="ID_855343612" MODIFIED="1372302412288" TEXT="animat">
 <icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1372680328818" ID="ID_455365023" MODIFIED="1372680355346" TEXT="ParticleSystem">
+<icon BUILTIN="pencil"/>
 </node>
 </node>
 <node CREATED="1371385150165" ID="ID_5888577" MODIFIED="1371783754279" TEXT="mouse/touch">

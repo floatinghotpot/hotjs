@@ -84,7 +84,7 @@ def convert(pstfile):
                     elif( tg == 'SizeTransformFilter'):
                         tg = 'scale'
                     elif( tg == 'ShotTransformFilter'):
-                        tg = 'shot'
+                        tg = 'move'
                     elif( tg == 'H3GColorEffectsAction'):
                         tg = 'h3g'
                     else:

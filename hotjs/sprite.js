@@ -3,8 +3,7 @@ var hotjs = hotjs || {};
 
 (function(){
 	
-// TODO: Sprite
-
+// TODO: Sprite, from simple PNG
 function Sprite(url, pos, size, speed, frames, dir, once) {
     this.pos = pos;
     this.size = size;
@@ -57,6 +56,7 @@ Sprite.prototype = {
 	}
 };
 
+// TODO: Animat, data source: AuroraGT by Gamelosft
 var Animat = function(sprite_name, anim_id){
 	hotjs.base(this);
 	
@@ -125,7 +125,138 @@ hotjs.inherit(Animat, hotjs.Class, {
 	}
 });
 
+// TODO: Particle
+var Particle = function( pst ){
+	hotjs.base(this);
+	
+	this.pst = pst;
+	
+	this.frame = 0;
+	this.life = 0;
+	
+	this.spin = 0;
+	this.spin_delta = 0;
+};
+
+hotjs.inherit( Particle, hotjs.Node, {
+	init: function(){
+		var randi = hotjs.Random.Integer;
+		var randf = hotjs.Random.Float;
+		var pst = this.pst;
+		var v = pst.mode.v;
+		
+		this.life = randi( pst.lifeMin, pst.lifeMax );
+
+		// init pos
+		this.pos = [ pst.x, pst.y ];
+		switch( pst.mode.id ) {
+		case 0:
+			break;
+		case 31: // rect 
+			this.pos[0] += randf(v[0], v[2]);
+			this.pos[1] += randf(v[1], v[3]);
+			break;
+		case 32: // circle
+			var R = randf(v[1], v[0]);
+			var ang = randf(v[2], v[3]);
+			this.pos[0] += R * Math.cos(ang * Math.PI / 180);
+			this.pos[1] += R * Math.sin(ang * Math.PI / 180);
+			break;
+		}
+		
+		var fts = pst.filters;
+		for( var i=0; i<fts.length; i++ ) {
+			var ft = fts[i];
+			var v = ft.v;
+			switch( ft.type ) {
+			case 'rotate':
+				if( v[1] > 0 ) {
+					this.rotation = randf(0, 1) * 360;
+				} else {
+					this.rotation = v[0];
+				}
+				this.spin = v[2];
+				this.spin_delta = (v[3] - v[2]) / this.life;
+				break;
+			case 'scale':
+				var s = randf(v[0], v[1]);
+				this.scale = [s, s];
+				// TODO: center point shift
+				break;
+			case 'move':
+				break;
+			case 'color':
+				break;
+			case 'h3g':
+				break;
+			}
+		}
+		
+	},
+	update: function(dt){
+		this.frame ++;
+		this.rotation += this.spin;
+		this.spin += this.spin_delta;
+	},
+	render: function(c){
+	}	
+});
+
+// TODO: ParticleSet
+var ParticleSet = function( pst ) {
+	hotjs.base(this);
+	
+	this.pst = pst;
+	
+	this.particles = [];
+	this.frame = 0;
+};
+
+hotjs.inherit( ParticleSet, hotjs.Node, {
+	init: function(){
+	},
+	destroy: function(){
+		this.particles.length = 0;
+	},
+	update: function(dt){
+		var randi = hotjs.Random.Integer;
+		var pst = this.pst;
+		var ps = this.particles;
+		
+		// destroy
+		for( var i=ps.length-1; i>=0; i-- ) {
+			var p = ps[i];
+			if( p.frame < p.life ) {
+				p.update(dt);
+			} else {
+				ps.splice(i,1);
+				delete p;
+			}
+		}
+		
+		// create
+		if( this.frame >= pst.delay && this.frame < pst.life ) {
+			var n = randi( pst.createMin, pst.createMax );
+			for( var i=0; i<n; i++ ) {
+				var p = new Particle( pst ).init();
+				ps.push( p );
+			}
+		}
+
+		this.frame ++;
+		if( this.frame >= 25 ) this.frame = 0;
+	},
+	render: function(c){
+		var ps = this.particles;
+		for( var i=ps.length-1; i>=0; i-- ) {
+			ps[i].render(c);
+		}
+	}
+});
+
 hotjs.Sprite = Sprite;
 hotjs.Animat = Animat;
+hotjs.Particle = Particle;
+hotjs.ParticleSet = ParticleSet;
 
 })(); 
