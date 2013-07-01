@@ -1,6 +1,6 @@
-<PtsSystem scale="1.00" back="X:\par\particle\Ò°ÍâµÄ±³¾°.png">
+<PtsSystem scale="1.00" back="X:\par\particle\back.png">
     <LauncherGroup size="10">
-        <Launcher name="È¦°µ" createMax="2.00" createMin="1.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="5" x="2.00" y="48.00" z="0.00" life="8" delay="0" drawMode="1" res="X:\par\particle\par_round_010..png">
+        <Launcher name="L1" createMax="2.00" createMin="1.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="5" x="2.00" y="48.00" z="0.00" life="8" delay="0" drawMode="1" res="X:\par\particle\par_round_010..png">
             <mode id="31" size="4" v_0="0.00" v_1="0.00" v_2="0.00" v_3="-9.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.16" v_1="0.00" v_2="0.41" v_3="0.25" v_4="0.49" v_5="0.62" v_6="0.00" v_7="1.00" v_8="1.00" v_9="0.00" />
@@ -15,7 +15,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="È¦" createMax="2.00" createMin="1.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="4" x="7.00" y="51.00" z="0.00" life="5" delay="0" drawMode="1" res="X:\par\particle\spr_ground_04.sprite">
+        <Launcher name="L2" createMax="2.00" createMin="1.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="4" x="7.00" y="51.00" z="0.00" life="5" delay="0" drawMode="1" res="X:\par\particle\spr_ground_04.sprite">
             <mode id="31" size="4" v_0="0.00" v_1="0.00" v_2="0.00" v_3="-36.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.00" v_1="1.00" v_2="0.40" v_3="0.81" v_4="0.00" v_5="0.50" v_6="0.00" v_7="1.00" v_8="1.00" v_9="0.00" />
@@ -30,7 +30,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="½£2ÁÁ" createMax="1.00" createMin="1.00" lifeMax="13.00" lifeMin="13.00" maxPtsCount="1" x="2.00" y="37.00" z="0.00" life="7" delay="5" drawMode="1" res="X:\par\particle\par_wuqi_008A.png">
+        <Launcher name="L3" createMax="1.00" createMin="1.00" lifeMax="13.00" lifeMin="13.00" maxPtsCount="1" x="2.00" y="37.00" z="0.00" life="7" delay="5" drawMode="1" res="X:\par\particle\par_wuqi_008A.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="0.00" v_1="1.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -45,7 +45,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="½£3" createMax="1.00" createMin="1.00" lifeMax="11.00" lifeMin="11.00" maxPtsCount="1" x="-39.00" y="65.00" z="0.00" life="13" delay="11" drawMode="0" res="X:\par\particle\par_wuqi_008A.png">
+        <Launcher name="L4" createMax="1.00" createMin="1.00" lifeMax="11.00" lifeMin="11.00" maxPtsCount="1" x="-39.00" y="65.00" z="0.00" life="13" delay="11" drawMode="0" res="X:\par\particle\par_wuqi_008A.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="0.00" v_1="0.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -60,7 +60,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="½£1°µ" createMax="1.00" createMin="1.00" lifeMax="13.00" lifeMin="13.00" maxPtsCount="1" x="43.00" y="58.00" z="0.00" life="3" delay="0" drawMode="0" res="X:\par\particle\par_wuqi_008A.png">
+        <Launcher name="L5" createMax="1.00" createMin="1.00" lifeMax="13.00" lifeMin="13.00" maxPtsCount="1" x="43.00" y="58.00" z="0.00" life="3" delay="0" drawMode="0" res="X:\par\particle\par_wuqi_008A.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="0.00" v_1="1.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -75,7 +75,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="½£1" createMax="1.00" createMin="1.00" lifeMax="8.00" lifeMin="8.00" maxPtsCount="1" x="43.00" y="58.00" z="0.00" life="3" delay="0" drawMode="1" res="X:\par\particle\par_wuqi_008A.png">
+        <Launcher name="L6" createMax="1.00" createMin="1.00" lifeMax="8.00" lifeMin="8.00" maxPtsCount="1" x="43.00" y="58.00" z="0.00" life="3" delay="0" drawMode="1" res="X:\par\particle\par_wuqi_008A.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="0.00" v_1="1.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -90,7 +90,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="½£2" createMax="1.00" createMin="1.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="1" x="2.00" y="37.00" z="0.00" life="7" delay="6" drawMode="0" res="X:\par\particle\par_wuqi_008A.png">
+        <Launcher name="L7" createMax="1.00" createMin="1.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="1" x="2.00" y="37.00" z="0.00" life="7" delay="6" drawMode="0" res="X:\par\particle\par_wuqi_008A.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="0.00" v_1="1.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -105,7 +105,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="Èá¹â1" createMax="3.00" createMin="2.00" lifeMax="13.00" lifeMin="8.00" maxPtsCount="8" x="42.00" y="57.00" z="0.00" life="8" delay="3" drawMode="1" res="X:\par\particle\par_smoke_006.png">
+        <Launcher name="L8" createMax="3.00" createMin="2.00" lifeMax="13.00" lifeMin="8.00" maxPtsCount="8" x="42.00" y="57.00" z="0.00" life="8" delay="3" drawMode="1" res="X:\par\particle\par_smoke_006.png">
             <mode id="31" size="4" v_0="-5.00" v_1="-64.00" v_2="5.00" v_3="36.00" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="180.00" v_1="0.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -120,7 +120,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="Èá¹â2" createMax="3.00" createMin="2.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="7" x="-38.00" y="69.00" z="0.00" life="11" delay="5" drawMode="1" res="X:\par\particle\par_smoke_006.png">
+        <Launcher name="L9" createMax="3.00" createMin="2.00" lifeMax="15.00" lifeMin="15.00" maxPtsCount="7" x="-38.00" y="69.00" z="0.00" life="11" delay="5" drawMode="1" res="X:\par\particle\par_smoke_006.png">
             <mode id="31" size="4" v_0="-3.00" v_1="27.00" v_2="3.00" v_3="-45.00" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="180.00" v_1="0.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -135,7 +135,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="¹â" createMax="3.00" createMin="2.00" lifeMax="15.00" lifeMin="8.00" maxPtsCount="7" x="10.00" y="59.00" z="0.00" life="15" delay="5" drawMode="1" res="X:\par\particle\par_smoke_004.png">
+        <Launcher name="L10" createMax="3.00" createMin="2.00" lifeMax="15.00" lifeMin="8.00" maxPtsCount="7" x="10.00" y="59.00" z="0.00" life="15" delay="5" drawMode="1" res="X:\par\particle\par_smoke_004.png">
             <mode id="31" size="4" v_0="0.00" v_1="0.00" v_2="0.00" v_3="0.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.21" v_1="0.00" v_2="0.20" v_3="0.24" v_4="0.63" v_5="0.00" v_6="0.00" v_7="0.80" v_8="0.99" v_9="0.00" />

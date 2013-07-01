@@ -26,8 +26,10 @@ else :
     from urllib import urlretrieve
 
 def convert(spritefile):
-    if not exists(spritefile):
-        print('file not found: %s' % spritefile)
+    if exists(spritefile):
+        print( 'processing %s ... ' % spritefile )
+    else:
+        print( 'file not found: %s' % spritefile )
         return 0
             
     fin = open(spritefile, 'r')
@@ -196,7 +198,7 @@ def main():
     n = 0;
     for f in args:
         n = n + convert( f )
-    print( '%d file converted.\n' % n )
+    print( '%d file(s) converted.\n' % n )
     
 if __name__ == '__main__':
     main()

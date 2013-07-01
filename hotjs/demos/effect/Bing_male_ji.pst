@@ -1,4 +1,4 @@
-<PtsSystem scale="1.00" back="X:\par\particle\野外的背景03S.png">
+<PtsSystem scale="1.00" back="X:\par\particle\back.png">
     <LauncherGroup size="17">
         <Launcher name="launcher" createMax="5.00" createMin="3.00" lifeMax="10.00" lifeMin="5.80" maxPtsCount="21" x="11.00" y="236.00" z="0.00" life="35" delay="26" drawMode="0" res="X:\par\particle\par_round_006A.png">
             <mode id="32" size="8" v_0="158.00" v_1="158.00" v_2="131.00" v_3="271.00" v_4="5.70" v_5="131.10" v_6="1.00" v_7="1.00" />
@@ -15,7 +15,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="虚气暗" createMax="3.00" createMin="2.00" lifeMax="10.00" lifeMin="7.00" maxPtsCount="3" x="88.00" y="-7.00" z="0.00" life="56" delay="48" drawMode="0" res="X:\par\particle\par_round_011..png">
+        <Launcher name="L2" createMax="3.00" createMin="2.00" lifeMax="10.00" lifeMin="7.00" maxPtsCount="3" x="88.00" y="-7.00" z="0.00" life="56" delay="48" drawMode="0" res="X:\par\particle\par_round_011..png">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.28" v_1="0.00" v_2="0.00" v_3="1.00" v_4="1.00" v_5="0.14" v_6="0.22" v_7="0.00" v_8="0.00" v_9="0.00" />
@@ -30,7 +30,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="811973537347555920000000000000000.00" v_5="0.04" v_6="0.00" v_7="811973537347555920000000000000000.00" v_8="0.04" v_9="0.00" v_10="811973537347555920000000000000000.00" v_11="0.04" v_12="0.00" v_13="811973537347555920000000000000000.00" v_14="0.04" v_15="0.00" v_16="811973537347555920000000000000000.00" v_17="0.04" v_18="0.00" v_19="811973537347555920000000000000000.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="亮纹气浪" createMax="4.00" createMin="1.00" lifeMax="10.50" lifeMin="7.20" maxPtsCount="6" x="108.00" y="-12.00" z="0.00" life="55" delay="48" drawMode="1" res="X:\par\particle\par_ice_002.png">
+        <Launcher name="L3" createMax="4.00" createMin="1.00" lifeMax="10.50" lifeMin="7.20" maxPtsCount="6" x="108.00" y="-12.00" z="0.00" life="55" delay="48" drawMode="1" res="X:\par\particle\par_ice_002.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.60" v_1="0.00" v_2="0.00" v_3="1.00" v_4="0.94" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" />
@@ -45,7 +45,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="811973537347555920000000000000000.00" v_5="0.04" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="192640.50" v_13="60435651489045553000000000000.00" v_14="3878.96" v_15="4231682977918980500000.00" v_16="3568540880637603600000.00" v_17="18523600588218255000000000000.00" v_18="0.06" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="石头" createMax="8.00" createMin="5.00" lifeMax="15.00" lifeMin="8.00" maxPtsCount="7" x="150.00" y="3.00" z="0.00" life="58" delay="50" drawMode="0" res="X:\par\particle\par_ShiTou_001.png">
+        <Launcher name="L4" createMax="8.00" createMin="5.00" lifeMax="15.00" lifeMin="8.00" maxPtsCount="7" x="150.00" y="3.00" z="0.00" life="58" delay="50" drawMode="0" res="X:\par\particle\par_ShiTou_001.png">
             <mode id="31" size="4" v_0="0.00" v_1="0.00" v_2="55.00" v_3="0.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="1.00" v_1="0.00" v_2="0.00" v_3="1.00" v_4="1.00" v_5="0.74" v_6="0.24" v_7="0.56" v_8="0.00" v_9="0.00" />
@@ -60,7 +60,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="15599764480.00" v_5="75555731180768523000000000000000.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.01" v_11="1229410864528461400000000000000000.00" v_12="813562201274221340000000000000000.00" v_13="0.00" v_14="0.00" v_15="17735212715980358000.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="刀光2" createMax="15.00" createMin="12.00" lifeMax="5.00" lifeMin="5.00" maxPtsCount="5" x="29.00" y="61.00" z="0.00" life="51" delay="45" drawMode="0" res="X:\par\particle\par_round_006.png">
+        <Launcher name="L5" createMax="15.00" createMin="12.00" lifeMax="5.00" lifeMin="5.00" maxPtsCount="5" x="29.00" y="61.00" z="0.00" life="51" delay="45" drawMode="0" res="X:\par\particle\par_round_006.png">
             <mode id="32" size="8" v_0="127.00" v_1="127.00" v_2="72.00" v_3="251.00" v_4="8.70" v_5="43.50" v_6="1.00" v_7="-1.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.13" v_1="0.00" v_2="0.00" v_3="0.80" v_4="1.00" v_5="0.05" v_6="0.00" v_7="0.38" v_8="0.56" v_9="0.00" />
@@ -75,7 +75,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="刀光2A" createMax="15.00" createMin="12.00" lifeMax="7.70" lifeMin="5.50" maxPtsCount="7" x="29.00" y="61.00" z="0.00" life="51" delay="45" drawMode="1" res="X:\par\particle\par_round_006.png">
+        <Launcher name="L6" createMax="15.00" createMin="12.00" lifeMax="7.70" lifeMin="5.50" maxPtsCount="7" x="29.00" y="61.00" z="0.00" life="51" delay="45" drawMode="1" res="X:\par\particle\par_round_006.png">
             <mode id="32" size="8" v_0="127.00" v_1="127.00" v_2="72.00" v_3="251.00" v_4="8.70" v_5="60.90" v_6="1.00" v_7="-1.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.66" v_1="0.00" v_2="0.00" v_3="1.00" v_4="1.00" v_5="0.46" v_6="0.52" v_7="0.27" v_8="0.25" v_9="0.00" />
@@ -90,7 +90,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="17735212715980358000.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="刀光1" createMax="20.00" createMin="15.00" lifeMax="5.00" lifeMin="5.00" maxPtsCount="15" x="17.00" y="94.00" z="0.00" life="50" delay="45" drawMode="1" res="X:\par\particle\par_fire_002.png">
+        <Launcher name="L7" createMax="20.00" createMin="15.00" lifeMax="5.00" lifeMin="5.00" maxPtsCount="15" x="17.00" y="94.00" z="0.00" life="50" delay="45" drawMode="1" res="X:\par\particle\par_fire_002.png">
             <mode id="32" size="8" v_0="108.00" v_1="108.00" v_2="58.00" v_3="41.00" v_4="1.70" v_5="25.50" v_6="1.00" v_7="-1.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.67" v_1="0.00" v_2="0.00" v_3="1.00" v_4="0.00" v_5="1.00" v_6="0.00" v_7="1.00" v_8="1.00" v_9="0.00" />
@@ -105,7 +105,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.17" v_6="0.00" v_7="0.00" v_8="0.00" v_9="216930253534558870000000000000.00" v_10="0.23" v_11="0.00" v_12="0.00" v_13="45936768.00" v_14="4398783131118051800000.00" v_15="0.24" v_16="0.00" v_17="0.00" v_18="235466765867392430000.00" v_19="4296059056792079800000000.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="地裂" createMax="1.00" createMin="1.00" lifeMax="30.00" lifeMin="30.00" maxPtsCount="1" x="119.00" y="-34.00" z="0.00" life="58" delay="48" drawMode="0" res="X:\par\particle\par_line_008.png">
+        <Launcher name="L8" createMax="1.00" createMin="1.00" lifeMax="30.00" lifeMin="30.00" maxPtsCount="1" x="119.00" y="-34.00" z="0.00" life="58" delay="48" drawMode="0" res="X:\par\particle\par_line_008.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.55" v_1="0.10" v_2="0.00" v_3="0.99" v_4="0.54" v_5="0.17" v_6="0.36" v_7="0.00" v_8="0.63" v_9="0.00" />
@@ -120,7 +120,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="17657415055518927000000.00" v_5="0.00" v_6="71462839663938134000000.00" v_7="713539224338432.00" v_8="277116512618151940000.00" v_9="277117497780570420000.00" v_10="4306482138230070200000.00" v_11="272837254736228570000000000000.00" v_12="263799411022738860000000.00" v_13="16533392630751429000.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="3638876161772999600000000000.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="地裂亮" createMax="1.00" createMin="1.00" lifeMax="25.00" lifeMin="20.00" maxPtsCount="1" x="156.00" y="-15.00" z="0.00" life="58" delay="48" drawMode="0" res="X:\par\particle\par_line_002.png">
+        <Launcher name="L9" createMax="1.00" createMin="1.00" lifeMax="25.00" lifeMin="20.00" maxPtsCount="1" x="156.00" y="-15.00" z="0.00" life="58" delay="48" drawMode="0" res="X:\par\particle\par_line_002.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.70" v_1="0.50" v_2="0.00" v_3="0.99" v_4="1.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" />
@@ -135,7 +135,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.04" v_7="0.00" v_8="811974233688828020000000000000000.00" v_9="0.00" v_10="0.00" v_11="17735212715980358000.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.05" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="人虚光" createMax="1.00" createMin="1.00" lifeMax="10.00" lifeMin="7.00" maxPtsCount="3" x="-10.00" y="27.00" z="0.00" life="50" delay="7" drawMode="1" res="X:\par\particle\par_line_013.png">
+        <Launcher name="L10" createMax="1.00" createMin="1.00" lifeMax="10.00" lifeMin="7.00" maxPtsCount="3" x="-10.00" y="27.00" z="0.00" life="50" delay="7" drawMode="1" res="X:\par\particle\par_line_013.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.58" v_1="0.31" v_2="0.00" v_3="0.89" v_4="1.00" v_5="0.40" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" />
@@ -150,7 +150,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="72141077264220503000000.00" v_5="17201717201323537000000.00" v_6="0.00" v_7="18370044817694077000000000.00" v_8="0.00" v_9="0.00" v_10="0.04" v_11="0.00" v_12="811973924203818200000000000000000.00" v_13="0.00" v_14="0.00" v_15="17735212715980358000.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="人虚光点" createMax="3.00" createMin="1.00" lifeMax="8.80" lifeMin="5.50" maxPtsCount="7" x="-9.00" y="34.00" z="0.00" life="16" delay="7" drawMode="1" res="X:\par\particle\par_point_010.png">
+        <Launcher name="L11" createMax="3.00" createMin="1.00" lifeMax="8.80" lifeMin="5.50" maxPtsCount="7" x="-9.00" y="34.00" z="0.00" life="16" delay="7" drawMode="1" res="X:\par\particle\par_point_010.png">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="1.00" v_1="0.02" v_2="0.00" v_3="1.00" v_4="1.00" v_5="0.17" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" />
@@ -165,7 +165,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="17735212715980358000.00" v_5="0.00" v_6="0.00" v_7="17735212715980358000.00" v_8="0.00" v_9="0.00" v_10="17735212715980358000.00" v_11="0.00" v_12="0.00" v_13="17735212715980358000.00" v_14="0.00" v_15="0.00" v_16="17735212715980358000.00" v_17="0.00" v_18="0.00" v_19="17735212715980358000.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="刀圈1" createMax="2.00" createMin="2.00" lifeMax="26.00" lifeMin="26.00" maxPtsCount="2" x="2.00" y="211.00" z="0.00" life="19" delay="18" drawMode="0" res="X:\par\particle\spr_ground_03.sprite">
+        <Launcher name="L12" createMax="2.00" createMin="2.00" lifeMax="26.00" lifeMin="26.00" maxPtsCount="2" x="2.00" y="211.00" z="0.00" life="19" delay="18" drawMode="0" res="X:\par\particle\spr_ground_03.sprite">
             <mode id="0" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.71" v_1="0.00" v_2="0.35" v_3="0.93" v_4="1.00" v_5="0.37" v_6="0.00" v_7="0.38" v_8="0.00" v_9="0.00" />
@@ -180,7 +180,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.04" v_7="0.00" v_8="811973769461313290000000000000000.00" v_9="0.00" v_10="0.00" v_11="17735212715980358000.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.05" v_18="0.00" v_19="811974156317575560000000000000000.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="刀圈亮" createMax="1.00" createMin="1.00" lifeMax="22.00" lifeMin="20.00" maxPtsCount="1" x="1.00" y="212.00" z="0.00" life="19" delay="18" drawMode="1" res="X:\par\particle\spr_ground_03.sprite">
+        <Launcher name="L13" createMax="1.00" createMin="1.00" lifeMax="22.00" lifeMin="20.00" maxPtsCount="1" x="1.00" y="212.00" z="0.00" life="19" delay="18" drawMode="1" res="X:\par\particle\spr_ground_03.sprite">
             <mode id="0" />
             <FilterGroup size="4">
                 <OrientationTransformFilter id="14" size="5" v_0="90.00" v_1="0.00" v_2="0.00" v_3="0.00" v_4="0.00" />
@@ -225,7 +225,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="0.00" v_10="0.00" v_11="0.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.00" v_16="0.00" v_17="0.00" v_18="0.00" v_19="0.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="气浪线条亮" createMax="7.00" createMin="3.00" lifeMax="11.00" lifeMin="3.90" maxPtsCount="5" x="113.00" y="-13.00" z="0.00" life="52" delay="48" drawMode="1" res="X:\par\particle\par_line_015.png">
+        <Launcher name="L14" createMax="7.00" createMin="3.00" lifeMax="11.00" lifeMin="3.90" maxPtsCount="5" x="113.00" y="-13.00" z="0.00" life="52" delay="48" drawMode="1" res="X:\par\particle\par_line_015.png">
             <mode id="31" size="4" v_0="-39.00" v_1="0.00" v_2="87.00" v_3="-50.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="1.00" v_1="0.00" v_2="0.00" v_3="1.00" v_4="1.00" v_5="1.00" v_6="0.64" v_7="0.56" v_8="0.00" v_9="0.00" />
@@ -240,7 +240,7 @@
                 <curver v_0="0.00" v_1="1.00" v_2="1.00" v_3="1.00" v_4="0.00" v_5="0.00" v_6="0.00" v_7="0.00" v_8="0.00" v_9="14974398144564742000000000.00" v_10="4544820010223581900000000000000.00" v_11="303534367452192040000000000000000.00" v_12="0.00" v_13="0.00" v_14="0.00" v_15="0.01" v_16="4616219305783502000000000.00" v_17="73158297089706736000000000000.00" v_18="0.00" v_19="12687086521055561000000000000000.00" v_20="2.00" />
             </path>
         </Launcher>
-        <Launcher name="上虚风" createMax="10.00" createMin="1.00" lifeMax="10.00" lifeMin="7.00" maxPtsCount="5" x="121.00" y="-40.00" z="0.00" life="53" delay="47" drawMode="1" res="X:\par\particle\par_round_011..png">
+        <Launcher name="L15" createMax="10.00" createMin="1.00" lifeMax="10.00" lifeMin="7.00" maxPtsCount="5" x="121.00" y="-40.00" z="0.00" life="53" delay="47" drawMode="1" res="X:\par\particle\par_round_011..png">
             <mode id="31" size="4" v_0="0.00" v_1="0.00" v_2="55.00" v_3="0.00" />
             <FilterGroup size="4">
                 <ColorTransformFilter id="13" size="10" v_0="0.81" v_1="0.21" v_2="0.00" v_3="1.00" v_4="0.85" v_5="0.74" v_6="0.67" v_7="0.00" v_8="0.40" v_9="0.00" />
