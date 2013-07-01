@@ -2,6 +2,7 @@
 // merged into hotjs.js as a basic class.
 
 (function() {
+
 	var resourceCache = {};
 	//var loading = [];
 	
@@ -110,25 +111,23 @@
 	}
 
 	function isVideo(url) {
-		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( (ext == 'ogg') ) {
+		if( url.endsWith('ogg') ) {
 			return ( url.indexOf('video') > -1 );
 		} else {
-			return ( ['mp4', 'webm'].indexOf(ext) > -1);
+			return ( url.endsWith('mp4') || url.endsWith('webm') );
 		}
 	}
 	
 	function isAudio(url) {
-		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( (ext == 'ogg') ) {
+		if( url.endsWith('ogg') ) {
 			return ( url.indexOf('video') == -1 );
 		} else {
-			return ( ['mp3', 'wav'].indexOf(ext) > -1);
+			return ( url.endsWith('mp3') || url.endsWith('wav') );
 		}
 	}
 	
 	function isScript(url) {
-		return url.indexOf('.js') > -1;
+		return url.endsWith('.js');
 	}
 	
 	function _load(url) {
@@ -136,6 +135,7 @@
 			return resourceCache[url];
 		} else {
 			var res;
+			
 			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
 			if( is_video ) {
 				res = new Video();
@@ -154,13 +154,14 @@
 			
 			resourceCache[url] = false;
 			total ++;
+			console.log( res );
 
 			var onload = function(){
 				resourceCache[url] = res;
 				loaded ++;
 				console.log( url + ' preloaded.' );
 
-				if( is_script ) {
+				if( url.endsWith('.sprite.js') ) {
 					var f = hotjs.getFileName(url);
 					if( f in sprites ) {
 						var sprite = sprites[ f ];
@@ -172,6 +173,15 @@
 							image[2] = imgurl; // image[1] is transp color							
 							_load( imgurl );
 						}
+					}
+				} else if (url.endsWith('.pst.js') ) {
+					var f = hotjs.getFileName(url);
+					if( f in pts_effects ) {
+						var launchers = pts_effects[ f ]['launchers'];
+						for( var i=0; i<launchers.length; i++ ) {
+							// might be .sprite.js, or .png
+							_load( hotjs.getAbsPath( launchers[i].res, url ) );
+						}						
 					}
 				}
 				
@@ -192,26 +202,20 @@
 			};
 			
 			if( is_video || is_audio ) {
-				res.addEventListener('canplaythrough', onload);
-				res.addEventListener('error', onerror);
-				res.setAttribute('src', url);
+				res.addEventListener('canplay', onload);
 				res.setAttribute('preload', 'auto');
 				//document.body.appendChild( res );
-				
 			} else if ( is_script ) {
 				res.async = 1;
 				res.addEventListener('load', onload);
-				res.addEventListener('error', onerror);
-				res.setAttribute('src', url);
 				var ss = document.getElementsByTagName('script');
 				ss[0].parentNode.insertBefore(res, ss[0]);
-				
 			} else {
-				res.onload = onload;
-				res.onerror = onerror;
-				res.setAttribute('src', url);
-				
+				res.addEventListener('load', onload);
 			}
+			
+			res.addEventListener('error', onerror);
+			res.setAttribute('src', url);
 			
 			return res;
 		}
@@ -247,6 +251,7 @@
 	function isReady() {
 		var ready = true;
 		for ( var k in resourceCache) {
+			console.log( k, resourceCache[k] );
 			if (resourceCache.hasOwnProperty(k) && !resourceCache[k]) {
 				ready = false;
 			}

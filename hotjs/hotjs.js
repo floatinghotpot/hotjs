@@ -80,7 +80,7 @@ hotjs.log = function(o, n) {
 };
 
 //[].indexOf(value)
-if (!Array.prototype.indexOf) {
+if (typeof Array.prototype.indexOf !== 'function') {
 	Array.prototype.indexOf = function(obj, fromIndex) {
 		if (fromIndex == null || fromIndex == undefined) {
 			fromIndex = 0;
@@ -93,6 +93,12 @@ if (!Array.prototype.indexOf) {
 		}
 		return -1;
 	};
+}
+
+if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
 }
 
 hotjs.formatString = function () {
@@ -119,10 +125,6 @@ hotjs.formatNumber = function(num, length) {
 
 hotjs.getFileName = function(path) {
 	return path.substring( path.lastIndexOf('/')+1 );
-};
-
-hotjs.getExtName = function(path) {
-	return path.substring( path.lastIndexOf('.')+1 );
 };
 
 hotjs.getDirPath = function(path) {

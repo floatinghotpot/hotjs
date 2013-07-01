@@ -55,10 +55,15 @@ def convert(pstfile):
             
         attr = L.attrib
         for k in attr:
-            if( k == 'name' or k == 'res'):
-                launcher.append( '%s:\'%s\'' % (k, attr[k]) )
+            v = attr[k]
+            if( k == 'name' ):
+                launcher.append( '%s:\'%s\'' % (k, v) )
+            elif( k == 'res' ):
+                if( v.endswith('.sprite') ):
+                    v = v + '.js'
+                launcher.append( '%s:\'%s\'' % (k, v) )
             else:
-                launcher.append( '%s:%s' % (k, attr[k]) )
+                launcher.append( '%s:%s' % (k, v) )
         
         for L1 in L:
              
