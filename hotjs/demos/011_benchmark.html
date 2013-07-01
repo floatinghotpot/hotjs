@@ -73,7 +73,7 @@ var BenchScene = function(){
 hotjs.inherit(BenchScene, hotjs.Physics.Scene, {
 	addItem : function() {
 		var rmax = 30;
-		var vmax = this.width()/60;
+		var vmax = this.width();
 		
 		var r = hotjs.Random.Integer(20,rmax);
 		var c = hotjs.Random.Integer(0, 8);
