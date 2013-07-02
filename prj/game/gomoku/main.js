@@ -153,7 +153,17 @@ $(document).ready(function(){
 	});
 
 	$('.icon-set').on('click', function(){
-		
+		var pg = $('#pageset');
+		if( pg.css('display') == 'none') {
+			pg.css('display', 'block');
+		} else {
+			pg.css('display', 'none');
+		}
+	});
+	
+	$('.btn-size').on('click', function(){
+		board.resetGame( $(this).attr('v') );
+		$('#pageset').css('display','none');
 	});
 	
 	$('.icon-more').on('click', function(){
@@ -170,10 +180,7 @@ $(document).ready(function(){
 	});
 
 	$('.menu-icon').on('mousedown', function(){
-		resources.get('audio/click.mp3').play();
-		
 		id = $(this).attr('id');
-		
 	});
 
 	resources.load([

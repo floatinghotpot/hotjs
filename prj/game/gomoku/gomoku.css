@@ -61,8 +61,23 @@ div#menu {
 	color: #aaaaaa;
 	background: #333333;
 }
-input.btn {
+div#pageset {
+	position:absolute;
+	bottom:100px;
+	right:10px;
+	padding:20px;
+	color: #aaaaaa;
+	background: #333333;
+	opacity:1;
+	display:none;
+}
+button {
 	width: 100px;
+	height: 48px;
+	-moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    border-radius: 8px;	
 }
 img {
 	v-space: 0px;

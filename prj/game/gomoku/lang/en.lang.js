@@ -3,5 +3,11 @@ hotjs.i18n.put('en', {
 	'undo': 'Undo',
 	'tips': 'Tips',
 	'options': 'Options',
-	'more':	'More'
+	'more':	'More',
+	'level': 'Level',
+	'newbie':'Newbie',
+	'experienced':'Experienced',
+	'skillful':'Skillful',
+	'master':'Master',
+	'boardsize':'Board Size'
 });

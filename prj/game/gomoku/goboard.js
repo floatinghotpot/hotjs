@@ -2,6 +2,7 @@
 var GoBoard = function(){
 	hotjs.base(this);
 	
+	this.rows = 15;
 	this.matrix = [];
 	this.undos = [];
 	this.player = 1;
@@ -27,8 +28,9 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		return this;
 	},
 	resetGame : function(n) {
-		if(! n) n = 15;
-		this.rows = n;
+		if(!! n) {
+			this.rows = n;
+		}
 		
 		// init matrix with 0
 		this.matrix = [];
@@ -169,12 +171,12 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 	onTouchEnd : function(t) {
 		GoBoard.supClass.onTouchEnd.call(this,t);
 		
-		this.velocity = this.gesture;
 		var param = { duration:0.2,
 				step:function(me,dt){ me.fixPos(); },
 				done:function(me){ me.fixPos(); }
 			};
-		hotjs.Anim.create( this, 'SlowDown', param ).play();
+		//this.velocity = this.gesture;
+		//hotjs.Anim.create( this, 'SlowDown', param ).play();
 	},
 	draw : function(c) {
 		GoBoard.supClass.draw.call(this, c);
