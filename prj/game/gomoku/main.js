@@ -98,6 +98,7 @@ hotjs.inherit(AIPlayer, hotjs.Class, {
 });
 
 function main() {
+	hotjs.i18n.translate();
 	resources.get('audio/hello.mp3').play();
 	
 	var w = window.innerWidth, h = window.innerHeight;
@@ -178,7 +179,10 @@ $(document).ready(function(){
 	resources.load([
             'img/woodfloor.jpg',
             'img/wood.jpg',
-            'img/gostones.png'
+            'img/gostones.png',
+            'lang/en.lang.js',
+            'lang/zh.lang.js',
+            'lang/ja.lang.js'
             //, 'audio/move.mp3'
     	],
     	{

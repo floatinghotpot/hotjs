@@ -514,6 +514,9 @@ var Node = function() {
 	this.imgrect = undefined; // [x,y,w,h]
 	this.sprite = undefined;
 
+	this.gridOn = false;
+	this.imgOn = true;
+	
 	// geometry, 2D only
 	this.pos = [0,0];
 	this.velocity = [0,0]; // default [0,0]
@@ -926,6 +929,16 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.alpha = a;
 		return this;
 	},
+	showGrid : function(g) {
+		if(g == undefined) g = (! this.gridOn);
+		this.gridOn = g;
+		return this;
+	},
+	showImg : function(g) {
+		if(g == undefined) g = (! this.imgOn);
+		this.imgOn = g;
+		return this;
+	},
 	setImage : function(img, r) {
 		this.img = img;
 		if(! r) {
@@ -1049,21 +1062,21 @@ hotjs.inherit(Node, hotjs.Class, {
 	draw : function(c) {
 		c.save();
 
-		if( !! this.sprite ) {
-			this.sprite.render(c, this.size[0], this.size[1]);
-			
-		} else if( !! this.img ) {
-			if( !! this.imgrect ) {
-				c.drawImage( this.img, 
-						this.imgrect[0], this.imgrect[1], this.imgrect[2], this.imgrect[3], 
-						0, 0, this.size[0], this.size[1] );
-			} else {
-				c.drawImage( this.img, 0, 0, this.size[0], this.size[1] );
-				//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
-				//c.drawImage( this.img, 0, 0 );
+		if( this.imgOn ) {
+			if( !! this.sprite ) {
+				this.sprite.render(c, this.size[0], this.size[1]);
+				
+			} else if( !! this.img ) {
+				if( !! this.imgrect ) {
+					c.drawImage( this.img, 
+							this.imgrect[0], this.imgrect[1], this.imgrect[2], this.imgrect[3], 
+							0, 0, this.size[0], this.size[1] );
+				} else {
+					c.drawImage( this.img, 0, 0, this.size[0], this.size[1] );
+				}
 			}
-			
-		} else {
+		}
+		if( this.gridOn ) {
 			c.strokeRect(0,0, this.size[0], this.size[1]);
 		}
 		
@@ -1077,11 +1090,6 @@ hotjs.inherit(Node, hotjs.Class, {
 // Note: in a scene, this.pos is the [left,top]
 var Scene = function(){
 	hotjs.base(this);
-
-	this.gridOn = false;
-	this.imgOn = true;
-	this.color = "black";
-	this.bgcolor = undefined;
 
 	this.bgrepeat = false;
 	this.bgimg = undefined;
@@ -1243,16 +1251,6 @@ hotjs.inherit( Scene, Node, {
 		return this;
 	},
 	
-	showGrid : function(g) {
-		if(g == undefined) g = (! this.gridOn);
-		this.gridOn = g;
-		return this;
-	},
-	showImg : function(g) {
-		if(g == undefined) g = (! this.imgOn);
-		this.imgOn = g;
-		return this;
-	},
 	play : function() {
 		this.playing = true;
 		return this;

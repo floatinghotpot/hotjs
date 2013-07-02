@@ -1,21 +1,22 @@
 
 hotjs = hotjs || {};
 
-lang_cache = lang_cache || {};
-
-// require jQuery
-
-// lang_cache['en'] = {};
-// lang_cache['zh'] = {};
-
-// lang_cache['jp'] = lang_cache['jp'] || {};
-// lang_cache['jp'] = $.extend( true, lang_cache['jp'], {} );
-
 hotjs.i18n = {
 
 	defaultLang : 'en',
 	cookievalid : 86400000, //1 day (1000*60*60*24)
 	text : {},
+
+	put: function(lang, text) {
+		if( this.text[ lang ] === undefined ) {
+			this.text[ lang ] = {};
+		}
+		var L = this.text[ lang ];
+		for( var k in text ) {
+			L[k] = text[k];
+		}
+		return this;
+	},
 	extractLang : function(kvl) {
 		var lang;
 		for ( var i in kvl) {
@@ -62,7 +63,7 @@ hotjs.i18n = {
 		return this;
 	},
 	get : function(key) {
-		var keys = key.split('.'), lang = this.getLang(), obj = lang_cache[lang];
+		var keys = key.split('.'), lang = this.getLang(), obj = this.text[lang];
 		while (typeof obj !== 'undefined' && keys.length > 0)
 			obj = obj[keys.shift()];
 		return typeof obj === 'undefined' ? lang + '.' + key : obj;
@@ -77,10 +78,10 @@ hotjs.i18n = {
 		}
 		return this;
 	},
-	t : function(item) {
+	translate : function(item) {
 		//alert( JSON.stringify( this.text[this.getLang()] ) );
 		var lang = this.getLang();
-		if (typeof lang_cache[ lang ] === 'undefined') {
+		if (typeof this.text[ lang ] === 'undefined') {
 			resources.load('lang/' + lang + '.lang.js');
 			return this;
 		}

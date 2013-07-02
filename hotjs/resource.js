@@ -180,7 +180,9 @@
 						var launchers = pst_cache[ f ]['launchers'];
 						for( var i=0; i<launchers.length; i++ ) {
 							// might be .sprite.js, or .png
-							_load( hotjs.getAbsPath( launchers[i].res, url ) );
+							resurl = hotjs.getAbsPath( launchers[i].res, url );
+							launchers[i].resurl = resurl;
+							_load( resurl );
 						}						
 					}
 				}

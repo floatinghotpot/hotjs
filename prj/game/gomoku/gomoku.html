@@ -17,6 +17,7 @@
 <script src="../../../hotjs/canvas.js"></script>
 <script src="../../../hotjs/animation.js"></script>
 <script src="../../../hotjs/social.js"></script>
+<script src="../../../hotjs/i18n.js"></script>
 <script src="goboard.js"></script>
 <script src="net_go.js"></script>
 <script src="main.js"></script>
@@ -28,34 +29,34 @@
 
 <div id="user2" class='userinfo' style='display:none;'>
 <table>
-<tr><td align='left' colspan=2>级别: 6<br>财富: $ 1500</td></tr>
+<tr><td align='left' colspan=2><span class='I18N' i18n='level'>Level</span>: 6<br><span class='I18N' i18n='gold'>Gold</span>: $ 1500</td></tr>
 <tr><td><img src='img/user1.png'><br>曹操</td><td><img width=32 src='img/whitego.png'/></td></tr>
 </table>
 </div>
 
 <div id="user1" class='userinfo' style='display:none;'>
 <table>
-<tr><td align='left' colspan=2>级别: 7<br>财富: $ 2100</td></tr>
+<tr><td align='left' colspan=2><span class='I18N' i18n='level'>Level</span>: 7<br><span class='I18N' i18n='gold'>Gold</span>: $ 2100</td></tr>
 <tr><td><img width=32 src='img/blackgo.png'/></td><td><img src='img/user2.png'><br>刘备</td></tr>
 </table>
 </div>
 
 <div id="control" style='display:none;'>
 <table>
-<tr><td><img class='menu-icon icon-reset' src='img/restart.png'/><br>新局</td></tr>
-<tr><td><img class='menu-icon icon-undo' src='img/undo.png'/><br>悔棋</td></tr>
-<tr><td><img class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td></tr>
+<tr><td><img class='menu-icon icon-reset' src='img/restart.png'/><br><span class='I18N' i18n='new'>New</span></td></tr>
+<tr><td><img class='menu-icon icon-undo' src='img/undo.png'/><br><span class='I18N' i18n='undo'>Undo</span></td></tr>
+<tr><td><img class='menu-icon icon-tip' src='img/tipoff.png'/><br><span class='I18N' i18n='tips'>Tips</span></td></tr>
 </table>
 </div>
 
 <div id='menu' style='display:block;'>
 <table>
 <tr>
-<td class='m'><img class='menu-icon icon-reset' src='img/restart.png'/><br>新局</td>
-<td class='m'><img class='menu-icon icon-undo' src='img/undo.png'/><br>悔棋</td>
-<td class='m'><img class='menu-icon icon-tip' src='img/tipoff.png'/><br>提示</td>
-<td class='m'><img class='menu-icon icon-set' src='img/settings.png'/><br>设置</td>
-<td class='m'><img class='menu-icon icon-more' src='img/menu.png'/><br>更多...</td>
+<td class='m'><img class='menu-icon icon-reset' src='img/restart.png'/><br><span class='I18N' i18n='new'>New</span></td>
+<td class='m'><img class='menu-icon icon-undo' src='img/undo.png'/><br><span class='I18N' i18n='undo'>Undo</span></td>
+<td class='m'><img class='menu-icon icon-tip' src='img/tipoff.png'/><br><span class='I18N' i18n='tips'>Tips</span></td>
+<td class='m'><img class='menu-icon icon-set' src='img/settings.png'/><br><span class='I18N' i18n='options'>Options</span></td>
+<td class='m'><img class='menu-icon icon-more' src='img/menu.png'/><br><span class='I18N' i18n='more'>More</span></td>
 </tr></table>
 </div>
 

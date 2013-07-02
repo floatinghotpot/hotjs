@@ -8,4 +8,5 @@ physics.js
 social.js
 util.js
 ui.js
+i18n.js
 ai.js

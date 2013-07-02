@@ -145,10 +145,12 @@ hotjs.inherit( Particle, hotjs.Node, {
 		var par = this.par;
 		var v = par.mode.v;
 		
-		if( par.res.endswWith('.sprite.js') ) {
-			this.setSprite( new Animat(par.res, 'xxx') );
-		} else if( par.res.endsWith('.png') ) {
-			this.setImage( resources.get(par.res) );
+		if( par.res.endsWith('.png') ) {
+			this.setImage( resources.get(par.resurl) );
+		} else if( par.res.endsWith('.sprite.js') ) {
+			this.setSprite( new Animat(par.resurl, 'xxx') );
+		} else {
+			return this;
 		}
 		
 		this.life = randi( par.lifeMin, par.lifeMax );
@@ -198,6 +200,7 @@ hotjs.inherit( Particle, hotjs.Node, {
 			}
 		}
 		
+		return this;
 	},
 	update: function(dt){
 		Particle.supClass.update.call(this, dt);
@@ -216,6 +219,7 @@ var ParticleSet = function( par ) {
 	
 	// TODO: to ensure performance, set limit up to 16 particles
 	this.par.maxPtsCount = Math.min( this.par.maxPtsCount, 16 );
+	this.subnodes = [];
 	
 	this.frame = 0;
 };
@@ -248,7 +252,7 @@ hotjs.inherit( ParticleSet, hotjs.Node, {
 			for( var i=0; i<n; i++ ) {
 				if( ps.length >= par.maxPtsCount ) break;
 				var p = new Particle( par ).init();
-				ps.push( p );
+				this.addNode(p);
 			}
 		}
 
@@ -262,9 +266,10 @@ var ParticleSystem = function( url ) {
 	hotjs.base(this);
 
 	var pst = pst_cache[ hotjs.getFileName( url ) ];
-
-	for( var par in pst ) {
-		this.addNode( new ParticleSet(par) );
+	var pset = pst.launchers;
+	
+	for( var i=0; i<pset.length; i++ ) {
+		this.addNode( new ParticleSet( pset[i] ) );
 	}
 };
 
