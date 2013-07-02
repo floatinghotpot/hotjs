@@ -163,8 +163,8 @@
 
 				if( url.endsWith('.sprite.js') ) {
 					var f = hotjs.getFileName(url);
-					if( f in sprites ) {
-						var sprite = sprites[ f ];
+					if( f in sprite_cache ) {
+						var sprite = sprite_cache[ f ];
 						sprite['url'] = url;
 						var images = sprite['images'];
 						for( id in images ) {
