@@ -49,11 +49,11 @@ function main(){
 		.setSize(w,h)
 		.setBgColor('gray')
 		.setMaxFps( 25 )
-		.showFPS(true);
+		.showFPS(false);
 
 	var room = (new hotjs.Scene())
 		.setSize(w,h)
-		.setBgImage(true, resources.get('img/room.jpg'))
+		.setBgImage(false, resources.get('img/game.png'))
 		.setColor("blue").showGrid(false)
 		.addTo(viewX,'hello');
 
