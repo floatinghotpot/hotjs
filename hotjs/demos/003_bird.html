@@ -39,28 +39,25 @@ input {
 </div>
 <script>
 
-resources.load([
-	'img/angrybird.png'
-]);
-
-var w = window.innerWidth, h = window.innerHeight;
-
-var v = document.getElementById('view1');
-v.style.width = w;
-v.style.height = h;
-
-var view1 = (new hotjs.View())
-	.setContainer('view1').setSize(w,h)
-	.showFPS(true);
-
-var room = (new hotjs.Physics.Scene())
-	.setSize(w,h)
-	.setBgColor('white').setColor("black").showGrid(true)
-	.addTo(view1,'hello');
 
 var balls = [];
 
-resources.onReady(function(){
+function main(){
+	var w = window.innerWidth, h = window.innerHeight;
+
+	var v = document.getElementById('view1');
+	v.style.width = w;
+	v.style.height = h;
+
+	var view1 = (new hotjs.View())
+		.setContainer('view1').setSize(w,h)
+		.showFPS(true);
+
+	var room = (new hotjs.Physics.Scene())
+		.setSize(w,h)
+		.setBgColor('white').setColor("black").showGrid(true)
+		.addTo(view1,'hello');
+
 	var pos = [ hotjs.Random.Integer(room.width()*0.2,room.width()*0.8), room.height()/2 ]; 
 
 	var b = (new hotjs.Physics.Ball())
@@ -71,16 +68,21 @@ resources.onReady(function(){
 	balls.push(b);
 	
 	var app = (new hotjs.App()).addNode( view1 ).start();
-});
+}
 
 function kick_ball(i){
+	var w = window.innerWidth, h = window.innerHeight;
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * room.width() * 0.1;   
-		var vy = - Math.random() * room.height() * 0.1;
+		var vx = Math.random() * w * 3;   
+		var vy = - Math.random() * h * 3;
+		console.log( vx, vy );
 		b.setVelocity(vx,vy);
 	}
 }
+
+resources.load([ 'img/angrybird.png' ], { ready: main });
+
 </script>
 </body>
 

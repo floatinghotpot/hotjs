@@ -81,13 +81,15 @@ resources.onReady(function(){
 });
 
 function kick_ball(i){
+	var w = window.innerWidth, h = window.innerHeight;
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * 40 - 20;  // range [-10,10] 
-		var vy = -10 - Math.random() * 10; // range [-10, -20] 
+		var vx = Math.random() * w * 2;   
+		var vy = - Math.random() * h * 2;
 		b.setVelocity(vx,vy);
 	}
 }
+
 </script>
 
 </body>
