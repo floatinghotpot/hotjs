@@ -149,9 +149,9 @@ def convert(spritefile):
     fout = open(outfile, 'w')
     
     fout.write('\n// converted by sprite2js.py v0.1 (HotJS v1.0)\n')
-    fout.write( '\nvar sprites = sprites || {};\n')
+    fout.write( '\nvar sprite_cache = sprite_cache || {};\n')
     head, tail = os.path.split( outfile )
-    fout.write( '\nsprites[\'%s\'] = {\n' % tail )
+    fout.write( '\sprite_cache[\'%s\'] = {\n' % tail )
     
     fout.write( '\'version\' : %d,\n' % version )
     

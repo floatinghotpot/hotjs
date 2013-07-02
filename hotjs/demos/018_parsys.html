@@ -12,8 +12,6 @@
 <script src="../resource.js"></script>
 <script src="../canvas.js"></script>
 <script src="../sprite.js"></script>
-<script src="../ui.js"></script>
-<script src="../animation.js"></script>
 <style type="text/css">
 html, body {
 	width: 100%;
@@ -49,52 +47,26 @@ function main(){
 	var viewX = (new hotjs.View())
 		.setContainer('viewX')
 		.setSize(w,h)
-		//.setBgColor('gray')
-		.setBgImage(true, resources.get('img/bg_1.jpg'))
+		.setBgColor('gray')
 		.setMaxFps( 25 )
 		.showFPS(true);
 
 	var room = (new hotjs.Scene())
 		.setSize(w,h)
+		.setBgImage(true, resources.get('img/room.jpg'))
 		.setColor("blue").showGrid(false)
-		//.setBgColor('gray')
 		.addTo(viewX,'hello');
 
-	var board = (new hotjs.ShowBoard())
-		.setPos(0,0)
-		.setParam({
-			width : w, 
-			height: h,
-			rows : 3, 
-			cols : 3,
-			padding : 0,
-			spacing : 10,
-			margin : 10,
-			dir : 0
-		})
-		.setColor('yellow')
-		.setBgColor('silver')
+	var pst = new hotjs.ParticleSystem('pst/UI_xing_test.pst.js')
+		.setPos(w/2, h/2)
 		.addTo( room );
-	
-	var anims = sprite_cache['BING_male.sprite.js']['anims'];
-	for( var i in anims ) {
-		npc = (new hotjs.Node())
-			.setSprite( new hotjs.Animat('sprite/BING_male.sprite.js', i) )
-			.setSize(150,150)
-			.addTo( board );
-		
-		//hotjs.Anim.create( npc, 'RotateBy', { spin:360, duration:60 } ).play();
-		//hotjs.Anim.create( npc, 'ScaleLoop', { range:[0.9,1.1], freq:1, duration:3600 } ).play();
-		//hotjs.Anim.create( npc, 'FadeLoop', { range:[0.3, 1.0], freq:0.5, duration:3600 } ).play();
-	}
 
 	var app = (new hotjs.App()).addNode( viewX ).start();
 }
 
 resources.load([
-                'img/bg_1.jpg',
-                'sprite/yeti.sprite.js',
-                'sprite/BING_male.sprite.js'
+                'img/room.jpg',
+                'pst/UI_xing_test.pst.js'
                 ], { ready: main });
 
 </script>

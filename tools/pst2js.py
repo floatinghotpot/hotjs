@@ -135,9 +135,9 @@ def convert(pstfile):
     fout = open(outfile, 'w')
     
     fout.write('\n// converted by pst2js.py v0.1 (HotJS v1.0)\n')
-    fout.write( '\nvar pts_effects = pts_effects || {};\n')
+    fout.write( '\nvar pst_cache = pst_cache || {};\n')
     head, tail = os.path.split( outfile )
-    txt = ( '\npts_effects[\'%s\'] = {\n' % tail )
+    txt = ( '\npst_cache[\'%s\'] = {\n' % tail )
 
     attr = PtsSystem.attrib
     for k in attr:
