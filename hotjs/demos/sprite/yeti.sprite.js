@@ -2,7 +2,8 @@
 // converted by sprite2js.py v0.1 (HotJS v1.0)
 
 var sprite_cache = sprite_cache || {};
-\sprite_cache['yeti.sprite.js'] = {
+
+sprite_cache['yeti.sprite.js'] = {
 'version' : 1,
 // images:	1
 // modules:	23

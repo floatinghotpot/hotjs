@@ -2,16 +2,17 @@
 // converted by sprite2js.py v0.1 (HotJS v1.0)
 
 var sprite_cache = sprite_cache || {};
-\sprite_cache['BING_male.sprite.js'] = {
+
+sprite_cache['BING_male.sprite.js'] = {
 'version' : 1,
 // images:	4
 // modules:	1766
 // frames:	75
 // anims:	18
 'images' : { // img_file, transp color
-2:['./BING_male_1.png','0x00FF00FF'],
+0:['./BING_male_1.png','0x00FF00FF'],
 1:['./BING_male.png','0x00FF00FF'],
-0:['./BING_male1.png','0x00FF00FF'],
+2:['./BING_male1.png','0x00FF00FF'],
 3:['./BING_male_head.png','0x00FF00FF']
 },
 'modules' : { // id: type, img_id, x, y, w, h
