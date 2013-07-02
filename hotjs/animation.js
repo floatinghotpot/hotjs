@@ -64,13 +64,10 @@ hotjs.inherit(MoveTo, Animation, {
 		var p = this.param;
 		this.from = [ this.who.pos[0], this.who.pos[1] ];
 		this.to = [ p.to[0], p.to[1] ];
-		
-		this.inc = [ (this.to[0] - this.from[0]) / p.duration, 
-		             (this.to[1] - this.from[1]) / p.duration ];
 	},
 	step: function(dt) {
-		this.who.pos = [ this.from[0] + this.inc[0] * this.dtSum, 
-		                 this.from[1] + this.inc[1] * this.dtSum ];
+		this.who.pos = [ this.from[0] + (this.to[0] - this.from[0]) * this.dtSum / this.param.duration, 
+		                 this.from[1] + (this.to[1] - this.from[1]) * this.dtSum / this.param.duration ];
 
 		if( this.dtSum >= this.param.duration ) {
 			this.who.pos = this.to;
@@ -91,15 +88,11 @@ hotjs.inherit(StickTo, Animation, {
 		var p = this.param;
 		this.from = [ this.who.pos[0], this.who.pos[1] ];
 		this.to = [ p.to[0], p.to[1] ];
-		
-		this.inc = [ (this.to[0] - this.from[0]) / (p.duration * p.duration),
-		             (this.to[1] - this.from[1]) / (p.duration * p.duration) ];
-		
 	},
 	step: function(dt) {
-		var t = this.dtSum * this.dtSum;
-		this.who.pos = [ this.from[0] + this.inc[0] * t,
-		                 this.from[1] + this.inc[1] * t ];
+		var t = Math.pow(this.dtSum/this.param.duration, 2);
+		this.who.pos = [ this.from[0] + (this.to[0] - this.from[0]) * t,
+		                 this.from[1] + (this.to[1] - this.from[1]) * t ];
 		
 		if( this.dtSum >= this.param.duration ) {
 			this.who.pos = this.to;
@@ -121,7 +114,7 @@ hotjs.inherit(SlowDown, Animation, {
 		this.from = this.who.velocity;
 	},
 	step: function(dt) {
-		var perc = 1 - this.dtSum / this.param.duration;
+		var perc = Math.cos( (this.dtSum / this.param.duration) * (Math.PI / 180) );
 		this.who.velocity = [ this.from[0] * perc, this.from[1] * perc ];
 		if( this.dtSum >= this.param.duration ) {
 			this.who.velocity = [0,0];
@@ -139,9 +132,6 @@ var RotateBy = function(who, param) {
 hotjs.inherit(RotateBy, Animation, {
 	init: function(){
 		if(! this.who.rotation) this.who.rotation = 0;
-		if(! this.param.spin) {
-			console.log('lacking param.spin');
-		}		
 		this.from = this.who.rotation;
 		this.inc = this.param.spin;
 	},
@@ -159,17 +149,13 @@ var ScaleTo = function(who, param) {
 };
 hotjs.inherit(ScaleTo, Animation, {
 	init: function(){
-		var p = this.param;
-		var dur = p.duration;
-
 		this.from = this.who.scale;
-		this.to = p.to;
-		this.inc = [ (p.to[0]-this.who.scale[0]) / dur, 
-		             (p.to[1]-this.who.scale[1]) / dur ];
+		this.to = param.to;
 	},
 	step: function(dt) {
-		this.who.scale = [ this.from[0] + this.inc[0] * dt,
-		                   this.from[1] + this.inc[1] * dt ];
+		this.who.scale = [ this.from[0] + (this.to[0] - this.from[0]) * this.dtSum / this.param.duration, 
+		                   this.from[1] + (this.to[1] - this.from[1]) * this.dtSum / this.param.duration ];
+
 		if( this.dtSum >= this.param.duration ) {
 			this.who.scale = this.to;
 		}
@@ -187,7 +173,7 @@ hotjs.inherit(ScaleLoop, Animation, {
 	init: function(){
 		var p = this.param;
 		this.from = this.who.scale;
-		this.mid = (p.range[0] + p.range[1])/2;
+		this.mid = (p.range[1] + p.range[0])/2;
 		this.delta = (p.range[1] - p.range[0])/2;
 	},
 	step: function(dt) {
@@ -207,14 +193,11 @@ var FadeTo = function(who, param) {
 };
 hotjs.inherit(FadeTo, Animation, {
 	init: function(){
-		var p = this.param;
-		
 		this.from = this.who.alpha;
-		this.to = p.to;
-		this.inc = (p.to - this.from) / p.duration;
+		this.to = this.param.to;
 	},
 	step: function(dt) {
-		this.who.alpha = this.from + this.inc * dt;
+		this.who.alpha = this.from + (this.to - this.from) * this.dtSum / this.param.duration;
 		if( this.dtSum >= this.param.duration ) {
 			this.who.alpha = this.to;
 		}
@@ -247,7 +230,7 @@ hotjs.inherit(FadeLoop, Animation, {
 var create = function(target, anim, param) {
 	var animClass = hotjs.Anim[ anim ];
 	if( typeof animClass != 'function') {
-		console.log( animClass + ' not exists.' );
+		console.log( animClass + ' not exists, using default.' );
 		animClass = Animation;
 	}
 	
