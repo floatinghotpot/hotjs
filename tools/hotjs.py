@@ -18,18 +18,20 @@ from shutil import copyfile
 from datetime import datetime
 import base64
 import json
+import subprocess
 
 if sys.version_info[0]==3:
     from urllib.request import urlretrieve
 else :
     from urllib import urlretrieve
 
-
-basedir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+tooldir = os.path.dirname(os.path.realpath(__file__))
+basedir = os.path.dirname(tooldir)
 curdir = os.path.abspath('.')
 
 lib_dir = os.path.join(basedir, 'prj/lib')
 hotjsbin_path = os.path.join(lib_dir,'hotjs-bin.js')
+hotjsmini_path = os.path.join(lib_dir,'hotjs-mini.js')
 
 prj_basedir = os.path.join(basedir, 'prj')
 tmpl_dir = os.path.join(prj_basedir, 'template')
@@ -65,6 +67,13 @@ def escapeSpace(s):
 def quoteSpace(s):
     return s.replace(" ","' '")
 
+def find_yuicompressor():
+    for root, subFolders, files in os.walk(tooldir):
+        for file in files:
+            if( file.startswith('yuicompressor') ):
+                return tooldir + '/' + file
+    return ""
+        
 def create(type, name):
     if( type == 'app'):
         type_dir = apps_dir
@@ -124,7 +133,7 @@ def update():
     hotjs_path = join(basedir,'hotjs/')
     hotjslist_path = join(hotjs_path,'files')
  
-    print( "updating hotjsbin: " + hotjsbin_path )
+    print( "\nupdating hotjsbin: " + hotjsbin_path + '\n' )
     f = open(hotjsbin_path,'w')
         
     hotjslist = open(hotjslist_path,'r').readlines()
@@ -141,7 +150,18 @@ def update():
                 print( jspath + " not found." );
     f.close()
     
-    print( "\nDone. hotjsbin updated: %s.\n" % hotjsbin_path )
+    print( "\nhotjsbin updated: %s.\n" % hotjsbin_path )
+    
+    yui = find_yuicompressor()
+    if( yui == '' ):
+        print( 'YUI compressor not found in tools folder.' )
+        return 0
+    
+    print( "minifying with YUICompressor ...");
+    subprocess.call(['java', '-jar', yui, hotjsbin_path, '-o', hotjsmini_path ])
+
+    print( "hotjsbin compressed to: %s.\n" % hotjsmini_path )
+    print( 'Done.\n')
     
 def main():
     """The entrypoint for this script."""

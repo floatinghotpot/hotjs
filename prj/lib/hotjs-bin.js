@@ -54,8 +54,7 @@ hotjs.base = function(me, opt_methodName, var_args) {
 	if (me[opt_methodName] === caller) {
 		return me.constructor.prototype[opt_methodName].apply(me, args);
 	} else {
-		throw Error('goog.base called from a method of one name '
-				+ 'to a method of a different name');
+		throw Error('hotjs.base must be called in constructor');
 	}
 };
 
@@ -83,7 +82,7 @@ hotjs.log = function(o, n) {
 };
 
 //[].indexOf(value)
-if (!Array.prototype.indexOf) {
+if (typeof Array.prototype.indexOf !== 'function') {
 	Array.prototype.indexOf = function(obj, fromIndex) {
 		if (fromIndex == null || fromIndex == undefined) {
 			fromIndex = 0;
@@ -96,6 +95,91 @@ if (!Array.prototype.indexOf) {
 		}
 		return -1;
 	};
+}
+
+if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+        return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+}
+
+hotjs.formatString = function () {
+    var param = [];
+    for (var i = 0, l = arguments.length; i < l; i++)
+    {
+        param.push(arguments[i]);
+    }
+    var statment = param[0]; // get the first element(the original statement)
+    param.shift(); // remove the first element from array
+    return statment.replace(/\{(\d+)\}/g, function(m, n)
+    {
+        return param[n];
+    });
+};
+
+hotjs.formatNumber = function(num, length) {
+    var r = "" + num;
+    while (r.length < length) {
+        r = "0" + r;
+    }
+    return r;
+};
+
+hotjs.getFileName = function(path) {
+	return path.substring( path.lastIndexOf('/')+1 );
+};
+
+hotjs.getDirPath = function(path) {
+	return path.substring(0, path.lastIndexOf('/'));
+};
+
+hotjs.getAbsPath = function(f, me) {
+	d = hotjs.getDirPath(me);
+	do { // './xx.js' or '../xx.js'
+		if (f.substring(0, 2) == './') {
+			f = f.substring(2);
+			continue;
+		}
+		if (d.length == 0)
+			break;
+		if (f.substring(0, 3) == '../') {
+			f = f.substring(3);
+			d = hotjs.getDirPath(d);
+			continue;
+		}
+		if (d.length > 0) {
+			f = d + '/' + f;
+			break;
+		}
+	} while (1);
+
+	return f;
+};
+
+// TODO: async call, may not fully loaded ... try check the github project require.js.
+hotjs.require = function( f ) {
+	//var f = hotjs.getAbsPath(f, document.location.href);
+	
+	var d = document, s = 'script';
+	var ss = d.getElementsByTagName(s);
+
+	var me = ss[ ss.length-1 ].src;
+	f = hotjs.getAbsPath( f, me );
+	
+	for(var i=0; i<ss.length; i++) {
+		if( ss[i].src == f ) return;
+	}
+	
+	o = d.createElement(s);
+	o.async = 0;
+	o.src = f;
+	ss[0].parentNode.insertBefore(o, ss[0]);
+};
+
+if( typeof requireScripts == 'function' ) {
+	hotjs.require = requireScripts;
+} else {
+	requireScripts = hotjs.require;
 }
 
 // class HashMap
@@ -228,7 +312,12 @@ hotjs.Class.prototype = {
 	addNode : function(subnode, id){
 		return this;
 	},
+	setContainer : function(c) {
+		this.container = c;
+		return this;
+	},
 	addTo : function(container, id) {
+		this.setContainer( container );
 		container.addNode(this, id);
 		return this;
 	}	
@@ -239,9 +328,6 @@ hotjs.Class.prototype = {
 
 var App = function(){
 	hotjs.base(this);
-	
-	hotjs_app = this;
-	hotjs_lastTime = Date.now();
 	
 	this.views = [];
 	this.runningTime = 0;
@@ -508,12 +594,8 @@ hotjs.Matrix = Matrix;
 // merged into hotjs.js as a basic class.
 
 (function() {
+
 	var resourceCache = {};
-	//var loading = [];
-	
-	var readyCallbacks = [];
-	var loadingCallbacks = [];
-	var errorCallbacks = [];
 	
 	var total = 0;
 	var loaded = 0;
@@ -525,23 +607,78 @@ hotjs.Matrix = Matrix;
 		return loaded;
 	}
 	
+	function loadingProgress(url, n, all) {
+		var per = Math.round( 100 * n / all );
+		var d = document.getElementById('loading_msg');
+		if( d ) {
+			d.innerHTML = per + "% (" + n + '/' + all + ')';
+		}
+	}
+	
+	function loadingError(url){
+		var d = document.getElementById('loading_msg');
+		if( d ) {
+			d.innerHTML = 'error loading: ' + url.substring(url.lastIndexOf('/')+1); 
+		}
+	}
+
+	function loadingDone(){
+		d = document.getElementById('res_loading_msg_win');
+		if( d ) {
+			d.setAttribute('style', 'display:none');
+		}
+	}
+
+	var readyCallbacks = [ loadingDone ];
+	var loadingCallbacks = [ loadingProgress ];
+	var errorCallbacks = [ loadingError ];
+	
 	// func() {}
 	function onReady(func) {
-		readyCallbacks.push(func);
+		readyCallbacks = [ loadingDone, func ];
 	}
 
 	// func( url, loaded, total ) {}
 	function onLoading(func) {
-		loadingCallbacks.push(func);
+		loadingCallbacks = [ loadingProgress, func ];
 	}
 	
 	// func( url ) {}
 	function onError(func) {
-		errorCallbacks.push(func);
+		errorCallbacks = [ loadingError, func ];
 	}
-
+	
+	function showLoadingDialog(){
+		var w = window.innerWidth, h = window.innerHeight;
+		var tw = 100, th = 300;
+		var x = (w-tw)/2, y = (h-th)/2;
+		var d = document.createElement('div');
+		d.setAttribute('id', 'res_loading_msg_win');
+		d.setAttribute('style', 
+				'left:' +x + 'px;top:' +y+'px;width:'+tw+'px;text-align:center;alpha:0.5;background:silver;border:solid silver 1px;padding:10px;font-family:Verdana,Geneva,sans-serif;font-size:9pt;display:solid;position:absolute;'
+				+ '-moz-border-radius:10px;-webkit-border-radius: 10px;-khtml-border-radius: 10px;border-radius: 10px;'
+				);
+		d.innerHTML += "<br><img id='loading_img' src='data:image/gif;base64,R0lGODlhNgA3APMAAP///wAAAHh4eBwcHA4ODtjY2FRUVNzc3MTExEhISIqKigAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAANgA3AAAEzBDISau9OOvNu/9gKI5kaZ4lkhBEgqCnws6EApMITb93uOqsRC8EpA1Bxdnx8wMKl51ckXcsGFiGAkamsy0LA9pAe1EFqRbBYCAYXXUGk4DWJhZN4dlAlMSLRW80cSVzM3UgB3ksAwcnamwkB28GjVCWl5iZmpucnZ4cj4eWoRqFLKJHpgSoFIoEe5ausBeyl7UYqqw9uaVrukOkn8LDxMXGx8ibwY6+JLxydCO3JdMg1dJ/Is+E0SPLcs3Jnt/F28XXw+jC5uXh4u89EQAh+QQJCgAAACwAAAAANgA3AAAEzhDISau9OOvNu/9gKI5kaZ5oqhYGQRiFWhaD6w6xLLa2a+iiXg8YEtqIIF7vh/QcarbB4YJIuBKIpuTAM0wtCqNiJBgMBCaE0ZUFCXpoknWdCEFvpfURdCcM8noEIW82cSNzRnWDZoYjamttWhphQmOSHFVXkZecnZ6foKFujJdlZxqELo1AqQSrFH1/TbEZtLM9shetrzK7qKSSpryixMXGx8jJyifCKc1kcMzRIrYl1Xy4J9cfvibdIs/MwMue4cffxtvE6qLoxubk8ScRACH5BAkKAAAALAAAAAA2ADcAAATOEMhJq7046827/2AojmRpnmiqrqwwDAJbCkRNxLI42MSQ6zzfD0Sz4YYfFwyZKxhqhgJJeSQVdraBNFSsVUVPHsEAzJrEtnJNSELXRN2bKcwjw19f0QG7PjA7B2EGfn+FhoeIiYoSCAk1CQiLFQpoChlUQwhuBJEWcXkpjm4JF3w9P5tvFqZsLKkEF58/omiksXiZm52SlGKWkhONj7vAxcbHyMkTmCjMcDygRNAjrCfVaqcm11zTJrIjzt64yojhxd/G28XqwOjG5uTxJhEAIfkECQoAAAAsAAAAADYANwAABM0QyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7/i8qmCoGQoacT8FZ4AXbFopfTwEBhhnQ4w2j0GRkgQYiEOLPI6ZUkgHZwd6EweLBqSlq6ytricICTUJCKwKkgojgiMIlwS1VEYlspcJIZAkvjXHlcnKIZokxJLG0KAlvZfAebeMuUi7FbGz2z/Rq8jozavn7Nev8CsRACH5BAkKAAAALAAAAAA2ADcAAATLEMhJq7046827/2AojmRpnmiqrqwwDAJbCkRNxLI42MSQ6zzfD0Sz4YYfFwzJNCmPzheUyJuKijVrZ2cTlrg1LwjcO5HFyeoJeyM9U++mfE6v2+/4PD6O5F/YWiqAGWdIhRiHP4kWg0ONGH4/kXqUlZaXmJlMBQY1BgVuUicFZ6AhjyOdPAQGQF0mqzauYbCxBFdqJao8rVeiGQgJNQkIFwdnB0MKsQrGqgbJPwi2BMV5wrYJetQ129x62LHaedO21nnLq82VwcPnIhEAIfkECQoAAAAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7/g8Po7kX9haKoAZZ0iFGIc/iRaDQ40Yfj+RepSVlpeYAAgJNQkIlgo8NQqUCKI2nzNSIpynBAkzaiCuNl9BIbQ1tl0hraewbrIfpq6pbqsioaKkFwUGNQYFSJudxhUFZ9KUz6IGlbTfrpXcPN6UB2cHlgfcBuqZKBEAIfkECQoAAAAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7yJEopZA4CsKPDUKfxIIgjZ+P3EWe4gECYtqFo82P2cXlTWXQReOiJE5bFqHj4qiUhmBgoSFho59rrKztLVMBQY1BgWzBWe8UUsiuYIGTpMglSaYIcpfnSHEPMYzyB8HZwdrqSMHxAbath2MsqO0zLLorua05OLvJxEAIfkECQoAAAAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhfohELYHQuGBDgIJXU0Q5CKqtOXsdP0otITHjfTtiW2lnE37StXUwFNaSScXaGZvm4r0jU1RWV1hhTIWJiouMjVcFBjUGBY4WBWw1A5RDT3sTkVQGnGYYaUOYPaVip3MXoDyiP3k3GAeoAwdRnRoHoAa5lcHCw8TFxscduyjKIrOeRKRAbSe3I9Um1yHOJ9sjzCbfyInhwt3E2cPo5dHF5OLvJREAOwAAAAAAAAAAAA=='/>";
+		d.innerHTML += "<br><br><div id='loading_msg'>0%</div>";
+		document.body.appendChild( d );
+	}
+	
 	// Load an resource url or an array of resource urls
-	function load(urlOrArr) {
+	function load( urlOrArr, callbacks ) {
+		showLoadingDialog();
+		
+		if( callbacks != undefined ) {
+			if( typeof callbacks.ready == 'function' ) {
+				readyCallbacks = [ loadingDone, callbacks.ready ];
+			}
+			if( typeof callbacks.loading == 'function' ) {
+				loadingCallbacks = [ loadingProgress, callbacks.loading ];
+			}
+			if( typeof callbacks.error == 'function' ) {
+				errorCallbacks = [ loadingError, callbacks.error ];
+			}
+		}
+		
 		if (urlOrArr instanceof Array) {
 			urlOrArr.forEach(function(url) {
 				_load(url);
@@ -566,44 +703,80 @@ hotjs.Matrix = Matrix;
 	}
 
 	function isVideo(url) {
-		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( (ext == 'ogg') ) {
+		if( url.endsWith('ogg') ) {
 			return ( url.indexOf('video') > -1 );
 		} else {
-			return ( ['mp4', 'webm'].indexOf(ext) > -1);
+			return ( url.endsWith('mp4') || url.endsWith('webm') );
 		}
 	}
 	
 	function isAudio(url) {
-		var ext = url.substring( url.lastIndexOf('.') +1 );
-		if( (ext == 'ogg') ) {
+		if( url.endsWith('ogg') ) {
 			return ( url.indexOf('video') == -1 );
 		} else {
-			return ( ['mp3', 'wav'].indexOf(ext) > -1);
+			return ( url.endsWith('mp3') || url.endsWith('wav') );
 		}
 	}
 	
+	function isScript(url) {
+		return url.endsWith('.js');
+	}
+	
 	function _load(url) {
-		if (resourceCache[url]) {
-			return resourceCache[url];
+		if ( url in resourceCache ) {
+			return;
+			
 		} else {
-			resourceCache[url] = false;
-			total ++;
-
 			var res;
-			var isvideo = isVideo(url), isaudio = isAudio(url);
-			if( isvideo ) {
+			
+			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
+			if( is_video ) {
 				res = new Video();
-			} else if( isaudio ) {
+			} else if( is_audio ) {
 				res = new Audio();
+			} else if( is_script ){
+				var abs_url = hotjs.getAbsPath(url, document.location.href);
+				var ss = document.getElementsByTagName('script');
+				for(var i=0; i<ss.length; i++) {
+					if( ss[i].src == abs_url ) return ss[i];
+				}
+				res = document.createElement('script');
 			} else {
 				res = new Image();
 			}
 			
+			resourceCache[url] = false;
+			total ++;
+
 			var onload = function(){
 				resourceCache[url] = res;
 				loaded ++;
+				console.log( url + ' preloaded (' + loaded + '/' + total + ')'  );
 
+				if( url.endsWith('.sprite.js') ) {
+					var f = hotjs.getFileName(url);
+					if( f in sprites ) {
+						var sprite = sprites[ f ];
+						sprite['url'] = url;
+						var images = sprite['images'];
+						for( id in images ) {
+							var image = images[ id ];
+							var imgurl = hotjs.getAbsPath( image[0], url );							
+							image[2] = imgurl; // image[1] is transp color							
+							_load( imgurl );
+						}
+					}
+				} else if (url.endsWith('.pst.js') ) {
+					var f = hotjs.getFileName(url);
+					if( f in pst_cache ) {
+						var launchers = pst_cache[ f ]['launchers'];
+						for( var i=0; i<launchers.length; i++ ) {
+							// might be .sprite.js, or .png
+							_load( hotjs.getAbsPath( launchers[i].res, url ) );
+						}						
+					}
+				}
+				
 				loadingCallbacks.forEach(function(func){
 					func(res.src, loaded, total);
 				});
@@ -620,17 +793,21 @@ hotjs.Matrix = Matrix;
 				});
 			};
 			
-			if( isvideo || isaudio ) {
-				res.addEventListener('canplaythrough', onload);
-				res.addEventListener('error', onerror);
-				res.setAttribute('src', url);
-				res.load();
+			if( is_video || is_audio ) {
+				res.addEventListener('canplay', onload);
+				res.setAttribute('preload', 'auto');
+				//document.body.appendChild( res );
+			} else if ( is_script ) {
+				res.async = true;
+				res.addEventListener('load', onload);
+				var ss = document.getElementsByTagName('script');
+				ss[0].parentNode.insertBefore(res, ss[0]);
 			} else {
-				res = new Image();
-				res.onload = onload;
-				res.onerror = onerror;
-				res.setAttribute('src', url);
+				res.addEventListener('load', onload);
 			}
+			
+			res.addEventListener('error', onerror);
+			res.setAttribute('src', url);
 			
 			return res;
 		}
@@ -639,15 +816,21 @@ hotjs.Matrix = Matrix;
 	function get(url) {
 		var res = resourceCache[url];
 		if(! res) {
-			var isvideo = isVideo(url), isaudio = isAudio(url);
-			if( isvideo ) {
+			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
+			if( is_video ) {
 				res = new Video();
 				res.setAttribute('src', url);
 				res.load();
-			} else if( isaudio ) {
+			} else if( is_audio ) {
 				res = new Audio();
 				res.setAttribute('src', url);
 				res.load();
+			} else if( is_script ){
+				res = document.createElement('script');
+				res.async = 1;
+				res.setAttribute('src', url);
+				var ss = document.getElementsByTagName('script');
+				ss[0].parentNode.insertBefore(res, ss[0]);				
 			} else {
 				res = new Image();
 				res.setAttribute('src', url);
@@ -711,6 +894,13 @@ var View = function(){
 	this.canvas.width = 480;
 	this.canvas.height = 320;
 	this.rect = this.canvas.getBoundingClientRect();
+	
+	this.color = "black";
+	this.bgcolor = 'white';
+
+	this.bgrepeat = false;
+	this.bgimg = undefined;
+	this.bgimgrect = undefined;
 
 	this.container = undefined;
 
@@ -725,6 +915,8 @@ var View = function(){
 	this.dtSum = 0;
 	this.frames = 0;
 	this.fps = 60;
+	
+	this.maxFps = 60;
 	
 	this.runningTime = 0;
 	this.runningTimeStr = "0 : 00 : 00"; // h:m:s
@@ -810,23 +1002,31 @@ hotjs.inherit(View, hotjs.Class, {
 		// using closure, me is accessable to inner function, but 'this' changed.
 		var me = this;
 		var lastTime = Date.now();
+		var step = 1000 / this.maxFps;
+		var nextTime = lastTime + step;
 		
 		function view_loop(){
 			var now = Date.now();
-			var dt = (now - lastTime) / 1000.0;
-			
-			if( me.running ) {
-				me.update( dt );
-				me.render();
+			if( now > nextTime ) {
+				if( me.running ) {
+					var dt = (now - lastTime) / 1000.0;
+					me.update( dt );
+					me.render();
+				}
+				lastTime = now;
+				nextTime += step;
 			}
 			
-			lastTime = now;
 			requestAnimFrame( view_loop );
 		}
 		
 		this.running = true;
 		view_loop();
 
+		return this;
+	},
+	setMaxFps : function( f ) {
+		this.maxFps = Math.max(1, Math.min(f, 60));
 		return this;
 	},
 	resume : function( r ) {
@@ -863,6 +1063,24 @@ hotjs.inherit(View, hotjs.Class, {
 		this.rect = this.canvas.getBoundingClientRect();
 		return this;
 	},
+	setBgColor : function(c) {
+		this.bgcolor = c;
+		return this;
+	},
+	setColor : function(c) {
+		this.color = c;
+		return this;
+	},
+	setBgImage : function(repeat, img, r) {
+		this.bgrepeat = repeat;
+		this.bgimg = img;
+		if(! r) {
+			this.bgimgrect = [0,0, img.width, img.height];
+		} else {
+			this.bgimgrect = [ r[0], r[1], r[2], r[3] ];
+		}
+		return this;
+	},	
 	getSize : function() {
 		return [this.canvas.width, this.canvas.height];
 	},
@@ -966,8 +1184,20 @@ hotjs.inherit(View, hotjs.Class, {
 	render : function() {
 		var c = this.ctx;
 		c.save();
-		c.fillStyle = "white";
-		c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
+		
+		if(!! this.bgimg) {
+			if( this.bgrepeat ) {
+				c.fillStyle = c.createPattern(this.bgimg, 'repeat');
+				c.fillRect( 0, 0, this.canvas.width,this.canvas.height);
+			} else {
+				c.drawImage(this.bgimg, 
+						this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
+						0, 0, this.canvas.width,this.canvas.height);
+			}
+		} else {
+			if(!! this.bgcolor ) c.fillStyle = this.bgcolor;
+			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
+		}
 		
 		for(var i=0; i<this.scenes.length; i++) {
 			this.scenes[i].render(c);
@@ -984,8 +1214,9 @@ hotjs.inherit(View, hotjs.Class, {
 	},
 	draw : function(c) {
 		if( this.bFps ) {
-			c.strokeStyle = "black";
-			c.fillStyle = "black";
+			c.save();
+			c.strokeStyle = this.color;
+			c.fillStyle = this.color;
 			
 			c.fillText( this.runningTimeStr, this.infoPos[0], this.infoPos[1] + 20 );
 			c.fillText( this.fps + ' fps: ' + this.frames, this.infoPos[0], this.infoPos[1] + 40 );
@@ -1004,6 +1235,7 @@ hotjs.inherit(View, hotjs.Class, {
 			c.fillText( this.mouseInNode[2] + ': (' + this.mouseInNode[0] + ', ' + this.mouseInNode[1] +')', this.infoPos[0], this.infoPos[1] + 140 );
 
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
+			c.restore();
 		}
 	},
 	// listen input events & forward
@@ -1069,7 +1301,7 @@ hotjs.inherit(View, hotjs.Class, {
 
 		// finger is not accurate, so range in 5 pixel is okay.
 		var vect = [ t.x - this.t0[0], t.y - this.t0[1] ];
-		if( Vector.getLength(vect) <= this.touch_accuracy ) {
+		if( hotjs.Vector.getLength(vect) <= this.touch_accuracy ) {
 			this.click( t );
 		}
 
@@ -1143,23 +1375,21 @@ var Node = function() {
 	this.index = {};
 	
 	this.size = [40,40];
-	this.color = undefined; // default: "black"
+	this.color = undefined; // default: 'black'
+	this.bgcolor = undefined; // default: 'white'
 	this.img = undefined;
 	this.imgrect = undefined; // [x,y,w,h]
 	this.sprite = undefined;
 
 	// geometry, 2D only
 	this.pos = [0,0];
-	this.velocity = undefined; // default [0,0]
+	this.velocity = [0,0]; // default [0,0]
 
 	this.rotation = undefined; // default: 0
-	this.spin = undefined; // default: 0
-
 	this.scale = undefined; // default: [1,1]
-	this.shrink = undefined; // default: 1
-
 	this.alpha = undefined; // default: 1, range: [0,1]
-	this.fade = undefined; // default: 0
+	
+	this.anims = [];
 	
 	// physical
 	this.accel = undefined; // default: [0,0]
@@ -1170,13 +1400,12 @@ var Node = function() {
 	this.moveable = undefined;
 	this.zoomable = undefined;
 	this.rotateable = undefined;
+	this.throwable = undefined;
+	this.gesture = [0,0];
+	this.dragging = false;
 };
 
 hotjs.inherit(Node, hotjs.Class, {
-	setContainer : function(c) {
-		this.container = c;
-		return this;
-	},
 	setName : function(n) {
 		this.name = n;
 		return this;
@@ -1221,18 +1450,30 @@ hotjs.inherit(Node, hotjs.Class, {
 		var b = (p[0]>=0) && (p[0]<this.size[0]) && (p[1]>=0) && (p[1]<this.size[1]);
 		return b;
 	},
-	setDraggable : function(b) {
-		this.draggable = b;
-		if(b) {
+	setDraggable : function(x,y) {
+		this.draggable = x || y;
+		this.draggableX = x;
+		this.draggableY = (y == undefined) ? x : y;
+
+		if( this.draggable ) {
 			if(this.touches0 == undefined) this.touches0 = new hotjs.HashMap();	
 			if(this.touches == undefined) this.touches = new hotjs.HashMap();
 		}
+
 		return this;
 	},
-	setMoveable : function(b) {
-		this.setDraggable( b );
+	setMoveable : function(x,y) {
+		this.setDraggable(x,y);
 		
-		this.moveable = b;
+		this.moveable = x || y;
+		return this;
+	},
+	setThrowable : function(x,y) {
+		this.setMoveable(x,y);
+		
+		this.throwable = x || y;
+		this.throwableX = x;
+		this.throwableY = (y == undefined) ? x : y;
 		return this;
 	},
 	setZoomable : function(b) {
@@ -1272,55 +1513,7 @@ hotjs.inherit(Node, hotjs.Class, {
 			}
 		}
 	},
-	onTouchMove : function(t) {
-		if( !! this.touches ) {
-			var f = {
-				id : t.id,
-				x : t.x,
-				y : t.y,
-				px : this.pos[0],
-				py : this.pos[1]
-			};
-			if( this.zoomable ) {
-				f.sx = this.scale[0];
-				f.sy = this.scale[1];
-			}
-			if( this.rotateable ) {
-				f.r = this.rotation;
-			}
-			this.touches.put( t.id, f );
-		}
-		
-		if( !! this.dragging ) {
-			this.handleDragZoomRotate(t);
-			return true;
-		}
-		
-		var pos = this.posFromContainer( [t.x, t.y] );
-		var ts = { id:t.id, x: pos[0], y: pos[1] };
 
-		this.container.mouseInNode = [ts.x, ts.y, ts.id];
-
-		if( !! this.dragItems ) {
-			// if a sub node is being dragged, then drag it
-			var n = this.dragItems.get( t.id );
-			if( !! n ) {
-				return n.onTouchMove( ts );
-			}
-		}
-		
-		if( !! this.subnodes ) {
-			// pass to subnodes
-			for(var i=this.subnodes.length-1; i>=0; i--) {
-				var n = this.subnodes[i];
-				if( n.inRange( pos ) ) {
-					return n.onTouchMove( ts );
-				}
-			}
-		}
-		
-		return false;
-	},	
 	onTouchStart : function(t) {
 		if( !! this.touches0 ) {
 			var f = {
@@ -1344,7 +1537,12 @@ hotjs.inherit(Node, hotjs.Class, {
 				this.id0 = t.id;
 			}
 		}
-		
+
+		// introduce simple gesture of 1 touch
+		this.gestureTime = Date.now();
+		this.gesturePos = [ t.x, t.y ];
+		this.gesture = [0,0];
+
 		var pos = this.posFromContainer( [t.x, t.y] );
 		var ts = { id:t.id, x: pos[0], y: pos[1] };
 
@@ -1364,10 +1562,13 @@ hotjs.inherit(Node, hotjs.Class, {
 		if(!! this.draggable) {
 			this.dragging = true;
 			this.setVelocity(0, 0);
+			
 			return true;
 		}
 		
 		return false;
+	},
+	fixPos : function(){
 	},
 	handleDragZoomRotate : function(t) {
 		if(! this.touches) return false;
@@ -1377,7 +1578,10 @@ hotjs.inherit(Node, hotjs.Class, {
 			if( this.touches.size() == 1 ) {
 				var t0 = this.touches0.get( this.id0 );
 				var t1 = this.touches.get( this.id0 );
-				this.pos = [ (t1.x - t0.x + t0.px), (t1.y - t0.y + t0.py) ];
+				if( this.draggableX ) this.pos[0] = (t1.x - t0.x + t0.px);
+				if( this.draggableY ) this.pos[1] = (t1.y - t0.y + t0.py);
+				
+				this.fixPos();
 			}
 		}
 		
@@ -1409,13 +1613,86 @@ hotjs.inherit(Node, hotjs.Class, {
 				var center_t1 = [ (f1t1.x + f2t1.x)/2, (f1t1.y + f2t1.y)/2 ];
 				var center_delta = Vector.sub( center_t1, center_t0 );
 				this.pos = Vector.add( this.pos, center_delta );
+				
+				this.fixPos();
 			}
 		}
 		
 		if( this.rotateable ) {
 			
 		}
+		
+		if( !! this.throwable ) {
+			var gesture = this.getGesture();
+			if( this.throwableX ) this.velocity[0] = gesture[0];
+			if( this.throwableY ) this.velocity[1] = gesture[1];
+		}
 	},
+	updateGesture : function(t) {
+		var now = Date.now();
+		var dt = (now - this.gestureTime) / 1000.0;
+		if( dt > 0 ) {
+			this.gesture = [ (t.x - this.gesturePos[0]) / dt, (t.y - this.gesturePos[1]) /dt ];
+			if( dt > 0.3 ) {
+				this.gestureTime = now;
+				this.gesturePos = [ t.x, t.y ];
+			}
+		}
+	},
+	getGesture: function(){
+		return this.gesture;
+	},
+	onTouchMove : function(t) {
+		if( !! this.touches ) {
+			var f = {
+				id : t.id,
+				x : t.x,
+				y : t.y,
+				px : this.pos[0],
+				py : this.pos[1]
+			};
+			if( this.zoomable ) {
+				f.sx = this.scale[0];
+				f.sy = this.scale[1];
+			}
+			if( this.rotateable ) {
+				f.r = this.rotation;
+			}
+			this.touches.put( t.id, f );
+		}
+		
+		this.updateGesture(t);
+		
+		if( !! this.dragging ) {
+			this.handleDragZoomRotate(t);
+			return true;
+		}
+		
+		var pos = this.posFromContainer( [t.x, t.y] );
+		var ts = { id:t.id, x: pos[0], y: pos[1] };
+
+		this.container.mouseInNode = [ts.x, ts.y, ts.id];
+
+		if( !! this.dragItems ) {
+			// if a sub node is being dragged, then drag it
+			var n = this.dragItems.get( t.id );
+			if( !! n ) {
+				return n.onTouchMove( ts );
+			}
+		}
+		
+		if( !! this.subnodes ) {
+			// pass to subnodes
+			for(var i=this.subnodes.length-1; i>=0; i--) {
+				var n = this.subnodes[i];
+				if( n.inRange( pos ) ) {
+					return n.onTouchMove( ts );
+				}
+			}
+		}
+		
+		return false;
+	},	
 	onTouchEnd : function(t) {
 		if( !! this.touches ) {
 			var f = {
@@ -1435,15 +1712,18 @@ hotjs.inherit(Node, hotjs.Class, {
 			this.touches.put( t.id, f );
 		}
 		
+		this.updateGesture(t);
+		
 		if( this.dragging ) {
 			this.dragging = false;
+			
 			if(!! this.moveable) {
 				this.handleDragZoomRotate(t);
 			} else {
 				var t0 = this.touches0.get( this.id0 );
 				this.pos = [ t0.px, t0.py ];
 			}
-
+			
 			if( !! this.touches ) this.touches.remove( t.id );
 			if( !! this.touches0 ) this.touches0.remove( t.id );
 			return true;
@@ -1484,20 +1764,6 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.velocity = [vx,vy];
 		return this;
 	},
-	setSpin : function(s) {
-		if( ! this.rotation ) {
-			this.rotation = 0;
-		}
-		this.spin = s;
-		return this;
-	},
-	setShrink : function(sx,sy) {
-		if( ! this.scale ) {
-			this.scale = [1,1];
-		}
-		this.shrink = [sx,sy];
-		return this;
-	},
 	setMass : function(m) {
 		this.mass = m;
 		return this;
@@ -1518,15 +1784,13 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.color = c;
 		return this;
 	},
+	setBgColor : function(c) {
+		this.bgcolor = c;
+		return this;
+	},
 	// alpha, range [0,1]
 	setAlpha : function(a) {
 		this.alpha = a;
-		return this;
-	},
-	// f can be a small number, like 1.0/60; or function: alpha = f(alpha)
-	setFade : function(f) {
-		if(this.alpha == undefined) this.alpha=1;
-		this.fade = f;
 		return this;
 	},
 	setImage : function(img, r) {
@@ -1595,33 +1859,32 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		if( !! this.dragging ) 	return this;
 		
-		// update pos / rotation / scale, according to velocity / spin / shrink
+		// update pos according to velocity
 		if(this.velocity !== undefined) {
-			this.pos[0] += this.velocity[0];
-			this.pos[1] += this.velocity[1];
+			this.pos[0] += this.velocity[0] * dt;
+			this.pos[1] += this.velocity[1] * dt;
 		}
-		if(this.spin !== undefined) {
-			this.rotation += this.spin;
-		}
-		if(this.shrink !== undefined) {
-			this.scale[0] *= this.shrink[0];
-			this.scale[1] *= this.shrink[1];
+		// update velocity accoring to accel
+		if(this.accel !== undefined) {
+			this.velocity[0] += this.accel[0] * dt;
+			this.velocity[1] += this.accel[1] * dt;
 		}
 		
-		// update velocity / alpha, according to accel / fade
-		if(this.accel !== undefined) {
-			this.velocity[0] += this.accel[0];
-			this.velocity[1] += this.accel[1];
-		}
-		if(this.fade !== undefined) {
-			if(typeof this.fade == 'number') {
-				this.alpha += this.fade;
-				if(this.alpha<0 || this.alpha>1) this.fade=undefined;
-			} else if (typeof this.fade == 'function') {
-				this.alpha = this.fade( this.alpha, dt );
+		// process other complex animation
+		if( this.anims.length > 0 ) {
+			for( var i=0; i<this.anims.length; i++ ) {
+				this.anims[i].update(dt);
 			}
 		}
 
+		return this;
+	},
+	addAnim : function(anim) {
+		this.anims.push( anim );
+		return this;
+	},
+	removeAnim : function(anim) {
+		this.anims.splice( this.anims.indexOf(anim), 1 );
 		return this;
 	},
 	render : function(c) {
@@ -1632,7 +1895,7 @@ hotjs.inherit(Node, hotjs.Class, {
 			c.translate(this.pos[0], this.pos[1]);
 		} else {
 			c.translate(this.pos[0] + this.size[0]/2, this.pos[1] + this.size[1]/2);
-			c.rotate(this.rotation * Math.PI / 180);
+			c.rotate( this.rotation * Math.PI / 180 );
 			c.translate( - this.size[0]/2, - this.size[1]/2 );
 		}
 		if( !! this.scale ) c.scale(this.scale[0],this.scale[1]);
@@ -1685,7 +1948,7 @@ var Scene = function(){
 	this.gridOn = false;
 	this.imgOn = true;
 	this.color = "black";
-	this.bgcolor = "white";
+	this.bgcolor = undefined;
 
 	this.bgrepeat = false;
 	this.bgimg = undefined;
@@ -1747,14 +2010,10 @@ hotjs.inherit( Scene, Node, {
 		
 		return this.area;
 	},
-	setBgColor : function(c) {
-		this.bgcolor = c;
-		return this;
-	},
 	onTouchMove : function(t) {
 		var ret = Scene.supClass.onTouchMove.call(this, t);
 		
-		this.fixView();
+		//this.fixPos();
 		//this.setVelocity(0,0);
 		//this.setSpin(0,0);
 		
@@ -1763,14 +2022,15 @@ hotjs.inherit( Scene, Node, {
 	onTouchEnd : function(t) {
 		var ret = Scene.supClass.onTouchEnd.call(this, t);
 
-		this.fixView();
+		this.fixPos();
 		//this.setVelocity(0,0);
 		//this.setSpin(0,0);
 		
 		return ret;
 	},
 	// ensure the scene is always in view
-	fixView : function() {
+	fixPos : function() {
+		var Vector = hotjs.Vector;
 		var w = this.container.width(), h = this.container.height();
 		var min_sx = w / this.size[0], min_sy = h / this.size[1];
 		var min_scale = Math.min( min_sx, min_sy );
@@ -1797,7 +2057,7 @@ hotjs.inherit( Scene, Node, {
 		this.pos[0] += x;
 		this.pos[1] += y;
 		
-		this.fixView();
+		this.fixPos();
 		
 		return this;
 	},
@@ -1839,14 +2099,14 @@ hotjs.inherit( Scene, Node, {
 				this.scale = [sMin, sMin];
 			}
 			
-			this.fixView();
-
 		} else {
 			// by default, scale & center scene to fit view
 			this.scale = [sMin, sMin];
 			this.pos = [ (vSize[0] - this.size[0] * sMin) /2, (vSize[1] - this.size[1] * sMin)/2 ];
 		}
 		
+		this.fixPos();
+
 		return this;
 	},
 	
@@ -1884,7 +2144,11 @@ hotjs.inherit( Scene, Node, {
 							this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
 							0, 0, this.size[0], this.size[1]);
 				}
+			} else if( !! this.bgcolor ){
+				c.fillStyle = this.bgcolor;
+				c.fillRect(0, 0, this.size[0], this.size[1]);
 			}
+
 			if(!! this.areaimg) {
 				if( this.arearepeat ) {
 					c.fillStyle = c.createPattern(this.areaimg, 'repeat');
@@ -1894,12 +2158,7 @@ hotjs.inherit( Scene, Node, {
 							this.areaimgrect[0], this.areaimgrect[1], this.areaimgrect[2], this.areaimgrect[3], 
 							a.l, a.t, a.w, a.h);
 				}
-			}
-		} else {
-			if( !! this.bgcolor ){
-				c.fillStyle = this.bgcolor;
-				c.fillRect(0, 0, this.size[0], this.size[1]);
-			}
+			}		
 		}
 		
 		if( this.gridOn ) {
@@ -1937,8 +2196,24 @@ hotjs.inherit( Scene, Node, {
 	}
 });
 
-// TODO: Sprite
 
+//-----------------------
+// TODO: all core packages, classes, and function set
+hotjs.View = View;
+hotjs.Node = Node;
+hotjs.Scene = Scene;
+
+})(); 
+
+
+// ------- sprite.js ------------- 
+
+// name space
+var hotjs = hotjs || {};
+
+(function(){
+	
+// TODO: Sprite, from simple PNG
 function Sprite(url, pos, size, speed, frames, dir, once) {
     this.pos = pos;
     this.size = size;
@@ -1991,15 +2266,508 @@ Sprite.prototype = {
 	}
 };
 
-//-----------------------
-// TODO: all core packages, classes, and function set
-hotjs.View = View;
-hotjs.Node = Node;
-hotjs.Scene = Scene;
+// TODO: Animat, data source: AuroraGT by Gamelosft
+var Animat = function(url, anim_id){
+	hotjs.base(this);
+	
+	this.sheet = sprite_cache[ hotjs.getFileName( url ) ];
+	this.anim = (this.sheet['anims']) [ anim_id ];
+	
+	this.index = 0;
+	this.counter = 0;
+};
+
+hotjs.inherit(Animat, hotjs.Class, {
+	update: function(dt) {
+		var frame = this.anim[ this.index ];
+		this.counter ++;
+		if( this.counter >= frame[1]) {
+			this.counter = 0;
+			this.index ++;
+			if( this.index >= this.anim.length ) this.index = 0;
+		}
+	},
+	render: function(c, w, h) {
+		c.save();
+		c.translate( w * 0.5, h );
+		var modules = this.sheet['modules'];
+		var images = this.sheet['images'];
+		var frames = this.sheet['frames'];
+
+		var f = this.anim[ this.index ];
+		var frame_id = f[0], ox = f[2], oy = f[3], oflag = f[4];
+		var mods = frames[ frame_id ];
+		
+		c.translate(ox, oy);
+		switch( oflag ) {
+		case 0: c.scale(1,1); break;
+		case 2: c.scale(-1,1); break;
+		case 3: c.scale(1,-1); break;
+		case 4: c.scale(-1,-1); break;
+		}
+		
+		for( var i=0; i<mods.length; i++ ) {
+			// each piece in this frame
+			var m = mods[i];
+			var mod_id = m[0], oox = m[1], ooy = m[2], ooflag = m[3];
+
+			// mapping to image
+			var mod = modules[ mod_id ];
+			if( mod[0] == 'MD_IMAGE' ) {
+				var img_id = mod[1], x = mod[2], y = mod[3], w = mod[4], h = mod[5];
+				var img = images[ img_id ];
+				var img_url = img[2], transp = img[1];
+				var oImg = resources.get( img_url );
+				
+				c.save();
+				c.translate( oox +w/2, ooy+h/2 );
+				switch(ooflag) {
+				case 0: c.scale(1.01, 1.01); break;
+				case 2: c.scale(-1.01, 1.01); break;
+				case 3: c.scale(1.01, -1.01); break;
+				case 4: c.scale(-1.01, -1.01); break;
+				}
+				c.drawImage( oImg, x, y, w, h, -w/2, -h/2, w, h );
+				c.restore();
+			}
+		}
+		c.restore();
+	}
+});
+
+// TODO: Particle
+var Particle = function( par ){
+	hotjs.base(this);
+	
+	this.par = par;
+	
+	this.frame = 0;
+	this.life = 0;
+	
+	this.spin = 0;
+	this.spin_delta = 0;
+};
+
+hotjs.inherit( Particle, hotjs.Node, {
+	init: function(){
+		var randi = hotjs.Random.Integer;
+		var randf = hotjs.Random.Float;
+		var par = this.par;
+		var v = par.mode.v;
+		
+		if( par.res.endswWith('.sprite.js') ) {
+			this.setSprite( new Animat(par.res, 'xxx') );
+		} else if( par.res.endsWith('.png') ) {
+			this.setImage( resources.get(par.res) );
+		}
+		
+		this.life = randi( par.lifeMin, par.lifeMax );
+
+		// init pos
+		this.pos = [ par.x, par.y ];
+		switch( par.mode.id ) {
+		case 0:
+			break;
+		case 31: // rect 
+			this.pos[0] += randf(v[0], v[2]);
+			this.pos[1] += randf(v[1], v[3]);
+			break;
+		case 32: // circle
+			var R = randf(v[1], v[0]);
+			var ang = randf(v[2], v[3]);
+			this.pos[0] += R * Math.cos(ang * Math.PI / 180);
+			this.pos[1] += R * Math.sin(ang * Math.PI / 180);
+			break;
+		}
+		
+		var fts = par.filters;
+		for( var i=0; i<fts.length; i++ ) {
+			var ft = fts[i];
+			var v = ft.v;
+			switch( ft.type ) {
+			case 'rotate':
+				if( v[1] > 0 ) {
+					this.rotation = randf(0, 1) * 360;
+				} else {
+					this.rotation = v[0];
+				}
+				this.spin = v[2];
+				this.spin_delta = (v[3] - v[2]) / this.life;
+				break;
+			case 'scale':
+				var s = randf(v[0], v[1]);
+				this.scale = [s, s];
+				// TODO: center point shift
+				break;
+			case 'move':
+				break;
+			case 'color':
+				break;
+			case 'h3g':
+				break;
+			}
+		}
+		
+	},
+	update: function(dt){
+		Particle.supClass.update.call(this, dt);
+		
+		this.frame ++;
+		this.rotation += this.spin;
+		this.spin += this.spin_delta;
+	}	
+});
+
+// TODO: ParticleSet
+var ParticleSet = function( par ) {
+	hotjs.base(this);
+	
+	this.par = par;
+	
+	// TODO: to ensure performance, set limit up to 16 particles
+	this.par.maxPtsCount = Math.min( this.par.maxPtsCount, 16 );
+	
+	this.frame = 0;
+};
+
+hotjs.inherit( ParticleSet, hotjs.Node, {
+	init: function(){
+	},
+	destroy: function(){
+		this.subnodes.length = 0;
+	},
+	update: function(dt){
+		var randi = hotjs.Random.Integer;
+		var par = this.par;
+		var ps = this.subnodes;
+		
+		// destroy
+		for( var i=ps.length-1; i>=0; i-- ) {
+			var p = ps[i];
+			if( p.frame < p.life ) {
+				p.update(dt);
+			} else {
+				ps.splice(i,1);
+				delete p;
+			}
+		}
+		
+		// create
+		if( this.frame >= par.delay && this.frame < par.life ) {
+			var n = randi( par.createMin, par.createMax );
+			for( var i=0; i<n; i++ ) {
+				if( ps.length >= par.maxPtsCount ) break;
+				var p = new Particle( par ).init();
+				ps.push( p );
+			}
+		}
+
+		this.frame ++;
+		if( this.frame >= 25 ) this.frame = 0;
+	}
+});
+
+// TODO: ParticleSystem
+var ParticleSystem = function( url ) {
+	hotjs.base(this);
+
+	var pst = pst_cache[ hotjs.getFileName( url ) ];
+
+	for( var par in pst ) {
+		this.addNode( new ParticleSet(par) );
+	}
+};
+
+hotjs.inherit( ParticleSystem, hotjs.Node, {
+
+});
+
 hotjs.Sprite = Sprite;
 
-})(); 
+hotjs.Animat = Animat;
 
+hotjs.Particle = Particle;
+hotjs.ParticleSet = ParticleSet;
+hotjs.ParticleSystem = ParticleSystem;
+
+})(); 
+// ------- animation.js ------------- 
+
+
+hotjs.Anim = hotjs.Anim || {};
+
+(function(){
+
+var Animation = function(who, param){
+	hotjs.base(this);
+	
+	this.who = who;
+	
+	this.param = {
+		loop : false,
+		duration : 1.0
+	};
+	for( var i in param ) {
+		this.param[i] = param[i];
+	}
+
+	this.dtSum = 0;
+};
+
+hotjs.inherit(Animation, hotjs.Class, {
+	// override
+	init: function(){
+	},
+	step: function(dt) {
+	},
+	restore: function(){
+	},
+	// called 
+	play: function(){
+		this.init();
+		this.who.addAnim(this);
+		return this;
+	},
+	update: function(dt) {
+		this.dtSum += dt;
+		var timeout = ( this.dtSum >= this.param.duration ) && (! this.loop);
+		
+		var done = this.step(dt);
+		
+		var func = this.param.step;
+		if( typeof func == 'function' ) {
+			func( this.who, dt );
+		}
+			
+		if( timeout || done ) {
+			this.who.removeAnim(this);
+			
+			var func = this.param.done;
+			if( typeof func == 'function') {
+				func( this.who );
+			}
+		}
+	}
+});
+
+// TODO: MoveTo
+var MoveTo = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(MoveTo, Animation, {
+	init: function(){
+		var p = this.param;
+		this.from = [ this.who.pos[0], this.who.pos[1] ];
+		this.to = [ p.to[0], p.to[1] ];
+		
+		this.inc = [ (this.to[0] - this.from[0]) / p.duration, 
+		             (this.to[1] - this.from[1]) / p.duration ];
+	},
+	step: function(dt) {
+		this.who.pos = [ this.from[0] + this.inc[0] * this.dtSum, 
+		                 this.from[1] + this.inc[1] * this.dtSum ];
+
+		if( this.dtSum >= this.param.duration ) {
+			this.who.pos = this.to;
+		}
+		return false;
+	},
+	restore: function(dt) {
+		this.who.pos = this.from;
+	}
+});
+
+//TODO: StickTo
+var StickTo = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(StickTo, Animation, {
+	init: function(){
+		var p = this.param;
+		this.from = [ this.who.pos[0], this.who.pos[1] ];
+		this.to = [ p.to[0], p.to[1] ];
+		
+		this.inc = [ (this.to[0] - this.from[0]) / (p.duration * p.duration),
+		             (this.to[1] - this.from[1]) / (p.duration * p.duration) ];
+		
+	},
+	step: function(dt) {
+		var t = this.dtSum * this.dtSum;
+		this.who.pos = [ this.from[0] + this.inc[0] * t,
+		                 this.from[1] + this.inc[1] * t ];
+		
+		if( this.dtSum >= this.param.duration ) {
+			this.who.pos = this.to;
+		}
+		return false;
+	},
+	restore: function(dt) {
+		this.who.pos = this.from;
+	}
+});
+
+//TODO: SlowDown
+var SlowDown = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(SlowDown, Animation, {
+	init: function(){
+		if(! this.who.velocity) this.who.rotation = [0,0];
+		this.from = this.who.velocity;
+	},
+	step: function(dt) {
+		var perc = 1 - this.dtSum / this.param.duration;
+		this.who.velocity = [ this.from[0] * perc, this.from[1] * perc ];
+		if( this.dtSum >= this.param.duration ) {
+			this.who.velocity = [0,0];
+		}
+	},
+	restore: function() {
+		this.who.velocity = this.from;
+	}
+});
+
+// TODO: RotateBy
+var RotateBy = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(RotateBy, Animation, {
+	init: function(){
+		if(! this.who.rotation) this.who.rotation = 0;
+		if(! this.param.spin) {
+			console.log('lacking param.spin');
+		}		
+		this.from = this.who.rotation;
+		this.inc = this.param.spin;
+	},
+	step: function(dt) {
+		this.who.rotation += this.inc * dt;
+	},
+	restore: function() {
+		this.who.rotation = this.from;
+	}
+});
+
+//TODO: ScaleTo
+var ScaleTo = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(ScaleTo, Animation, {
+	init: function(){
+		var p = this.param;
+		var dur = p.duration;
+
+		this.from = this.who.scale;
+		this.to = p.to;
+		this.inc = [ (p.to[0]-this.who.scale[0]) / dur, 
+		             (p.to[1]-this.who.scale[1]) / dur ];
+	},
+	step: function(dt) {
+		this.who.scale = [ this.from[0] + this.inc[0] * dt,
+		                   this.from[1] + this.inc[1] * dt ];
+		if( this.dtSum >= this.param.duration ) {
+			this.who.scale = this.to;
+		}
+	},
+	restore: function(){
+		this.who.scale = this.from;
+	}
+});
+
+//TODO: ScaleLoop
+var ScaleLoop = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(ScaleLoop, Animation, {
+	init: function(){
+		var p = this.param;
+		this.from = this.who.scale;
+		this.mid = (p.range[0] + p.range[1])/2;
+		this.delta = (p.range[1] - p.range[0])/2;
+	},
+	step: function(dt) {
+		var s = this.mid + this.delta * Math.sin( this.dtSum / this.param.freq * Math.PI );
+		this.who.scale = [s, s];
+		return false;
+	},
+	restore: function(){
+		this.who.scale = this.from;
+	}
+});
+
+
+//TODO: FadeTo
+var FadeTo = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(FadeTo, Animation, {
+	init: function(){
+		var p = this.param;
+		
+		this.from = this.who.alpha;
+		this.to = p.to;
+		this.inc = (p.to - this.from) / p.duration;
+	},
+	step: function(dt) {
+		this.who.alpha = this.from + this.inc * dt;
+		if( this.dtSum >= this.param.duration ) {
+			this.who.alpha = this.to;
+		}
+	},
+	restore: function(){
+		this.who.alpha = this.from;
+	}
+});
+
+//TODO: FadeLoop
+var FadeLoop = function(who, param) {
+	hotjs.base(this, who, param);
+};
+hotjs.inherit(FadeLoop, Animation, {
+	init: function(){
+		var p = this.param;
+		this.from = this.who.alpha;
+		this.mid = (p.range[0] + p.range[1])/2;
+		this.delta = (p.range[1] - p.range[0])/2;
+	},
+	step: function(dt) {
+		this.who.alpha = this.mid + this.delta * Math.sin(this.dtSum / this.param.freq * Math.PI);
+		return false;
+	},
+	restore: function(){
+		this.who.alpha = this.from;
+	}
+});
+
+var create = function(target, anim, param) {
+	var animClass = hotjs.Anim[ anim ];
+	if( typeof animClass != 'function') {
+		console.log( animClass + ' not exists.' );
+		animClass = Animation;
+	}
+	
+	return new animClass(target, param);
+};
+
+var register = function(anim, animClass) {
+	hotjs.Anim[ anim ] = animClass;
+	return this;
+};
+
+hotjs.Anim = {
+	register: register,
+	create: create,
+	MoveTo: MoveTo,
+	StickTo: StickTo,
+	SlowDown: SlowDown,
+	RotateBy: RotateBy,
+	ScaleTo: ScaleTo,
+	ScaleLoop: ScaleLoop,
+	FadeTo: FadeTo,
+	FadeLoop: FadeLoop
+};
+
+})();
 
 // ------- physics.js ------------- 
 
@@ -2039,8 +2807,7 @@ var Formula = {
 var Node = function(){
 	hotjs.base(this);
 	
-	this.restitution = 0.9;
-	this.throwable = true;
+	this.restitution = 0.95;
 };
 
 hotjs.inherit(Node, hotjs.Node, {
@@ -2053,52 +2820,8 @@ hotjs.inherit(Node, hotjs.Node, {
 	getRestitution : function() {
 		return this.restitution;
 	},
-	setThrowable : function(th) {
-		if(! th) th = ! this.throwable;
-		this.throwable = th;
-		return this;
-	},
 	collide : function(another) {
 		return this;
-	},
-	onTouchStart : function(t) {
-		var ret = Node.supClass.onTouchStart.call(this, t);
-
-		this.dragTime = Date.now();
-		this.t1 = [ t.x, t.y ];
-		this.maxVel = [0, 0];
-		
-		return ret;
-	},
-	onTouchMove : function(t) {
-		if( this.dragging ) this.gainVelocityFromDrag(t);
-		
-		return Node.supClass.onTouchMove.call(this, t);
-	},
-	onTouchEnd : function(t) {
-		if( this.dragging ) {
-			if( this.throwable ) {
-				this.gainVelocityFromDrag(t);
-			} else {
-				this.setVelocity(0,0);
-			}
-		}
-
-		return Node.supClass.onTouchEnd.call(this, t);
-	},
-	gainVelocityFromDrag : function(t) {
-		var now = Date.now();
-		var dt = (now - this.dragTime) / 1000.0;
-
-		var f = 1.0/60/dt;
-		var v = [ (t.x - this.t1[0]) * f, (t.y - this.t1[1]) * f ];
-		this.setVelocity(v[0], v[1]);
-		//this.setSpin(0,0);
-
-		if( dt > 0.3 ) {
-			this.dragTime = now;
-			this.t1 = [ t.x, t.y ];
-		}
 	}
 });
 
@@ -2164,10 +2887,10 @@ hotjs.inherit(Ball, Node, {
 var Scene = function(){
 	hotjs.base(this);
 
-	this.restitution = 0.5;
+	this.restitution = 0.6;
 	this.gravity = Constant.g;
-	this.resistance = 1/6;
-	
+	this.resistance = 1/2;
+	this.meter = 200;
 };
 
 hotjs.inherit(Scene, hotjs.Scene, {
@@ -2179,6 +2902,10 @@ hotjs.inherit(Scene, hotjs.Scene, {
 	},
 	getRestitution : function() {
 		return this.restitution;
+	},
+	setMeter: function(m) {
+		this.meter = m;
+		return this;
 	},
 	setGravity : function(n) {
 		this.gravity = n * Constant.g;
@@ -2194,39 +2921,23 @@ hotjs.inherit(Scene, hotjs.Scene, {
 	getResistance : function() {
 		return this.resistance;
 	},
-	applyEnvForce : function() {
-		for( var i=this.subnodes.length-1; i>=0; i-- ) {
-			var b = this.subnodes[i];
-			var vx = b.velocity[0], vy = b.velocity[1];
-
-			// media resistance (like air, water, floor, etc.)
-			var ax = - vx * this.resistance / 60;
-			var ay = - vy * this.resistance / 60;
-			//var ax -= vx / ry * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / b.density) / 60;
-			//var ay -= vy / rx * Constant.AIR_RESISTANCE * (Constant.AIR_DENSITY / b.density) / 60;
-			
-			// gravity / air buoyancy
-			ay += (1 - Constant.AIR_DENSITY/b.density)  * this.gravity / 60;
-			
-			b.accel = [ax, ay];
-		}
-		
-		return this;
-	},
-	checkBorderCollision : function() {
+	checkBorderCollision : function(dt) {
 		var a = this.getArea();
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
 			var px = b.pos[0], py = b.pos[1];
 			var rx = b.size[0], ry = b.size[1];
-			
 			var vx = b.velocity[0], vy = b.velocity[1];
-	
+
 			// check area 
-			var x_hit = ((px + rx > a.r) && (vx >0)) || ((px <= a.l) && (vx <0));
-			var y_hit = ((py + ry > a.b) && (vy >0)) || ((py <= a.t) && (vy <0));
+			var x_hit = ((px <= a.l) && (vx <=0)) || ((px + rx >= a.r) && (vx >=0));
+			var y_hit = ((py <= a.t) && (vy <=0)) || ((py + ry >= a.b) && (vy >=0));
 			
+			// media resistance (like air, water, floor, etc.)
+			var ax = vx * (- this.resistance);
+			var ay = vy * (- this.resistance);
+
 			// bounce & collision loss
 			var tution = this.restitution * b.getRestitution();
 			if( x_hit ){
@@ -2236,9 +2947,13 @@ hotjs.inherit(Scene, hotjs.Scene, {
 			if( y_hit ) {
 				vy *= (- tution);
 				vx *= (0.9 + tution * 0.1);
+			} else {
+				// gravity / air buoyancy
+				ay += (1 - Constant.AIR_DENSITY/b.density)  * (this.gravity * this.meter);
 			}
 	
 			b.velocity = [vx, vy];
+			b.accel = [ax, ay];
 		}
 		
 		return this;
@@ -2248,13 +2963,12 @@ hotjs.inherit(Scene, hotjs.Scene, {
 		
 		for( var i=this.subnodes.length-1; i>=0; i-- ) {
 			var b = this.subnodes[i];
-			var px = b.pos[0], py = b.pos[1];
 
 			// fix pos if out of area
 			px = Math.max( a.l, Math.min(a.r - b.size[0], b.pos[0]));
-			py = Math.max( a.t, Math.min(a.b - b.size[1], py = b.pos[1]));
+			py = Math.max( a.t, Math.min(a.b - b.size[1], b.pos[1]));
 			
-			b.pos = [px, py];			
+			b.pos = [ Math.round(px), Math.round(py) ];			
 		}
 		
 		return this;
@@ -2274,10 +2988,7 @@ hotjs.inherit(Scene, hotjs.Scene, {
 				}
 			}
 
-			this.applyEnvForce();
-			
-			this.checkBorderCollision();
-
+			this.checkBorderCollision(dt);
 			this.validatePos();
 		}
 		
@@ -3221,6 +3932,186 @@ hotjs.Util.BenchLab = BenchLab;
 
 })();
 
+
+// ------- ui.js ------------- 
+
+
+(function(){
+	
+var ShowBoard = function() {
+	hotjs.base(this);
+	
+	this.subnodes = [];
+	
+	this.param = {
+		width : 300,
+		height : 400,
+		margin : 20,
+		padding : 10,
+		rows : 1, // 1 row per page
+		cols : 1, // 1 col per page
+		dir : 0 // scroll X
+	};
+};
+
+hotjs.inherit(ShowBoard, hotjs.Node, {
+	addNode : function(sub) {
+		ShowBoard.supClass.addNode.call(this, sub);
+		this.updateLayout();
+		return this;
+	},
+	setParam : function(p) {
+		for( var i in p ) {
+			this.param[i] = p[i];
+		}
+		if( this.param.dir == 0 ) {
+			this.setMoveable(true, false);
+			//this.setThrowable(true, false);
+		} else {
+			this.setMoveable(false, true);
+			//this.setThrowable(false, true);
+		}
+		this.updateLayout();
+		return this;
+	},
+	fixPos : function() {
+		if( this.pos[0] > 0 ) this.pos[0] = 0;
+		if( this.pos[1] > 0 ) this.pos[1] = 0;
+
+		var minX = this.container.width() - this.size[0];
+		var minY = this.container.height() - this.size[1];
+		if( this.pos[0] < minX ) this.pos[0] = minX;
+		if( this.pos[1] < minY ) this.pos[1] = minY;
+	},
+	onTouchEnd : function(t) {
+		ShowBoard.supClass.onTouchEnd.call(this,t);
+
+		var anchor = this.pos;
+		var p = this.param;
+		if( p.dir == 0 ) {
+			var left = Math.floor(this.pos[0]/p.width) * p.width;
+			var right = left + p.width;
+			if( right >= p.width ) right = 0;
+			
+			if( this.gesture[0] <= 0 ) {
+				anchor = [ left, anchor[1] ];
+			} else {
+				anchor = [ right, anchor[1] ];
+			}
+		} else {
+			var top = Math.floor(this.pos[1]/p.height) * p.height;
+			var bottom = top + p.height;
+			if( bottom > p.height ) bottom = 0;
+			
+			if( this.gesture[1] <= 0 ) {
+				anchor = [ anchor[0], top ];
+			} else {
+				anchor = [ anchor[0], bottom ];
+			}
+		}
+
+		hotjs.Anim.create( this, 'MoveTo', { to:anchor, duration:0.3 } ).play();
+	},
+	updateLayout : function(){
+		var nodes = this.subnodes;
+		
+		var p = this.param;
+		var mg = p.margin || 0;
+		var pad = p.padding || 0;
+		var sp = p.spacing || 0;
+		var rows = p.rows || 1;
+		var cols = p.cols || 1;
+		var dir = p.dir ? 1 : 0;
+		var w = p.width || 300; w -= mg * 2;
+		var h = p.height || 400; h -= mg * 2;
+		var cw = w / cols, ch = h / rows;
+		
+		var pgc=0, pgr=0;
+		for( var i=0, row=0, col=0; i<nodes.length; i++ ) {
+			var n = nodes[i];
+			n.pos[0] = cw * (col + cols * pgc) + mg * (1+pgc*2) + (cw - n.size[0])/2;
+			n.pos[1] = ch * (row + rows * pgr) + mg * (1+pgr*2) + (ch - n.size[1])/2;
+			
+			if( ++ col >= cols ) {
+				col = 0;
+				if( ++ row >= rows ) {
+					row = 0;
+					if( dir ) {
+						pgr ++;
+					} else {
+						pgc ++;
+					}
+				}
+			}
+		}
+		pgc ++;
+		pgr ++;
+		if( col==0 && row==0 ) {
+			if( dir ) {
+				if( pgr>1 ) pgr --;
+			} else {
+				if( pgc>1 ){
+					pgc --;
+				}
+			}
+		}
+		this.size[0] = (cw * cols + mg * 2) * pgc;
+		this.size[1] = (ch * rows + mg * 2) * pgr;
+		
+		return this;
+	},
+	draw : function(c) {
+		c.save();
+		var nodes = this.subnodes;
+		
+		var p = this.param;
+		var mg = p.margin || 0;
+		var pad = p.padding || 0;
+		var sp = p.spacing || 0;
+		var rows = p.rows || 1;
+		var cols = p.cols || 1;
+		var dir = p.dir ? 1 : 0;
+		var wd = p.width || 300; wd -= mg * 2;
+		var ht = p.height || 400; ht -= mg * 2;
+		var cw = wd / cols, ch = ht / rows;
+		
+		for( var i=0, row=0, col=0, pgc=0, pgr=0; i<nodes.length; i++ ) {
+			var x = cw * (col + cols * pgc) + mg * (1+pgc*2) + sp;
+			var y = ch * (row + rows * pgr) + mg * (1+pgr*2) + sp;
+			var w = cw - sp * 2; 
+			var h = ch - sp * 2;
+			
+			if(!! this.bgcolor ) {
+				c.fillStyle = this.bgcolor;
+				c.fillRect(x, y, w, h);
+			}
+			if(!! this.color) {
+				c.strokeStyle = this.color;
+				c.strokeRect(x, y, w, h);
+			}
+			// or c.fillRect() with color/pattern
+			
+			if( ++ col >= cols ) {
+				col = 0;
+				if( ++ row >= rows ) {
+					row = 0;
+					if( dir ) {
+						pgr ++;
+					} else {
+						pgc ++;
+					}
+				}
+			}
+		}
+		
+		c.restore();
+		return this;
+	}
+});
+
+hotjs.ShowBoard = ShowBoard;
+
+})();
 
 // ------- ai.js ------------- 
 

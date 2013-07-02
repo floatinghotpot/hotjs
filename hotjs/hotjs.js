@@ -51,8 +51,7 @@ hotjs.base = function(me, opt_methodName, var_args) {
 	if (me[opt_methodName] === caller) {
 		return me.constructor.prototype[opt_methodName].apply(me, args);
 	} else {
-		throw Error('goog.base called from a method of one name '
-				+ 'to a method of a different name');
+		throw Error('hotjs.base must be called in constructor');
 	}
 };
 
@@ -326,9 +325,6 @@ hotjs.Class.prototype = {
 
 var App = function(){
 	hotjs.base(this);
-	
-	hotjs_app = this;
-	hotjs_lastTime = Date.now();
 	
 	this.views = [];
 	this.runningTime = 0;
