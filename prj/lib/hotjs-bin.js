@@ -755,8 +755,8 @@ hotjs.Matrix = Matrix;
 
 				if( url.endsWith('.sprite.js') ) {
 					var f = hotjs.getFileName(url);
-					if( f in sprites ) {
-						var sprite = sprites[ f ];
+					if( f in sprite_cache ) {
+						var sprite = sprite_cache[ f ];
 						sprite['url'] = url;
 						var images = sprite['images'];
 						for( id in images ) {
@@ -772,7 +772,9 @@ hotjs.Matrix = Matrix;
 						var launchers = pst_cache[ f ]['launchers'];
 						for( var i=0; i<launchers.length; i++ ) {
 							// might be .sprite.js, or .png
-							_load( hotjs.getAbsPath( launchers[i].res, url ) );
+							resurl = hotjs.getAbsPath( launchers[i].res, url );
+							launchers[i].resurl = resurl;
+							_load( resurl );
 						}						
 					}
 				}
@@ -1381,6 +1383,9 @@ var Node = function() {
 	this.imgrect = undefined; // [x,y,w,h]
 	this.sprite = undefined;
 
+	this.gridOn = false;
+	this.imgOn = true;
+	
 	// geometry, 2D only
 	this.pos = [0,0];
 	this.velocity = [0,0]; // default [0,0]
@@ -1793,6 +1798,16 @@ hotjs.inherit(Node, hotjs.Class, {
 		this.alpha = a;
 		return this;
 	},
+	showGrid : function(g) {
+		if(g == undefined) g = (! this.gridOn);
+		this.gridOn = g;
+		return this;
+	},
+	showImg : function(g) {
+		if(g == undefined) g = (! this.imgOn);
+		this.imgOn = g;
+		return this;
+	},
 	setImage : function(img, r) {
 		this.img = img;
 		if(! r) {
@@ -1916,21 +1931,21 @@ hotjs.inherit(Node, hotjs.Class, {
 	draw : function(c) {
 		c.save();
 
-		if( !! this.sprite ) {
-			this.sprite.render(c, this.size[0], this.size[1]);
-			
-		} else if( !! this.img ) {
-			if( !! this.imgrect ) {
-				c.drawImage( this.img, 
-						this.imgrect[0], this.imgrect[1], this.imgrect[2], this.imgrect[3], 
-						0, 0, this.size[0], this.size[1] );
-			} else {
-				c.drawImage( this.img, 0, 0, this.size[0], this.size[1] );
-				//c.scale( this.size[0]/this.img.width, this.size[1]/this.img.height);
-				//c.drawImage( this.img, 0, 0 );
+		if( this.imgOn ) {
+			if( !! this.sprite ) {
+				this.sprite.render(c, this.size[0], this.size[1]);
+				
+			} else if( !! this.img ) {
+				if( !! this.imgrect ) {
+					c.drawImage( this.img, 
+							this.imgrect[0], this.imgrect[1], this.imgrect[2], this.imgrect[3], 
+							0, 0, this.size[0], this.size[1] );
+				} else {
+					c.drawImage( this.img, 0, 0, this.size[0], this.size[1] );
+				}
 			}
-			
-		} else {
+		}
+		if( this.gridOn ) {
 			c.strokeRect(0,0, this.size[0], this.size[1]);
 		}
 		
@@ -1944,11 +1959,6 @@ hotjs.inherit(Node, hotjs.Class, {
 // Note: in a scene, this.pos is the [left,top]
 var Scene = function(){
 	hotjs.base(this);
-
-	this.gridOn = false;
-	this.imgOn = true;
-	this.color = "black";
-	this.bgcolor = undefined;
 
 	this.bgrepeat = false;
 	this.bgimg = undefined;
@@ -2110,16 +2120,6 @@ hotjs.inherit( Scene, Node, {
 		return this;
 	},
 	
-	showGrid : function(g) {
-		if(g == undefined) g = (! this.gridOn);
-		this.gridOn = g;
-		return this;
-	},
-	showImg : function(g) {
-		if(g == undefined) g = (! this.imgOn);
-		this.imgOn = g;
-		return this;
-	},
 	play : function() {
 		this.playing = true;
 		return this;
@@ -2355,10 +2355,12 @@ hotjs.inherit( Particle, hotjs.Node, {
 		var par = this.par;
 		var v = par.mode.v;
 		
-		if( par.res.endswWith('.sprite.js') ) {
-			this.setSprite( new Animat(par.res, 'xxx') );
-		} else if( par.res.endsWith('.png') ) {
-			this.setImage( resources.get(par.res) );
+		if( par.res.endsWith('.png') ) {
+			this.setImage( resources.get(par.resurl) );
+		} else if( par.res.endsWith('.sprite.js') ) {
+			this.setSprite( new Animat(par.resurl, 'xxx') );
+		} else {
+			return this;
 		}
 		
 		this.life = randi( par.lifeMin, par.lifeMax );
@@ -2408,6 +2410,7 @@ hotjs.inherit( Particle, hotjs.Node, {
 			}
 		}
 		
+		return this;
 	},
 	update: function(dt){
 		Particle.supClass.update.call(this, dt);
@@ -2426,6 +2429,7 @@ var ParticleSet = function( par ) {
 	
 	// TODO: to ensure performance, set limit up to 16 particles
 	this.par.maxPtsCount = Math.min( this.par.maxPtsCount, 16 );
+	this.subnodes = [];
 	
 	this.frame = 0;
 };
@@ -2458,7 +2462,7 @@ hotjs.inherit( ParticleSet, hotjs.Node, {
 			for( var i=0; i<n; i++ ) {
 				if( ps.length >= par.maxPtsCount ) break;
 				var p = new Particle( par ).init();
-				ps.push( p );
+				this.addNode(p);
 			}
 		}
 
@@ -2472,9 +2476,10 @@ var ParticleSystem = function( url ) {
 	hotjs.base(this);
 
 	var pst = pst_cache[ hotjs.getFileName( url ) ];
-
-	for( var par in pst ) {
-		this.addNode( new ParticleSet(par) );
+	var pset = pst.launchers;
+	
+	for( var i=0; i<pset.length; i++ ) {
+		this.addNode( new ParticleSet( pset[i] ) );
 	}
 };
 
@@ -2559,13 +2564,10 @@ hotjs.inherit(MoveTo, Animation, {
 		var p = this.param;
 		this.from = [ this.who.pos[0], this.who.pos[1] ];
 		this.to = [ p.to[0], p.to[1] ];
-		
-		this.inc = [ (this.to[0] - this.from[0]) / p.duration, 
-		             (this.to[1] - this.from[1]) / p.duration ];
 	},
 	step: function(dt) {
-		this.who.pos = [ this.from[0] + this.inc[0] * this.dtSum, 
-		                 this.from[1] + this.inc[1] * this.dtSum ];
+		this.who.pos = [ this.from[0] + (this.to[0] - this.from[0]) * this.dtSum / this.param.duration, 
+		                 this.from[1] + (this.to[1] - this.from[1]) * this.dtSum / this.param.duration ];
 
 		if( this.dtSum >= this.param.duration ) {
 			this.who.pos = this.to;
@@ -2586,15 +2588,11 @@ hotjs.inherit(StickTo, Animation, {
 		var p = this.param;
 		this.from = [ this.who.pos[0], this.who.pos[1] ];
 		this.to = [ p.to[0], p.to[1] ];
-		
-		this.inc = [ (this.to[0] - this.from[0]) / (p.duration * p.duration),
-		             (this.to[1] - this.from[1]) / (p.duration * p.duration) ];
-		
 	},
 	step: function(dt) {
-		var t = this.dtSum * this.dtSum;
-		this.who.pos = [ this.from[0] + this.inc[0] * t,
-		                 this.from[1] + this.inc[1] * t ];
+		var t = Math.pow(this.dtSum/this.param.duration, 2);
+		this.who.pos = [ this.from[0] + (this.to[0] - this.from[0]) * t,
+		                 this.from[1] + (this.to[1] - this.from[1]) * t ];
 		
 		if( this.dtSum >= this.param.duration ) {
 			this.who.pos = this.to;
@@ -2616,7 +2614,7 @@ hotjs.inherit(SlowDown, Animation, {
 		this.from = this.who.velocity;
 	},
 	step: function(dt) {
-		var perc = 1 - this.dtSum / this.param.duration;
+		var perc = Math.cos( (this.dtSum / this.param.duration) * (Math.PI / 180) );
 		this.who.velocity = [ this.from[0] * perc, this.from[1] * perc ];
 		if( this.dtSum >= this.param.duration ) {
 			this.who.velocity = [0,0];
@@ -2634,9 +2632,6 @@ var RotateBy = function(who, param) {
 hotjs.inherit(RotateBy, Animation, {
 	init: function(){
 		if(! this.who.rotation) this.who.rotation = 0;
-		if(! this.param.spin) {
-			console.log('lacking param.spin');
-		}		
 		this.from = this.who.rotation;
 		this.inc = this.param.spin;
 	},
@@ -2654,17 +2649,13 @@ var ScaleTo = function(who, param) {
 };
 hotjs.inherit(ScaleTo, Animation, {
 	init: function(){
-		var p = this.param;
-		var dur = p.duration;
-
 		this.from = this.who.scale;
-		this.to = p.to;
-		this.inc = [ (p.to[0]-this.who.scale[0]) / dur, 
-		             (p.to[1]-this.who.scale[1]) / dur ];
+		this.to = param.to;
 	},
 	step: function(dt) {
-		this.who.scale = [ this.from[0] + this.inc[0] * dt,
-		                   this.from[1] + this.inc[1] * dt ];
+		this.who.scale = [ this.from[0] + (this.to[0] - this.from[0]) * this.dtSum / this.param.duration, 
+		                   this.from[1] + (this.to[1] - this.from[1]) * this.dtSum / this.param.duration ];
+
 		if( this.dtSum >= this.param.duration ) {
 			this.who.scale = this.to;
 		}
@@ -2682,7 +2673,7 @@ hotjs.inherit(ScaleLoop, Animation, {
 	init: function(){
 		var p = this.param;
 		this.from = this.who.scale;
-		this.mid = (p.range[0] + p.range[1])/2;
+		this.mid = (p.range[1] + p.range[0])/2;
 		this.delta = (p.range[1] - p.range[0])/2;
 	},
 	step: function(dt) {
@@ -2702,14 +2693,11 @@ var FadeTo = function(who, param) {
 };
 hotjs.inherit(FadeTo, Animation, {
 	init: function(){
-		var p = this.param;
-		
 		this.from = this.who.alpha;
-		this.to = p.to;
-		this.inc = (p.to - this.from) / p.duration;
+		this.to = this.param.to;
 	},
 	step: function(dt) {
-		this.who.alpha = this.from + this.inc * dt;
+		this.who.alpha = this.from + (this.to - this.from) * this.dtSum / this.param.duration;
 		if( this.dtSum >= this.param.duration ) {
 			this.who.alpha = this.to;
 		}
@@ -2742,7 +2730,7 @@ hotjs.inherit(FadeLoop, Animation, {
 var create = function(target, anim, param) {
 	var animClass = hotjs.Anim[ anim ];
 	if( typeof animClass != 'function') {
-		console.log( animClass + ' not exists.' );
+		console.log( animClass + ' not exists, using default.' );
 		animClass = Animation;
 	}
 	
@@ -4112,6 +4100,112 @@ hotjs.inherit(ShowBoard, hotjs.Node, {
 hotjs.ShowBoard = ShowBoard;
 
 })();
+
+// ------- i18n.js ------------- 
+
+
+hotjs = hotjs || {};
+
+hotjs.i18n = {
+
+	defaultLang : 'en',
+	cookievalid : 86400000, //1 day (1000*60*60*24)
+	text : {},
+
+	put: function(lang, text) {
+		if( this.text[ lang ] === undefined ) {
+			this.text[ lang ] = {};
+		}
+		var L = this.text[ lang ];
+		for( var k in text ) {
+			L[k] = text[k];
+		}
+		return this;
+	},
+	extractLang : function(kvl) {
+		var lang;
+		for ( var i in kvl) {
+			var kv = kvl[i].split('=');
+			if (kv[0] === 'lang')
+				lang = kv[1].length > 2 ? (kv[1].charAt(0) + kv[1].charAt(1)) : kv[1];
+		}
+		return lang;
+	},
+	getUrlLang : function() {
+		if (window.location.search.length < 2)
+			return undefined;
+		return this.extractLang(window.location.search.substring(1).split('&'));
+	},
+	getCookieLang : function() {
+		return this.extractLang(document.cookie.split('; '));
+	},
+	getLang : function() {
+		if (typeof this.lang !== 'string') {
+			if (typeof (this.lang = this.getUrlLang()) === 'string')
+				;
+			else if (typeof (this.lang = this.getCookieLang()) === 'string')
+				;
+			else if (typeof (this.lang = navigator.language) === 'string')
+				;
+			else if (typeof (this.lang = navigator.userLanguage) === 'string')
+				;
+			else
+				this.lang = this.defaultLang;
+			
+			if (this.lang.length > 2)
+				this.lang = this.lang.charAt(0) + this.lang.charAt(1);
+		}
+		return this.lang;
+	},
+	setLang : function(lang, cook) {
+		this.lang = lang;
+		if (cook) {
+			var wl = window.location, now = new Date(), time = now.getTime();
+			time += this.cookievalid;
+			now.setTime(time);
+			document.cookie = 'lang=' + lang + ';path=' + wl.pathname + ';domain=' + wl.host + ';expires=' + now.toGMTString();
+		}
+		return this;
+	},
+	get : function(key) {
+		var keys = key.split('.'), lang = this.getLang(), obj = this.text[lang];
+		while (typeof obj !== 'undefined' && keys.length > 0)
+			obj = obj[keys.shift()];
+		return typeof obj === 'undefined' ? lang + '.' + key : obj;
+	},
+	t1 : function(item) {
+		if (typeof item === 'object' && item instanceof Element) {
+			var it = $(item), key = it.attr('i18n');
+			it.removeClass('I18N');
+			if (typeof key === 'undefined')
+				key = it.text();
+			it.attr('i18n', key).text(this.get(key));
+		}
+		return this;
+	},
+	translate : function(item) {
+		//alert( JSON.stringify( this.text[this.getLang()] ) );
+		var lang = this.getLang();
+		if (typeof this.text[ lang ] === 'undefined') {
+			resources.load('lang/' + lang + '.lang.js');
+			return this;
+		}
+		if (typeof item === 'undefined') {
+			item = $('[I18N]');
+			$('.I18N').each(function() {
+				if (!$.contains(item, this))
+					item = item.add(this);
+			});
+		}
+		if (item instanceof jQuery)
+			for ( var i in item)
+				this.t1(item[i]);
+		else
+			this.t1(item);
+		return this;
+	}
+
+};
 
 // ------- ai.js ------------- 
 

@@ -13,9 +13,9 @@
 // Images...
 // <Image> := IMAGE [id] "file" [ALPHA "alpha_file"] [TRANSP transp_color]
 
-    IMAGE 0x0000 ".\BING_male_1.png" TRANSP 0x00FF00FF // 0  size: 510 x 482  palettes: 1
+    IMAGE 0x0002 ".\BING_male_1.png" TRANSP 0x00FF00FF // 0  size: 510 x 482  palettes: 1
     IMAGE 0x0001 ".\BING_male.png" TRANSP 0x00FF00FF // 1  size: 511 x 508  palettes: 1
-    IMAGE 0x0002 ".\BING_male1.png" TRANSP 0x00FF00FF // 2  size: 512 x 248  palettes: 1
+    IMAGE 0x0000 ".\BING_male1.png" TRANSP 0x00FF00FF // 2  size: 512 x 248  palettes: 1
     IMAGE 0x0003 ".\BING_male_head.png" TRANSP 0x00FF00FF // 3  size: 240 x 180  palettes: 1
 
 ////////////////////////////////////////////////////////////////////////////////

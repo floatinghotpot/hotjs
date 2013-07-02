@@ -44,6 +44,7 @@ def convert(spritefile):
     anims = []
     
     status = 'begin'
+    img_id = 0
     for line in lines:
         line = re.sub(r'(//.*$)', '', line).strip()
         if len(line) > 0:
@@ -57,10 +58,12 @@ def convert(spritefile):
                 if w[0] == 'VERSION':
                     version = int( w[1] )
                 elif w[0] == 'IMAGE':
-                    img_id = int(w[1], 16)
+                    #img_id = int(w[1], 16)
+                    # image id 0x0001 in data file is invalid, so correct it with index.
                     img = (img_id, w[2].replace('"','').replace('\\',r'/'), w[4] )
                     str = '%d:[\'%s\',\'%s\']' % img
                     images.append( str )
+                    img_id = img_id +1
                 elif w[0] == 'MODULES':
                     status = 'MODULES'
                 elif w[0] == 'FRAME':
