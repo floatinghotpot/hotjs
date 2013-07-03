@@ -5,9 +5,18 @@ hotjs.i18n.put('zh', {
 	'options': '设置',
 	'more':	'更多',
 	'level': '选择难度',
-	'newbie':'新手入门',
+	'newbie':'新手上路',
 	'experienced':'略有小成',
-	'skillful':'技艺精湛',
-	'master':'高深莫测',
-	'boardsize':'棋盘大小'
+	'skillful':'棋艺精通',
+	'master':'深不可测',
+	'boardsize':'棋盘大小',
+	'audio':'声音',
+	'music':'音乐',
+	'sound':'音效',
+	'rank':'级别:',
+	'gold':'财富:',
+	'winrate':'胜率:',
+	'player':'玩家',
+	'peer':'对手',
+	'playerinfo':'玩家信息'
 });

@@ -50,6 +50,10 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		this.lastMove = null;
 		this.gameOver = false;
 		
+		if( this.player != this.hostColor ) {
+			this.peerPlayer.go( [0,0,0], hotjs.Matrix.toString(this.matrix) );
+		}
+
 		return this;
 	},
 	posToMatrix : function(p) {
@@ -83,9 +87,17 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 		this.peerPlayer.setGoColor(c2);
 		return this;
 	},
+	exchangeColor : function(){
+		this.hostColor = (this.hostColor == 1) ? 2 : 1;
+		this.setHostColor( this.hostColor );
+		return this;
+	},
 	confirmColor : function(c) {
 		this.hostColor = c;
 		return this;
+	},
+	getHostColor : function() {
+		return this.hostColor;
 	},
 	setPeerPlayer : function(p) {
 		this.peerPlayer = p;
@@ -111,9 +123,9 @@ hotjs.inherit( GoBoard, hotjs.Scene, {
 			// put a stone 
 			this.matrix[y][x] = this.player;
 			if( this.player == 1 ) {
-				resources.get('audio/move2.mp3').play();
+				resources.playAudio('audio/move2.mp3');
 			} else {
-				resources.get('audio/move.mp3').play();
+				resources.playAudio('audio/move.mp3');
 			}
 			// record for undo
 			var lastMove = [x, y, this.player];

@@ -23,15 +23,17 @@ div.userinfo {
 	top: 2px;
 	display: inline-block;
 	position: absolute;
-	border: solid black 2px;
 	margin: 0px;
 	padding: 2px;
-	background: #ffffcc;
-	opacity:0.9;
+	opacity:0.8;
+	color: #aaaaaa;
+	background: #333333;
 	-moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     -khtml-border-radius: 10px;
     border-radius: 10px;	
+	-webkit-box-shadow:0 0 10px black;
+	-moz-box-shadow:0 0 10px black;
 }
 div#user2 {
 	left: 2px;
@@ -63,16 +65,18 @@ div#menu {
 }
 div#pageset {
 	position:absolute;
-	bottom:100px;
-	right:10px;
-	padding:20px;
+	bottom:80px;
+	right:5px;
+	padding:5px;
 	color: #aaaaaa;
 	background: #333333;
-	opacity:1;
+	opacity:0.8;
 	display:none;
+	-webkit-box-shadow:0 0 10px black;
+	-moz-box-shadow:0 0 10px black;
 }
 button {
-	width: 100px;
+	width: 48px;
 	height: 48px;
 	-moz-border-radius: 8px;
     -webkit-border-radius: 8px;

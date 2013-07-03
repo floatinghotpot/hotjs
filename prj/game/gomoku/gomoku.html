@@ -11,14 +11,14 @@
 <meta name="viewport"
 	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
 <script src="../../lib/jquery-1.9.js"></script>
-<script src="../../lib/hotjs-mini.js"></script>
-<!-- <script src="../../../hotjs/hotjs.js"></script> -->
-<!-- <script src="../../../hotjs/resource.js"></script> -->
-<!-- <script src="../../../hotjs/math.js"></script> -->
-<!-- <script src="../../../hotjs/canvas.js"></script> -->
-<!-- <script src="../../../hotjs/animation.js"></script> -->
-<!-- <script src="../../../hotjs/social.js"></script> -->
-<!-- <script src="../../../hotjs/i18n.js"></script> -->
+<!-- <script src="../../lib/hotjs-mini.js"></script> -->
+<script src="../../../hotjs/hotjs.js"></script>
+<script src="../../../hotjs/resource.js"></script>
+<script src="../../../hotjs/math.js"></script>
+<script src="../../../hotjs/canvas.js"></script>
+<script src="../../../hotjs/animation.js"></script>
+<script src="../../../hotjs/social.js"></script>
+<script src="../../../hotjs/i18n.js"></script>
 <script src="goboard.js"></script>
 <script src="net_go.js"></script>
 <script src="main.js"></script>
@@ -28,17 +28,27 @@
 <div>
 <div id="mainView" class='page'></div>
 
-<div id="user2" class='userinfo' style='display:none;'>
+<div id="user2" class='userinfo' style='display:block;'>
 <table>
-<tr><td align='left' colspan=2><span class='I18N' i18n='level'>Level</span>: 6<br><span class='I18N' i18n='gold'>Gold</span>: $ 1500</td></tr>
-<tr><td><img src='img/user1.png'><br>曹操</td><td><img width=32 src='img/whitego.png'/></td></tr>
+<tr><td align='left'><span class='I18N' i18n='rank'>Rank:</span></td><td><span id='peer-rank'>5</span></td></tr>
+<tr><td align='left'><span class='I18N' i18n='gold'>Gold:</span></td><td><span id='peer-gold'>1500</span></td></tr>
+<tr><td align='left'><span class='I18N' i18n='winrate'>Win Rate:</span></td><td><span id='peer-rate'>54%</span></td></tr>
+<tr>
+<td><img src='img/user1.png'><br/><span class='I18N' i18n='peer' id='peer-name'>Peer</span></td>
+<td><img width=32 id='peer-gocolor' src='img/whitego.png'/></td>
+</tr>
 </table>
 </div>
 
-<div id="user1" class='userinfo' style='display:none;'>
+<div id="user1" class='userinfo' style='display:block;'>
 <table>
-<tr><td align='left' colspan=2><span class='I18N' i18n='level'>Level</span>: 7<br><span class='I18N' i18n='gold'>Gold</span>: $ 2100</td></tr>
-<tr><td><img width=32 src='img/blackgo.png'/></td><td><img src='img/user2.png'><br>刘备</td></tr>
+<tr><td align='left'><span class='I18N' i18n='rank'>Rank:</span></td><td><span id='my-rank'>6</span></td></tr>
+<tr><td align='left'><span class='I18N' i18n='gold'>Gold:</span></td><td><span id='my-gold'>1800</span></td></tr>
+<tr><td align='left'><span class='I18N' i18n='winrate'>Win Rate:</span></td><td><span id='my-rate'>64%</span></td></tr>
+<tr>
+<td><img width=32 id='my-gocolor' src='img/blackgo.png'/></td>
+<td><img src='img/user2.png'><br/><span class='I18N' i18n='player' id='my-name'>Player</span></td>
+</tr>
 </table>
 </div>
 
@@ -83,18 +93,34 @@
 <div id='pageset' class='page' style='display:none;'>
 <table>
 <tr>
-<td><span class='I18N' i18n='level'>Level</span></td>
-<td><button class='I18N' i18n='newbie'>Newbie</button><br />
-<button class='I18N' i18n='experienced'>Experienced</button><br />
-<button class='I18N' i18n='skillful'>Skillful</button><br />
-<button class='I18N' i18n='master'>Master</button></td>
+<td colspan=4><span class='I18N' i18n='level'>Level</span></td>
 </tr>
 <tr>
-<td><span  class='I18N' i18n='boardsize'>Board Size</span></td>
-<td><button id='btn-13' class='btn-size' v='13'>13x13</button><br />
-<button id='btn-15'  class='btn-size' v='15'>15x15</button><br />
-<button id='btn-17' class='btn-size' v='17'>17x17</button><br />
-<button id='btn-19' class='btn-size' v='19'>19x19</button></td>
+<td><button class='I18N' i18n='newbie'>Newbie</button></td>
+<td><button class='I18N' i18n='experienced'>Experienced</button></td>
+<td><button class='I18N' i18n='skillful'>Skillful</button></td>
+<td><button class='I18N' i18n='master'>Master</button></td>
+</tr>
+<tr>
+<td colspan=4><span  class='I18N' i18n='boardsize'>Board Size</span></td>
+</tr>
+<tr>
+<td><button id='btn-13' class='btn-size' v='13'>13x13</button></td>
+<td><button id='btn-15'  class='btn-size' v='15'>15x15</button></td>
+<td><button id='btn-17' class='btn-size' v='17'>17x17</button></td>
+<td><button id='btn-19' class='btn-size' v='19'>19x19</button></td>
+</tr>
+<tr>
+<td></td>
+<td><span  class='I18N' i18n='playerinfo'>Player Info</span></td>
+<td><img id='icon-userinfo' src='img/userinfo.png' v='on' width='32'></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td><span  class='I18N' i18n='audio'>Audio</span></td>
+<td><img id='icon-audio' src='img/audio.png' v='on' width='32'></td>
+<td></td>
 </tr>
 </table>
 

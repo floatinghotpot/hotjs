@@ -9,5 +9,14 @@ hotjs.i18n.put('en', {
 	'experienced':'Experienced',
 	'skillful':'Skillful',
 	'master':'Master',
-	'boardsize':'Board Size'
+	'boardsize':'Board Size',
+	'audio':'Audio',
+	'music':'Music',
+	'sound':'Sound',
+	'rank':'Rank:',
+	'gold':'Gold:',
+	'winrate':'Win Rate:',
+	'player':'Player',
+	'peer':'Peer',
+	'playerinfo':'Player Info'
 });

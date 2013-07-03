@@ -16,7 +16,8 @@ ai_go.onmessage = function(evt) {
 	switch(msg.api) {
 	case 'confirmColor':
 		var c = (msg.color == 2) ? 1 : 2;
-		board.confirmColor( c );	
+		board.confirmColor( c );
+		updateMyColorIcon( c );
 		break;
 	case 'judge':
 		var s = msg.solution;
@@ -25,13 +26,13 @@ ai_go.onmessage = function(evt) {
 			//console.log( ai_player.mycolor + ' win', s.myWinHits );	
 			//console.log( 'Computer win!' );
 			board.gameOver = true;
-			resources.get('audio/magic.mp3').play();
+			resources.playAudio('audio/magic.mp3');
 		}
 		if ( s.peerWinHits.length > 0 ) {
 			//console.log( board.hostColor + ' win', s.peerWinHits );
 			//console.log( 'You win! ' );
 			board.gameOver = true;
-			resources.get('audio/magic.mp3').play();
+			resources.playAudio('audio/magic.mp3');
 		}
 		break;
 	case 'go':
@@ -61,7 +62,7 @@ var AIPlayer = function(){
 };
 
 hotjs.inherit(AIPlayer, hotjs.Class, {
-	setPeerColor : function(c) {
+	setGoColor : function(c) {
 		ai_go.postMessage({
 			api: 'setColor',
 			color: c
@@ -97,9 +98,57 @@ hotjs.inherit(AIPlayer, hotjs.Class, {
 	}
 });
 
+function updateMyColorIcon() {
+	var me = $('img#my-gocolor');
+	var peer = $('img#peer-gocolor');
+	if( board.getHostColor() == 1 ) {
+		me.attr('src', 'img/blackgo.png');
+		peer.attr('src', 'img/whitego.png');
+	} else {
+		me.attr('src', 'img/whitego.png');
+		peer.attr('src', 'img/blackgo.png');
+	}
+}
+
+function tuneAudio( on ){
+	var me = $('img#icon-audio');	
+	if( on ) {
+		resources.muteAudio(false);
+		me.attr('v', 'on');
+		me.attr('src', 'img/audio.png');
+	} else {
+		resources.muteAudio(true);
+		me.attr('v', 'off');
+		me.attr('src', 'img/audiomute.png');
+	}
+};
+
+function toggleUserInfo(){
+	var me = $('img#icon-userinfo');
+	var on = (me.attr('v') == 'on');
+	on = ! on;
+	if( on ) {
+		$('div#user1').css('display','block');
+		$('div#user2').css('display','block');
+		me.attr('v', 'on');
+		me.attr('src', 'img/userinfo.png');
+	} else {
+		$('div#user1').css('display','none');
+		$('div#user2').css('display','none');
+		me.attr('v', 'off');
+		me.attr('src', 'img/userinfohide.png');
+	}
+};
+
+function updateMyScore(){
+	// TODO: pending work.
+} 
+
 function main() {
 	hotjs.i18n.translate();
-	resources.get('audio/hello.mp3').play();
+
+	tuneAudio( true );
+	resources.playAudio('audio/hello.mp3');
 	
 	var w = window.innerWidth, h = window.innerHeight;
 	h -= $("#menu").height();
@@ -123,9 +172,12 @@ function main() {
 		.setAreaImage( true, resources.get('img/wood.jpg') )
 		.setGoImage( resources.get('img/gostones.png'), [0,0,128,128] )
 		.showImg(true)
-		.setPeerPlayer( ai_player )
-		.resetGame()
 		.addTo( viewX );
+	
+	board.setPeerPlayer( ai_player )
+		.resetGame();
+	
+	updateMyColorIcon();
 	
 	var app = (new hotjs.App())
 		.addNode(viewX)
@@ -141,10 +193,13 @@ function main() {
 	});
 }
 
-var bgindex = 1;
-
 $(document).ready(function(){
 	$('.icon-reset').on('click', function(){
+		//if( board.gameOver ) {
+			board.exchangeColor();
+			updateMyColorIcon();
+		//}
+
 		board.resetGame();
 	});
 
@@ -152,9 +207,21 @@ $(document).ready(function(){
 		board.undo();
 	});
 
+	$('#icon-audio').on('click', function(){
+		var on = ($(this).attr('v') == 'on');
+		on = ! on;
+		tuneAudio( on );
+	});
+
+	$('#icon-userinfo').on('click', function(){
+		toggleUserInfo();
+	});
+
 	$('.icon-set').on('click', function(){
 		var pg = $('#pageset');
 		if( pg.css('display') == 'none') {
+			var h = $('div#menu').height();
+			pg.css('bottom', (h + 10) + 'px');
 			pg.css('display', 'block');
 		} else {
 			pg.css('display', 'none');
@@ -163,7 +230,6 @@ $(document).ready(function(){
 	
 	$('.btn-size').on('click', function(){
 		board.resetGame( $(this).attr('v') );
-		$('#pageset').css('display','none');
 	});
 	
 	$('.icon-more').on('click', function(){

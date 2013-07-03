@@ -249,6 +249,17 @@
 		}
 		return res;
 	}
+	
+	var audio_muted = false;
+	
+	function muteAudio(b) {
+		audio_muted = b;
+	}
+	function playAudio(url) {
+		if( ! audio_muted ) {
+			get(url).play();
+		}
+	}
 
 	function isReady() {
 		var ready = true;
@@ -264,6 +275,8 @@
 		load : load,
 		unload : unload,
 		get : get,
+		playAudio : playAudio,
+		muteAudio : muteAudio,
 		getTotal : getTotal,
 		getLoaded : getLoaded,
 		onReady : onReady,
