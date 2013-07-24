@@ -26,21 +26,13 @@ else :
     from urllib import urlretrieve
 
 tooldir = os.path.dirname(os.path.realpath(__file__))
-basedir = os.path.dirname(tooldir)
+devdir = os.path.dirname(tooldir)
+basedir = os.path.dirname(devdir)
 curdir = os.path.abspath('.')
 
-lib_dir = os.path.join(basedir, 'prj/lib')
+lib_dir = os.path.join(devdir, 'hotjs/lib')
 hotjsbin_path = os.path.join(lib_dir,'hotjs-bin.js')
 hotjsmini_path = os.path.join(lib_dir,'hotjs-mini.js')
-
-prj_basedir = os.path.join(basedir, 'prj')
-tmpl_dir = os.path.join(prj_basedir, 'template')
-
-apps_dir = os.path.join(prj_basedir, 'app')
-games_dir = os.path.join(prj_basedir, 'game')
-sns_dir = os.path.join(prj_basedir, 'sns')
-
-project_records = os.path.join(prj_basedir,'projects')
 
 def removeDupes(seq):
     # Not order preserving
@@ -48,18 +40,6 @@ def removeDupes(seq):
     for e in seq:
         keys[e.rstrip()] = 1
     return keys.keys()
-    
-def updateProjectRecord(add):
-    lines = open(project_records,'r').readlines()
-    if len(add):
-        lines.append(add)
-    newlines = filter(lambda x: exists(join(prj_basedir,x.rstrip())) and len(x.rstrip()),lines)
-    newlines = removeDupes(newlines)
-    
-    f = open(project_records,'w')
-    f.write('\n'.join(newlines))
-    f.write('\n')
-    f.close()
     
 def escapeSpace(s):
     return s.replace(" ","\\ ")
@@ -74,63 +54,8 @@ def find_yuicompressor():
                 return tooldir + '/' + file
     return ""
         
-def create(type, name):
-    if( type == 'app'):
-        type_dir = apps_dir
-    elif( type == 'game'):
-        type_dir = games_dir
-    else:
-        return
-    
-    prj_path = os.path.join( type_dir, name )
-    sns_path = os.path.join( sns_dir, name )
-    
-    if not exists(tmpl_dir):
-        logging.error('Project template not found: %s\n', tmpl_dir)
-        sys.exit(1)
-    
-    if exists(prj_path):
-        print('Folder exists (%s), skip change.' % prj_path)
-    else:
-        shutil.copytree( os.path.join(tmpl_dir, type), prj_path )
-        for fname in os.listdir(prj_path):
-            fpath = os.path.join(prj_path, fname)
-            if os.path.isfile( fpath ):
-                newname = fname.replace('__name__', name)
-                newpath = os.path.join(prj_path,newname)
-                if fname.find("__name__")!=-1:
-                    os.rename(fpath, newpath)
-                for line in fileinput.FileInput( newpath, inplace=1):
-                    line = line.replace('{__name__}',name)
-                    print(line.rstrip())
-
-    if exists(sns_path):
-        print('Folder exists (%s), skip change.' % sns_path)
-    else:
-        shutil.copytree( os.path.join(tmpl_dir,'sns'), sns_path )
-        for fname in os.listdir(sns_path):
-            fpath = os.path.join(sns_path, fname)
-            if os.path.isfile( fpath ):
-                newname = fname.replace('__name__', name)
-                newpath = os.path.join(sns_path,newname)
-                if fname.find("__name__")!=-1:
-                    os.rename(fpath, newpath)
-                for line in fileinput.FileInput( newpath, inplace=1):
-                    line = line.replace('{__name__}',name)
-                    print(line.rstrip())
-
-    print ('Project created: %s' % name)
-    
-    proj = os.path.relpath(prj_path, prj_basedir)
-    if proj != '.':
-        updateProjectRecord( proj )
-        print('Project records updated.\n')
-
-def build(name,options):
-    pass
-
-def update():
-    hotjs_path = join(basedir,'hotjs/')
+def build():
+    hotjs_path = join(devdir,'hotjs/')
     hotjslist_path = join(hotjs_path,'files')
  
     print( "\nupdating hotjsbin: " + hotjsbin_path + '\n' )
@@ -162,15 +87,15 @@ def update():
 
     print( "hotjsbin compressed to: %s.\n" % hotjsmini_path )
     print( 'Done.\n')
-    
+
 def main():
     """The entrypoint for this script."""
     
     usage = """usage: %prog [command] [options]
 Commands:
-    init          Check lime dependecies and setup if needed
-    update        Update hotjs into single javascript file for release
-    create [app/game] [name]   Setup new project [name]"""
+    init         Check lime dependecies and setup if needed
+    build        Update hotjs into single javascript file and minify for release
+    """
     
     parser = optparse.OptionParser(usage)
     parser.add_option("-o", "--output", dest="output", action="store", type="string",
@@ -181,15 +106,9 @@ Commands:
     if( len(args) < 1 ) :
         parser.error('incorrect number of arguments\n')
         
-    if args[0]=='init' or args[0]=='update':
-        update()
+    if args[0]=='build':
+        build()
     
-    elif args[0]=='create':
-        if( len(args) == 3 and ['app','game'].count(args[1]) == 1 ) :
-            create(args[1], args[2])
-        else:
-            parser.error('arguments for create not correct.\n')
-        
     else:
         logging.error('No such command: %s\n',args[0])
         exit(1)

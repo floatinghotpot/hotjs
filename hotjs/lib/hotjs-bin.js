@@ -8,6 +8,93 @@ var hotjs = hotjs || {};
 
 hotjs.version = 1.0;
 
+function agentType() {
+	var agent = navigator.userAgent;
+	if( agent.indexOf('Chrome') > -1 ) return 'Chrome';
+	else if( agent.indexOf('Firefox') > -1 ) return 'Firefox';
+	else if( agent.indexOf('MSIE') > -1 ) return 'MSIE';
+	else if( agent.indexOf('Safari') > -1 ) return 'Safari';
+	else if( agent.indexOf('Opera') > -1 ) return 'Opera';
+	else return 'others';
+}
+
+var agentVersion = function () {
+	var at = agentType();
+	var ua = navigator.userAgent;
+	if( at == 'Chrome' ) {
+		return ua.split('Chrome/')[1].split(' ')[0];
+	} else if ( at == 'Firefox' ) {
+		return ua.split('Firefox/')[1].split(' ')[0];
+	} else if ( at == 'Opera' || at == 'Safari ') {
+		return ua.split('Version/')[1].split(' ')[0];
+	} else if ( at == 'MSIE' ) {
+		return ua.split('MSIE ')[1].split(' ')[0];
+	}
+
+	return '0';
+};
+
+hotjs.agentType = agentType();
+hotjs.agentVersion = agentVersion();
+hotjs.agentVersionInt = parseInt( agentVersion().split('.')[0], 10 );
+
+/*
+ * copy this code to where needs __FILE__
+ * 
+var __FILE__ = ( hotjs.agentType == 'Safari' ) ? 
+		function() { try { throw new Error(); } catch (e) { return e.sourceURL; } }() :
+		hotjs.this_file();
+		
+var __DIR__ = function(f) {
+	hotjs.getAbsPath(f, __FILE__);
+}
+
+*/
+
+hotjs.this_file = function(){
+	switch( hotjs.agentType ) {
+	case 'MSIE':
+		if( hotjs.agentVersionInt < 10 ) return '';
+		try {
+			throw new Error();
+		} catch (e) {
+			return e.stack
+				.split('\n')[2]
+				.split('(')[1]
+				.split(':').slice( 0, -2 ).join(':'); 
+		}
+		break;
+	case 'Chrome':
+		try {
+			throw new Error();
+		} catch (e) {
+			var line = e.stack.split('\n')[2];
+			if( line.indexOf('(') > -1 ) {
+				return line.split('(')[1]
+					.split(':').slice( 0, -2 ).join(':'); 
+			} else {
+				return line.split('at ')[1]
+					.split(':').slice( 0, -2 ).join(':'); 
+			}
+		}
+		break;
+	case 'Firefox':
+	case 'Opera':
+		try {
+			throw new Error();
+		} catch (e) {
+			return e.stack.split('\n')[1]
+				.split('@')[1]
+				.split(':').slice( 0, -1 ).join(':'); 
+		}
+	case 'Safari':
+		// TODO: Safari does not support error.stack, 
+		// only get the stack top as error.sourceURL.
+		return '';
+	}
+	return '';
+};
+
 // tool for inherit
 // See 
 // "tests/test_oo.html" for example & use case
@@ -134,6 +221,8 @@ hotjs.getDirPath = function(path) {
 };
 
 hotjs.getAbsPath = function(f, me) {
+	if( f.indexOf('://') > -1 ) return f;
+	
 	d = hotjs.getDirPath(me);
 	do { // './xx.js' or '../xx.js'
 		if (f.substring(0, 2) == './') {
@@ -322,37 +411,54 @@ hotjs.Class.prototype = {
 		return this;
 	}	
 };
-		
-// ----------------------
-// TODO: class App
+
+//----------------------
+//TODO: class App
 
 var App = function(){
 	hotjs.base(this);
 	
-	this.views = [];
-	this.runningTime = 0;
+	this.res = [];
+	this.modules = [];
 };
 
 hotjs.inherit(App, hotjs.Class, {
+	init : function(){
+	},
+	exit : function() {
+	},
+	addRes : function(url) {
+		this.res.push( url );
+		return this;
+	},
+	getRes : function() {
+		return this.res;
+	},
 	addNode : function(v) {
-		this.views.push(v);
+		this.modules.push(v);
 		return this;
 	},
 	start : function() {
-		for(var i=0; i<this.views.length; i++) {
-			this.views[i].start();
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].start();
 		}
 		return this;
 	},
 	resume : function( true_or_false ) {
-		for(var i=0; i<this.views.length; i++) {
-			this.views[i].resume( true_or_false );
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].resume( true_or_false );
 		}
 		return this;
 	},	
 	pause : function() {
-		for(var i=0; i<this.views.length; i++) {
-			this.views[i].resume( false );
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].resume( false );
+		}
+		return this;
+	},
+	stop : function() {
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].stop();
 		}
 		return this;
 	}
@@ -596,17 +702,41 @@ hotjs.Matrix = Matrix;
 (function() {
 
 	var resourceCache = {};
+
+	var activeApp = null;
 	
 	var total = 0;
 	var loaded = 0;
+	
+	var resDebug = false;
 
-	function getTotal() {
-		return total;
-	}
-	function getLoaded() {
-		return loaded;
+	function isVideo(url) {
+		if( url.endsWith('ogg') ) {
+			return ( url.indexOf('video') > -1 );
+		} else {
+			return ( url.endsWith('mp4') || url.endsWith('webm') );
+		}
 	}
 	
+	function isAudio(url) {
+		if( url.endsWith('ogg') ) {
+			return ( url.indexOf('video') == -1 );
+		} else {
+			return ( url.endsWith('mp3') || url.endsWith('wav') );
+		}
+	}
+	
+	function isReady() {
+		var ready = true;
+		for ( var k in resourceCache) {
+			if (resourceCache.hasOwnProperty(k) && !resourceCache[k]) {
+				ready = false;
+			}
+		}
+		
+		return ready;
+	}
+
 	function loadingProgress(url, n, all) {
 		var per = Math.round( 100 * n / all );
 		var d = document.getElementById('loading_msg');
@@ -623,9 +753,9 @@ hotjs.Matrix = Matrix;
 	}
 
 	function loadingDone(){
-		d = document.getElementById('res_loading_msg_win');
+		d = document.getElementById('hotjs_res_loading_win');
 		if( d ) {
-			d.setAttribute('style', 'display:none');
+			d.parentNode.removeChild( d );
 		}
 	}
 
@@ -648,24 +778,32 @@ hotjs.Matrix = Matrix;
 		errorCallbacks = [ loadingError, func ];
 	}
 	
-	function showLoadingDialog(){
+	function showLoadingMessage(){
 		var w = window.innerWidth, h = window.innerHeight;
 		var tw = 100, th = 300;
 		var x = (w-tw)/2, y = (h-th)/2;
-		var d = document.createElement('div');
-		d.setAttribute('id', 'res_loading_msg_win');
-		d.setAttribute('style', 
-				'left:' +x + 'px;top:' +y+'px;width:'+tw+'px;text-align:center;alpha:0.5;background:silver;border:solid silver 1px;padding:10px;font-family:Verdana,Geneva,sans-serif;font-size:9pt;display:solid;position:absolute;'
-				+ '-moz-border-radius:10px;-webkit-border-radius: 10px;-khtml-border-radius: 10px;border-radius: 10px;'
-				);
-		d.innerHTML += "<br><img id='loading_img' src='data:image/gif;base64,R0lGODlhNgA3APMAAP///wAAAHh4eBwcHA4ODtjY2FRUVNzc3MTExEhISIqKigAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAANgA3AAAEzBDISau9OOvNu/9gKI5kaZ4lkhBEgqCnws6EApMITb93uOqsRC8EpA1Bxdnx8wMKl51ckXcsGFiGAkamsy0LA9pAe1EFqRbBYCAYXXUGk4DWJhZN4dlAlMSLRW80cSVzM3UgB3ksAwcnamwkB28GjVCWl5iZmpucnZ4cj4eWoRqFLKJHpgSoFIoEe5ausBeyl7UYqqw9uaVrukOkn8LDxMXGx8ibwY6+JLxydCO3JdMg1dJ/Is+E0SPLcs3Jnt/F28XXw+jC5uXh4u89EQAh+QQJCgAAACwAAAAANgA3AAAEzhDISau9OOvNu/9gKI5kaZ5oqhYGQRiFWhaD6w6xLLa2a+iiXg8YEtqIIF7vh/QcarbB4YJIuBKIpuTAM0wtCqNiJBgMBCaE0ZUFCXpoknWdCEFvpfURdCcM8noEIW82cSNzRnWDZoYjamttWhphQmOSHFVXkZecnZ6foKFujJdlZxqELo1AqQSrFH1/TbEZtLM9shetrzK7qKSSpryixMXGx8jJyifCKc1kcMzRIrYl1Xy4J9cfvibdIs/MwMue4cffxtvE6qLoxubk8ScRACH5BAkKAAAALAAAAAA2ADcAAATOEMhJq7046827/2AojmRpnmiqrqwwDAJbCkRNxLI42MSQ6zzfD0Sz4YYfFwyZKxhqhgJJeSQVdraBNFSsVUVPHsEAzJrEtnJNSELXRN2bKcwjw19f0QG7PjA7B2EGfn+FhoeIiYoSCAk1CQiLFQpoChlUQwhuBJEWcXkpjm4JF3w9P5tvFqZsLKkEF58/omiksXiZm52SlGKWkhONj7vAxcbHyMkTmCjMcDygRNAjrCfVaqcm11zTJrIjzt64yojhxd/G28XqwOjG5uTxJhEAIfkECQoAAAAsAAAAADYANwAABM0QyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7/i8qmCoGQoacT8FZ4AXbFopfTwEBhhnQ4w2j0GRkgQYiEOLPI6ZUkgHZwd6EweLBqSlq6ytricICTUJCKwKkgojgiMIlwS1VEYlspcJIZAkvjXHlcnKIZokxJLG0KAlvZfAebeMuUi7FbGz2z/Rq8jozavn7Nev8CsRACH5BAkKAAAALAAAAAA2ADcAAATLEMhJq7046827/2AojmRpnmiqrqwwDAJbCkRNxLI42MSQ6zzfD0Sz4YYfFwzJNCmPzheUyJuKijVrZ2cTlrg1LwjcO5HFyeoJeyM9U++mfE6v2+/4PD6O5F/YWiqAGWdIhRiHP4kWg0ONGH4/kXqUlZaXmJlMBQY1BgVuUicFZ6AhjyOdPAQGQF0mqzauYbCxBFdqJao8rVeiGQgJNQkIFwdnB0MKsQrGqgbJPwi2BMV5wrYJetQ129x62LHaedO21nnLq82VwcPnIhEAIfkECQoAAAAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7/g8Po7kX9haKoAZZ0iFGIc/iRaDQ40Yfj+RepSVlpeYAAgJNQkIlgo8NQqUCKI2nzNSIpynBAkzaiCuNl9BIbQ1tl0hraewbrIfpq6pbqsioaKkFwUGNQYFSJudxhUFZ9KUz6IGlbTfrpXcPN6UB2cHlgfcBuqZKBEAIfkECQoAAAAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7yJEopZA4CsKPDUKfxIIgjZ+P3EWe4gECYtqFo82P2cXlTWXQReOiJE5bFqHj4qiUhmBgoSFho59rrKztLVMBQY1BgWzBWe8UUsiuYIGTpMglSaYIcpfnSHEPMYzyB8HZwdrqSMHxAbath2MsqO0zLLorua05OLvJxEAIfkECQoAAAAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhfohELYHQuGBDgIJXU0Q5CKqtOXsdP0otITHjfTtiW2lnE37StXUwFNaSScXaGZvm4r0jU1RWV1hhTIWJiouMjVcFBjUGBY4WBWw1A5RDT3sTkVQGnGYYaUOYPaVip3MXoDyiP3k3GAeoAwdRnRoHoAa5lcHCw8TFxscduyjKIrOeRKRAbSe3I9Um1yHOJ9sjzCbfyInhwt3E2cPo5dHF5OLvJREAOwAAAAAAAAAAAA=='/>";
+		var d = document.getElementById('hotjs_res_loading_win');
+		if( d == undefined ) {
+			d = document.createElement('div');
+			d.setAttribute('id', 'hotjs_res_loading_win');
+			d.setAttribute('style', 
+					'left:' +x + 'px;top:' +y+'px;width:'+tw+'px;text-align:center;alpha:0.5;background:silver;border:solid silver 1px;padding:10px;display:solid;position:absolute;'
+					+ '-moz-border-radius:10px;-webkit-border-radius: 10px;-khtml-border-radius: 10px;border-radius: 10px;'
+					);
+			document.body.appendChild( d );
+		}
+		d.style['font-family'] = 'Verdana,Geneva,sans-serif';
+		d.style['font-size'] = '9pt';
+		d.innerHTML = "<img id='loading_img' src='data:image/gif;base64,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'/>";
 		d.innerHTML += "<br><br><div id='loading_msg'>0%</div>";
-		document.body.appendChild( d );
+		d.style.display = 'block';
 	}
 	
 	// Load an resource url or an array of resource urls
 	function load( urlOrArr, callbacks ) {
-		showLoadingDialog();
+		readyCallbaks = [ loadingDone ];
+		loadingCallbacks = [ loadingProgress ];
+		errorCallbacks = [ loadingError ];
 		
 		if( callbacks != undefined ) {
 			if( typeof callbacks.ready == 'function' ) {
@@ -686,61 +824,78 @@ hotjs.Matrix = Matrix;
 		} else {
 			_load(urlOrArr);
 		}
+		
+		if(! isReady()) {
+			showLoadingMessage();
+		}
 	}
 	
-	function unload(urlOrArr) {
-		if (urlOrArr instanceof Array) {
-			urlOrArr.forEach(function(url) {
-				if ( resourceCache.hasOwnProperty(url) ) {
-					delete resourceCache[ url ];
+	function _unload(url) {
+		url = hotjs.getAbsPath(url, document.location.href);
+
+		//if( ! (url in resourceCache) ) return;
+		if ( resourceCache.hasOwnProperty( url ) ) {
+			delete resourceCache[ url ];
+		}
+		
+		// remove from DOM tree, if there is.
+		if( url.endsWith('.js') ) {
+			var fs = document.getElementsByTagName('script');
+			for( var i=0; i<fs.length; i++ ) {
+				if( url == hotjs.getAbsPath(fs[i].src, document.location.href) ) {
+					fs[i].parentNode.removeChild( fs[i] );
 				}
-			});
-		} else {
-			if ( resourceCache.hasOwnProperty(urlOrArr) ) {
-				delete resourceCache[ url ];				
 			}
+		} else if( url.endsWith('.css') ) {
+			var fs = document.getElementsByTagName('link');
+			for( var i=0; i<fs.length; i++ ) {
+				if( url == hotjs.getAbsPath(fs[i].href, document.location.href) ) {
+					fs[i].parentNode.removeChild( fs[i] );
+				}
+			}
+		} else {
+			
 		}
 	}
 
-	function isVideo(url) {
-		if( url.endsWith('ogg') ) {
-			return ( url.indexOf('video') > -1 );
+	function unload(urlOrArr) {
+		if (urlOrArr instanceof Array) {
+			urlOrArr.forEach(function(url) {
+				_unload( url );
+			});
 		} else {
-			return ( url.endsWith('mp4') || url.endsWith('webm') );
+			_unload( urlOrArr );
 		}
-	}
-	
-	function isAudio(url) {
-		if( url.endsWith('ogg') ) {
-			return ( url.indexOf('video') == -1 );
-		} else {
-			return ( url.endsWith('mp3') || url.endsWith('wav') );
-		}
-	}
-	
-	function isScript(url) {
-		return url.endsWith('.js');
 	}
 	
 	function _load(url) {
+		url = hotjs.getAbsPath(url, document.location.href);
+
 		if ( url in resourceCache ) {
 			return;
 			
 		} else {
 			var res;
 			
-			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
+			var is_video = isVideo(url), is_audio = isAudio(url), is_script = url.endsWith('.js'), is_css = url.endsWith('.css');
+
 			if( is_video ) {
 				res = new Video();
 			} else if( is_audio ) {
 				res = new Audio();
 			} else if( is_script ){
-				var abs_url = hotjs.getAbsPath(url, document.location.href);
 				var ss = document.getElementsByTagName('script');
 				for(var i=0; i<ss.length; i++) {
-					if( ss[i].src == abs_url ) return ss[i];
+					if( ss[i].src == url ) return ss[i];
 				}
 				res = document.createElement('script');
+			} else if( is_css ) {
+				var ss = document.getElementsByTagName('link');
+				for(var i=0; i<ss.length; i++) {
+					if( ss[i].href == url ) return ss[i];
+				}
+				res = document.createElement('link');
+				res.setAttribute('rel', 'stylesheet');
 			} else {
 				res = new Image();
 			}
@@ -750,8 +905,18 @@ hotjs.Matrix = Matrix;
 
 			var onload = function(){
 				resourceCache[url] = res;
+				
+				if( activeApp != null ) {
+					if( typeof activeApp.addRes == 'function' ) {
+						activeApp.addRes( url );
+					}
+				}
+
 				loaded ++;
-				console.log( url + ' preloaded (' + loaded + '/' + total + ')'  );
+				
+				if( resDebug ) {
+					console.log( url + ' preloaded (' + loaded + '/' + total + ')'  );
+				}
 
 				if( url.endsWith('.sprite.js') ) {
 					var f = hotjs.getFileName(url);
@@ -779,46 +944,71 @@ hotjs.Matrix = Matrix;
 					}
 				}
 				
-				loadingCallbacks.forEach(function(func){
-					func(res.src, loaded, total);
+				loadingCallbacks.slice(0).forEach(function(func){
+					func( url, loaded, total );
 				});
 
 				if (isReady()) {
-					readyCallbacks.forEach(function(func) {
+					if( resDebug ) {
+						console.log( 'resources ready.' );
+					}
+					readyCallbacks.slice(0).forEach(function(func) {
 						func();
 					});
 				}
 			};
 			var onerror = function() {
-				errorCallbacks.forEach(function(func){
-					func(res.src);
+				if( resDebug ) {
+					console.log( url + ' preloaded (' + loaded + '/' + total + ')'  );
+				}
+
+				errorCallbacks.slice(0).forEach(function(func){
+					func( url );
 				});
 			};
 			
+			res.addEventListener('error', onerror);
 			if( is_video || is_audio ) {
 				res.addEventListener('canplay', onload);
 				res.setAttribute('preload', 'auto');
-				//document.body.appendChild( res );
+				
+				var div = document.getElementById('hotjs_media_lib');
+				if(! div) {
+					div = document.createElement('div');
+					div.setAttribute('id', 'hotjs_media_lib');
+					div.style.display = 'none';
+					document.body.appendChild( div );
+				}
+				div.appendChild( res );
+				
+				res.setAttribute('src', url);
 			} else if ( is_script ) {
 				res.async = true;
 				res.addEventListener('load', onload);
 				var ss = document.getElementsByTagName('script');
 				ss[0].parentNode.insertBefore(res, ss[0]);
+				res.setAttribute('src', url);
+			} else if ( is_css ) {
+				res.async = true;
+				res.addEventListener('load', onload);
+				var ss = document.getElementsByTagName('script');
+				ss[0].parentNode.insertBefore(res, ss[0]);
+				res.setAttribute('href', url);
 			} else {
 				res.addEventListener('load', onload);
+				res.setAttribute('src', url);
 			}
-			
-			res.addEventListener('error', onerror);
-			res.setAttribute('src', url);
 			
 			return res;
 		}
 	}
 
 	function get(url) {
+		url = hotjs.getAbsPath(url, document.location.href);
+		
 		var res = resourceCache[url];
 		if(! res) {
-			var is_video = isVideo(url), is_audio = isAudio(url), is_script = isScript(url);
+			var is_video = isVideo(url), is_audio = isAudio(url), is_script = url.endsWith('.js'), is_css = url.endsWith('.css');
 			if( is_video ) {
 				res = new Video();
 				res.setAttribute('src', url);
@@ -841,28 +1031,76 @@ hotjs.Matrix = Matrix;
 		}
 		return res;
 	}
-
-	function isReady() {
-		var ready = true;
-		for ( var k in resourceCache) {
-			if (resourceCache.hasOwnProperty(k) && !resourceCache[k]) {
-				ready = false;
-			}
+	
+	var audio_muted = false;
+	
+	function muteAudio(b) {
+		audio_muted = b;
+	}
+	function playAudio(url) {
+		if( ! audio_muted ) {
+			get(url).play();
 		}
-		return ready;
 	}
 
+	function regApp(app) {
+		if( activeApp !== null ) {
+			console.log( 'warning: previous app not exit normally.');
+		}
+		
+		activeApp = app;
+		return this;
+	}
+	
+	function runAppFromJs( js ){
+		if( activeApp ) {
+			if( typeof activeApp.exit == 'function' ) {
+				activeApp.exit();
+			}
+			if( typeof activeApp.getRes == 'function' ) {
+				unload( activeApp.getRes() );
+			}
+			activeApp = null;
+		}
+		
+		if( resDebug ) {
+			console.log( 'loading app from js: ' + js );
+		}
+		
+		load( js, {
+			ready: function() {
+				if( activeApp ) {
+					if( typeof activeApp.init == 'function' ) {
+						activeApp.init();
+					}
+				}
+			}
+		});
+		
+		return this;
+	}
+		
 	window.resources = {
+		get : get,
 		load : load,
 		unload : unload,
-		get : get,
-		getTotal : getTotal,
-		getLoaded : getLoaded,
+
+		isReady : isReady,
 		onReady : onReady,
 		onLoading : onLoading,
 		onError : onError,
-		isReady : isReady
+		
+		playAudio : playAudio,
+		muteAudio : muteAudio,
+
+		regApp : regApp,
+		runAppFromJs : runAppFromJs,
+		
+		setDebug : function( true_or_false ) { resDebug = true_or_false; },
+		getAll : function() { return resourceCache; },
+		getActiveApp : function() { return activeApp; }
 	};
+
 })();
 
 // ------- canvas.js ------------- 
@@ -871,7 +1109,7 @@ hotjs.Matrix = Matrix;
 var hotjs = hotjs || {};
 
 (function(){
-	
+
 var Vector = hotjs.Vector;
 
 // A cross-browser requestAnimationFrame
@@ -1019,12 +1257,21 @@ hotjs.inherit(View, hotjs.Class, {
 				nextTime += step;
 			}
 			
-			requestAnimFrame( view_loop );
+			if( ! me.stopping ) {
+				requestAnimFrame( view_loop );
+			} else {
+				me.stopped = true;
+			}
 		}
 		
+		this.stopping = false;
 		this.running = true;
 		view_loop();
 
+		return this;
+	},
+	stop : function() {
+		this.stopping = true;
 		return this;
 	},
 	setMaxFps : function( f ) {
@@ -1196,8 +1443,8 @@ hotjs.inherit(View, hotjs.Class, {
 						this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
 						0, 0, this.canvas.width,this.canvas.height);
 			}
-		} else {
-			if(!! this.bgcolor ) c.fillStyle = this.bgcolor;
+		} else if(!! this.bgcolor ) {
+			c.fillStyle = this.bgcolor;
 			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
 		
@@ -3001,7 +3248,7 @@ hotjs = hotjs || {};
 hotjs.Social = hotjs.Social || {};
 
 (function(){
-	
+
 // TODO: AjaxClient 
 // using jQuery/AJAX to handle network request 
 var AjaxClient = function(){
@@ -3598,7 +3845,7 @@ hotjs = hotjs || {};
 hotjs.Util = hotjs.Util || {};
 
 (function(){
-	
+
 // borrow from collie.js
 var _htDeviceInfo = null;
 
@@ -4101,6 +4348,144 @@ hotjs.ShowBoard = ShowBoard;
 
 })();
 
+// ------- domui.js ------------- 
+
+
+hotjs.domUI = hotjs.domUI || {};
+
+(function(){
+
+var pngX = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYxIDY0LjE0MDk0OSwgMjAxMC8xMi8wNy0xMDo1NzowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNS4xIE1hY2ludG9zaCIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpFNTQ4MDYzRUUzRjcxMUUyOURFRUYzMDcwRjUyN0U4OSIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpFNTQ4MDYzRkUzRjcxMUUyOURFRUYzMDcwRjUyN0U4OSI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjJGRTkyMTc1RTNGMDExRTI5REVFRjMwNzBGNTI3RTg5IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjJGRTkyMTc2RTNGMDExRTI5REVFRjMwNzBGNTI3RTg5Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8++2P9ygAACSZJREFUeNrkV3uM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';
+
+var dismiss = function( id_or_obj ) {
+	var o = id_or_obj;
+	if( typeof o == 'string' ) {
+		o = document.getElementById( o );
+	}
+	if( typeof o == 'object' && o && o.parentNode ) {
+		o.parentNode.removeChild( o );
+	}
+};
+
+var toggle = function( id_or_obj ) {
+	var o = id_or_obj;
+	if( typeof o == 'string' ) {
+		o = document.getElementById( o );
+	}
+	if( o.style.display == 'none' ) {
+		o.style.display = 'block';
+	} else {
+		o.style.display = 'none';
+	}
+};
+	
+var showSplash = function( show, content, style ) {
+	if(! show) {
+		dismiss( 'hotjs_splash_win' );
+		return;
+	}
+	
+	var div = document.getElementById('hotjs_splash_win');
+	if(! div) {
+		div = document.createElement('div');
+		div.setAttribute('id', 'hotjs_splash_win');
+		div.style.position = 'absolute';
+		div.style.display = 'none';
+		document.body.appendChild( div );
+	}
+	
+	var win = $(div);
+	
+	if( typeof content == 'string' ) {
+		div.innerHTML = ( "<table style='width:100%;height:100%;'><tr><td class='m'>" 
+				+ content + "<br/><div id='hotjs_res_loading_win'></div></td></tr></table>" );
+	}
+	
+	if( typeof style == 'string' ){
+		div.style = style;
+	} else if ( typeof style == 'object' ) {
+		win.css( style );
+	}
+	
+	var w = window.innerWidth, h = window.innerHeight;
+		win.css({
+			'margin' : '0px',
+			'padding' : '0px',
+			'top' : '0px',
+			'left' : '0px',
+			'width' : w + 'px',
+			'height' : h + 'px',
+			'text-align' : 'center',
+			'vertical-align' : 'middle',
+			'position' : 'absolute',
+			'z-index' : '999',
+			'display' : 'block'
+		});
+};
+
+var popupDialog = function( title, content, buttons, style, x_img ) {
+	title = title || 'dialog';
+	content = content || '';
+	style = style || {};
+	buttons = buttons || {};
+	x_img = x_img || "<img src='" + pngX + "'>";
+	
+	var dlgId = 'DLG' + Date.now();
+	var div = document.createElement('div');
+	document.body.appendChild( div );
+	
+	var win = $(div);
+	win.attr('id', dlgId);
+	win.attr('class', 'dialog');
+	win.css({'position':'absolute', 'display':'none'});
+	
+	var btnHtml = "";
+	for( var i in buttons ) {
+		var btnId = dlgId + i;
+		btnHtml += "<button class='dialog' id='" + btnId  + "' v='" + i + "'>" + hotjs.i18n.get(i) + "</button> ";
+	}
+
+	var idX = dlgId + "X";
+	x_img = x_img.replace( '<img', "<img id='" + idX + "'" );
+	div.innerHTML = "<table class='m'>\
+<tr>\
+<td class='i'></td><td>" + title + "</td><td class='i r'>" + x_img + "</td></tr>\
+<tr><td colspan=3 class='dialog'>" + content + "</td></tr>\
+<tr><td colspan=3 class='m'>" + btnHtml + "</td></tr>\
+</table>";
+	
+	$('img#' + idX).on('click', function(){ dismiss(dlgId); });
+
+	for( var i in buttons ) {
+		var btnId = dlgId + i;
+		$('button#' + btnId).on('click', function(){
+			var i = $(this).attr('v');
+			var func = buttons[i];
+			if(func()) dismiss( dlgId );
+		});
+	}	
+
+	var w = window.innerWidth, h = window.innerHeight;
+	win.css({ 'top': ((h-win.height())/2-10) + 'px', 'left': (w-win.width())/2 + 'px', 'display':'block' });
+
+	if( typeof style == 'string' ) {
+		div.style = style + ';position:absolute;';
+	} else {
+		win.css( style );
+	}
+	
+	return div;
+};
+
+hotjs.domUI = {
+	pngX: pngX,
+	dismiss: dismiss,
+	toggle : toggle,
+	showSplash : showSplash,
+	popupDialog : popupDialog
+};
+	
+})();
 // ------- i18n.js ------------- 
 
 
@@ -4253,6 +4638,9 @@ hotjs.inherit(Matrix, BasicAI, {
 		
 		return this;
 	},
+	rows : function() {
+		return this.data.length;
+	},
 	resetMapping : function() {
 		var mtx = this.data;
 		var map = [];
@@ -4301,19 +4689,39 @@ hotjs.inherit(Matrix, BasicAI, {
 	toString : function(sep_col, sep_row){
 		return hotjs.Matrix.toString(this.data, sep_col, sep_row);
 	},
-	exchangeValue : function(x,y){
+	exchangeValue : function(v1,v2){
 		var mtx = this.data;
 		for(var i=0, m=mtx.length; i<m; i++) {
 			var r = mtx[i];
 			for(var j=0, n=r.length; j<n; j++) {
-				if( r[j] == x ) {
-					r[j] = y;
-				} else if( r[j] == y) {
-					r[j] = x;
+				if( r[j] == v1 ) {
+					r[j] = v2;
+				} else if( r[j] == v2) {
+					r[j] = v1;
 				}
 			}
 		}
 		return this;
+	},
+	countValue : function(v) {
+		var c = 0;
+		var mtx = this.data;
+		for(var i=0, m=mtx.length; i<m; i++) {
+			var r = mtx[i];
+			for(var j=0, n=r.length; j<n; j++) {
+				if( r[j] == v ) {
+					c ++;
+				}
+			}
+		}
+		return c;
+	},
+	setValueByPos : function(x, y, v) {
+		this.data[y][x] = v;
+		return this;
+	},
+	getValuebyPos : function(x, y) {
+		return this.data[y][x];
 	},
 	getPosByValue : function(v) {
 		var points = [];
@@ -4408,6 +4816,300 @@ hotjs.inherit(Matrix, BasicAI, {
 	}
 });
 
+//TODO: GomokuAI
+var GomokuAI = function(){
+	hotjs.base(this);
+	
+	// '10111', 1, 1000
+	// '11100', 3, 100
+	// 2^5 = 32, +1
+	this.patterns = [];
+	this.char_style = {
+			level: 1,
+			think_time: 500,
+			attack_factor: 1.2
+	};
+};
+
+hotjs.inherit(GomokuAI, BasicAI, {
+	genPattern : function genPattern(str) {
+		if(str == undefined) str = '';
+		if( str.length < 5 ) {
+			var ar = genPattern(str+'2'), ar2 = genPattern(str+'.');
+			while( s = ar2.shift() ) {
+				ar.push( s );
+			}
+			return ar;
+		}
+		return [ str ];
+	},
+	initPattern : function() {
+		var ar = this.genPattern();
+		for(var i=ar.length-1; i>=0; i--) {
+			var str = ar[i];
+			
+			var n = 0;
+			var loc = [];
+			for(var j=str.length-1; j>=0; j--) {
+				if(str[j] == '2') n++;
+				else loc.push(j);
+			}
+			if( n >= 1 ) {
+				var pt = [ str, n, Math.pow(10,(n-1)), loc ];
+				//console.log( pt[0], pt[1], pt[2], pt[3] );
+				this.patterns.push( pt );
+			} else {
+				// ignore pattern '00000'
+			}
+		}
+		
+		// another patten that must win
+		this.addPattern( ['.2222.', 0, 5000, [0,5] ] );
+		
+		return this;
+	},
+	addPattern : function( p ) {
+		var pts = this.patterns;
+		for(var i=pts.length-1; i>=0; i--) {
+			var pt = pts[i];
+			if(pt[0] == p[0]) { 
+				pt[2] = p[2]; // replace the hit score
+				return this;
+			}
+		}
+		this.patterns.push(p);
+		return this;
+	},
+	setColor : function( c ) {
+		c = '' + c;
+		var pts = this.patterns;
+		for(var i=pts.length-1; i>=0; i--) {
+			var pt = pts[i];
+			if( pt[0].indexOf(c) == -1 ) {
+				if( c == '1' ) {
+					pt[0] = pt[0].replace(/2/g, c);
+				} else {
+					pt[0] = pt[0].replace(/1/g, c);
+				}
+			}
+		}
+		
+		return this;
+	},
+	setCharStyle : function( c ) {
+		this.char_style = {
+				level: c.level,
+				think_time: c.think_time,
+				attack_factor: c.attack_factor
+		};
+		return this;
+	},
+	getCharStyle : function() {
+		return this.char_style;
+	},
+	findHits : function( m1, hit_factor ) {
+		var pts = this.patterns;
+		
+		// prepare 4 matrix to search the patterns
+		//hotjs.Matrix.log( m1.getData() );
+		var ms = [];
+		ms.push( m1 );
+		ms.push( m1.clone().inverse() );
+		ms.push( m1.clone().leanRight45() );
+		ms.push( m1.clone().leanLeft45() );
+		
+		// record hit score with priority of patterns
+		var hitRating = hotjs.Matrix.setValue( hotjs.Matrix.copy(m1.getData()), 0 );
+		var winHits = [];
+
+		for( var k=0; k<ms.length; k++ ) {
+			//var k = 0;
+			var mtx = ms[k].getData();
+			var mtxmap = ms[k].getMapping();
+			var mtxhit = hotjs.Matrix.setValue( hotjs.Matrix.copy( mtx ), 0 );
+			
+			// calc hit for each matrix
+			for( var i=mtx.length-1; i>=0; i-- ) { // row
+				var r = mtx[i];
+				var rstr = r.join('');
+				var rhit = mtxhit[i];
+				var rmap = mtxmap[i];
+
+				// let's search the patterns in each row
+				for(var j=pts.length-1; j>=0; j--) {
+					var pt = pts[j];
+					var pstr = pt[0]; // pattern str
+					var pn = pt[1];
+					var phit = pt[2] * hit_factor; //+ priority_plus;
+					var ploc = pt[3];
+					
+					var n = -1;
+					while( (n = rstr.indexOf(pstr,n+1)) != -1 ) {
+						if( pn == 5 ) {
+							var win_hit = [];
+							for(var p=4; p>=0; p--) {
+								win_hit.push( rmap[ n + p ] );
+							}
+							winHits.push( win_hit );
+							//console.log( rmap );
+							//console.log( n, ploc, pt );
+							//console.log( win_hit );
+						} else {
+							for(var p=ploc.length-1; p>=0; p--) {
+								var x = n + ploc[p];
+								if( r[x] == '.' ) { // still empty slot
+									rhit[ x ] += phit;
+								}
+							}
+						}
+					}
+				}
+				
+				// sum to single matrix according to mapping
+				for(var j=rhit.length-1; j>=0; j--) {
+					var pos = rmap[j];
+					hitRating[ pos[1] ][ pos[0] ] += rhit[j];
+				}
+			}
+		}
+		
+		return { 
+			hitRating : hitRating, 
+			winHits : winHits 
+			};
+	},
+	getBestMove : function( hits ) {
+		// default move is the center point
+		var x0 = Math.floor(hits.length/2);
+		var x = x0, y = x0, hit = 1;
+		
+		for(var i=hits.length-1; i>=0; i--) {
+			var r = hits[i];
+			for(var j=r.length-1; j>=0; j--) {
+				var h = r[j];
+				if( h > hit ) {
+					x = j;
+					y = i;
+					hit = h;
+				}
+			}
+		}
+		
+		return [x,y,hit];
+	},
+	getTopMoves : function( hits, count ) {
+		var x0 = Math.floor(hits.length/2);
+		var moves = [ [x0,x0,1] ];
+		
+		for(var i=hits.length-1; i>=0; i--) {
+			var r = hits[i];
+			for(var j=r.length-1; j>=0; j--) {
+				var h = r[j];
+				var move = [j,i,h];
+				
+				var n = moves.length;
+				for( var k=0; k<n; k++) {
+					if( h > moves[k][2] ) {
+						moves.splice(k, 0, move);
+						break;
+					}
+				}
+				if( moves.length == n ) {
+					if( n < count ) moves.push(move);
+				}
+				if( moves.length > count ) {
+					moves.pop();
+				}
+			}
+		}
+		
+		return moves;
+	},
+	solve : function( mtx_or_str ) {
+		var m1 = new hotjs.AI.Matrix();
+		if( Array.isArray( mtx_or_str ) ) {
+			m1.importData( mtx_or_str );
+		} else { 
+			m1.importDataFromString( mtx_or_str );
+		}
+		
+		var myHits = this.findHits( m1, this.char_style.attack_factor );
+		var peerHits = this.findHits( m1.clone().exchangeValue('1','2'), 1 );
+		
+		var mergedRating = hotjs.Matrix.add( myHits.hitRating, peerHits.hitRating );
+		var topMoves = this.getTopMoves( mergedRating, 5 );
+		var bestMove = (topMoves.length>0) ? topMoves[0] : [Math.floor(m1.rows()/2),Math.floor(m1.rows()/2),1];
+		return {
+			myWinHits : myHits.winHits,
+			peerWinHits : peerHits.winHits,
+			bestMove : bestMove,
+			topMoves : topMoves,
+			hitRating : mergedRating
+		};
+	},
+	deepThinking : function( mtx_or_str, depth ) {
+		if( typeof depth == 'undefined' ) {
+			depth = this.char_style.level -1;
+		}
+		
+		var m1 = new hotjs.AI.Matrix();
+		if( Array.isArray( mtx_or_str ) ) {
+			m1.importData( mtx_or_str );
+		} else { 
+			m1.importDataFromString( mtx_or_str );
+		}
+		
+		var myHits = this.findHits( m1, this.char_style.attack_factor );
+		var peerHits = this.findHits( m1.clone().exchangeValue('1','2'), 1 );
+		
+		var mergedRating = hotjs.Matrix.add( myHits.hitRating, peerHits.hitRating );
+		var topMoves = this.getTopMoves( mergedRating, 5 );
+		var bestMove = (topMoves.length>0) ? topMoves[0] : [Math.floor(m1.rows()/2),Math.floor(m1.rows()/2),1];
+
+		var notWinNow = (myHits.winHits.length == 0) && (peerHits.winHits.length == 0);
+		var notWinNextStep = (bestMove[2] < 10000);
+		//console.log( notWin, notWinNextStep, myHits.winHits.length, peerHits.winHits.length );
+		if( notWinNow && notWinNextStep && (depth > 1) ) {
+			//console.log( 'depth = ' + depth );
+			
+			for( var i=0; i<topMoves.length; i++ ) {
+				var move = topMoves[i];
+				var m2 = m1.clone();
+				m2.setValueByPos( move[0], move[1], (m2.countValue('1')<=m2.countValue('2') ? '1' :'2')  );
+				var result = this.deepThinking(m2.data, depth-1);
+				if( result.myWinHits.length > 0 ) {
+					move[2] += 5000;
+				} else if( result.peerWinHits.length > 0 ) {
+					move[2] -= 5000;
+				} else {
+					move[2] += result.bestMove[2] / 2;
+				}
+				mergedRating[ move[1] ][ move[0] ] = move[2];
+			}
+			topMoves.sort(function(a,b){
+				if(a[2] > b[2]) return -1;
+				else if(a[2] < b[2]) return 1;
+				return 0;
+			});
+		}
+		
+		return {
+			myWinHits : myHits.winHits,
+			peerWinHits : peerHits.winHits,
+			bestMove : bestMove,
+			topMoves : topMoves,
+			hitRating : mergedRating
+		};
+	},
+	solveDeep : function( mtx_or_str ) {
+		var think_start = Date.now();
+		var result = this.deepThinking(mtx_or_str, this.char_style.level);
+		var used_time = Date.now() - think_start;
+		//console.log( used_time );
+		return result;
+	}
+});
+
 // TODO: PathFinder
 var PathFinder = function(){
 	hotjs.base(this);
@@ -4427,6 +5129,7 @@ hotjs.inherit(PathFinder, BasicAI, {
 
 hotjs.AI.BasicAI = BasicAI;
 hotjs.AI.Matrix = Matrix;
+hotjs.AI.GomokuAI = GomokuAI;
 hotjs.AI.PathFinder = PathFinder;
 
 })();

@@ -5,6 +5,93 @@ var hotjs = hotjs || {};
 
 hotjs.version = 1.0;
 
+function agentType() {
+	var agent = navigator.userAgent;
+	if( agent.indexOf('Chrome') > -1 ) return 'Chrome';
+	else if( agent.indexOf('Firefox') > -1 ) return 'Firefox';
+	else if( agent.indexOf('MSIE') > -1 ) return 'MSIE';
+	else if( agent.indexOf('Safari') > -1 ) return 'Safari';
+	else if( agent.indexOf('Opera') > -1 ) return 'Opera';
+	else return 'others';
+}
+
+var agentVersion = function () {
+	var at = agentType();
+	var ua = navigator.userAgent;
+	if( at == 'Chrome' ) {
+		return ua.split('Chrome/')[1].split(' ')[0];
+	} else if ( at == 'Firefox' ) {
+		return ua.split('Firefox/')[1].split(' ')[0];
+	} else if ( at == 'Opera' || at == 'Safari ') {
+		return ua.split('Version/')[1].split(' ')[0];
+	} else if ( at == 'MSIE' ) {
+		return ua.split('MSIE ')[1].split(' ')[0];
+	}
+
+	return '0';
+};
+
+hotjs.agentType = agentType();
+hotjs.agentVersion = agentVersion();
+hotjs.agentVersionInt = parseInt( agentVersion().split('.')[0], 10 );
+
+/*
+ * copy this code to where needs __FILE__
+ * 
+var __FILE__ = ( hotjs.agentType == 'Safari' ) ? 
+		function() { try { throw new Error(); } catch (e) { return e.sourceURL; } }() :
+		hotjs.this_file();
+		
+var __DIR__ = function(f) {
+	hotjs.getAbsPath(f, __FILE__);
+}
+
+*/
+
+hotjs.this_file = function(){
+	switch( hotjs.agentType ) {
+	case 'MSIE':
+		if( hotjs.agentVersionInt < 10 ) return '';
+		try {
+			throw new Error();
+		} catch (e) {
+			return e.stack
+				.split('\n')[2]
+				.split('(')[1]
+				.split(':').slice( 0, -2 ).join(':'); 
+		}
+		break;
+	case 'Chrome':
+		try {
+			throw new Error();
+		} catch (e) {
+			var line = e.stack.split('\n')[2];
+			if( line.indexOf('(') > -1 ) {
+				return line.split('(')[1]
+					.split(':').slice( 0, -2 ).join(':'); 
+			} else {
+				return line.split('at ')[1]
+					.split(':').slice( 0, -2 ).join(':'); 
+			}
+		}
+		break;
+	case 'Firefox':
+	case 'Opera':
+		try {
+			throw new Error();
+		} catch (e) {
+			return e.stack.split('\n')[1]
+				.split('@')[1]
+				.split(':').slice( 0, -1 ).join(':'); 
+		}
+	case 'Safari':
+		// TODO: Safari does not support error.stack, 
+		// only get the stack top as error.sourceURL.
+		return '';
+	}
+	return '';
+};
+
 // tool for inherit
 // See 
 // "tests/test_oo.html" for example & use case
@@ -131,6 +218,8 @@ hotjs.getDirPath = function(path) {
 };
 
 hotjs.getAbsPath = function(f, me) {
+	if( f.indexOf('://') > -1 ) return f;
+	
 	d = hotjs.getDirPath(me);
 	do { // './xx.js' or '../xx.js'
 		if (f.substring(0, 2) == './') {
@@ -319,37 +408,54 @@ hotjs.Class.prototype = {
 		return this;
 	}	
 };
-		
-// ----------------------
-// TODO: class App
+
+//----------------------
+//TODO: class App
 
 var App = function(){
 	hotjs.base(this);
 	
-	this.views = [];
-	this.runningTime = 0;
+	this.res = [];
+	this.modules = [];
 };
 
 hotjs.inherit(App, hotjs.Class, {
+	init : function(){
+	},
+	exit : function() {
+	},
+	addRes : function(url) {
+		this.res.push( url );
+		return this;
+	},
+	getRes : function() {
+		return this.res;
+	},
 	addNode : function(v) {
-		this.views.push(v);
+		this.modules.push(v);
 		return this;
 	},
 	start : function() {
-		for(var i=0; i<this.views.length; i++) {
-			this.views[i].start();
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].start();
 		}
 		return this;
 	},
 	resume : function( true_or_false ) {
-		for(var i=0; i<this.views.length; i++) {
-			this.views[i].resume( true_or_false );
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].resume( true_or_false );
 		}
 		return this;
 	},	
 	pause : function() {
-		for(var i=0; i<this.views.length; i++) {
-			this.views[i].resume( false );
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].resume( false );
+		}
+		return this;
+	},
+	stop : function() {
+		for(var i=0; i<this.modules.length; i++) {
+			this.modules[i].stop();
 		}
 		return this;
 	}

@@ -2,7 +2,7 @@
 var hotjs = hotjs || {};
 
 (function(){
-	
+
 var Vector = hotjs.Vector;
 
 // A cross-browser requestAnimationFrame
@@ -150,12 +150,21 @@ hotjs.inherit(View, hotjs.Class, {
 				nextTime += step;
 			}
 			
-			requestAnimFrame( view_loop );
+			if( ! me.stopping ) {
+				requestAnimFrame( view_loop );
+			} else {
+				me.stopped = true;
+			}
 		}
 		
+		this.stopping = false;
 		this.running = true;
 		view_loop();
 
+		return this;
+	},
+	stop : function() {
+		this.stopping = true;
 		return this;
 	},
 	setMaxFps : function( f ) {
@@ -318,10 +327,6 @@ hotjs.inherit(View, hotjs.Class, {
 		var c = this.ctx;
 		c.save();
 		
-		if(!! this.bgcolor ) {
-			c.fillStyle = this.bgcolor;
-			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
-		}
 		if(!! this.bgimg) {
 			if( this.bgrepeat ) {
 				c.fillStyle = c.createPattern(this.bgimg, 'repeat');
@@ -331,6 +336,9 @@ hotjs.inherit(View, hotjs.Class, {
 						this.bgimgrect[0], this.bgimgrect[1], this.bgimgrect[2], this.bgimgrect[3], 
 						0, 0, this.canvas.width,this.canvas.height);
 			}
+		} else if(!! this.bgcolor ) {
+			c.fillStyle = this.bgcolor;
+			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
 		
 		for(var i=0; i<this.scenes.length; i++) {

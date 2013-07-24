@@ -18,12 +18,10 @@ def testmem(req):
     str = mc.get('foo')
     req.write(str)
 
-    n = mc.get('a')
-    if( n == None ) :
-        mc.set('a', 1, 300 )
-        n = 1
-    req.write( "n = {0}\n".format(n) )
+    mc.set('a', 1, 300)
     mc.incr('a', 1)
+    n = mc.get('a')
+    req.write( "n = {0}\n".format(n) )
 
     try:
         req.write(mc.get('b'))
@@ -31,3 +29,4 @@ def testmem(req):
         pass
     
     #return apache.OK
+

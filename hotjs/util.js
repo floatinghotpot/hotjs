@@ -3,7 +3,7 @@ hotjs = hotjs || {};
 hotjs.Util = hotjs.Util || {};
 
 (function(){
-	
+
 // borrow from collie.js
 var _htDeviceInfo = null;
 

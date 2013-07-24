@@ -14,13 +14,23 @@
 <script src="../hotjs.js"></script>
 <script>
 
+hotjs.require('../resource.js');
 hotjs.require('../math.js');
 hotjs.require('../ai.js');
 hotjs.require('../social.js');
 hotjs.require('../i18n.js');
+hotjs.require('../domui.js');
 
 module('New Module');
 test('UT of New Module', function(){
+	
+	ok( true, navigator.userAgent );
+	
+	ok( true, hotjs.agentType + ' ' + hotjs.agentVersion )
+	
+	ok( true, '__FILE__ = ' + hotjs.this_file() );
+	
+	ok( true, hotjs.getDirPath( hotjs.this_file() ) );
 	
 	ok( true, 'hello, hotjs.AI.');
 	
@@ -28,10 +38,18 @@ test('UT of New Module', function(){
 	equal( a[ 'test' ], 1, 'use string as key of mapping' );
 	equal( a[ 1001 ], 2, 'use integer as key of mapping' );
 
+	var s1 = document.getElementsByTagName('script').length;
+	resources.unload('../domui.js');
+	var s2 = document.getElementsByTagName('script').length;
+	equal( (s2 +1), s1, 'unload domui.js, script tag removed. ' + s1 + ' -> ' + s2 );
+	
 	var ss = document.getElementsByTagName('script');
-	for(var i=0; i<ss.length; i++) {
-		ok( true, 'js: ' + ss[i].src );
+	var urls = [];
+	for(var i=0; i<ss.length; i++ ) {
+		urls.push( ss[i].src );
 	}
+	resources.unload( urls );
+	equal( ss.length, 1, 'all script unloaded, will error occur?' );
 	
 	equal( hotjs.getDirPath('../../test.js'), '../..', 'getDirPath' );
 	str = hotjs.getAbsPath('../../../test.js', '../../hello.js');
@@ -42,42 +60,68 @@ test('UT of New Module', function(){
 	
 });
 
-module('I18N');
-test('I18N multi-language APIs', function(){
-	hotjs.i18n.put('zh',{
-		mygod: 'my god',
-		lady: {
-			gaga: 'lady gaga',
-			papa: 'lady papa'
-		}
-	})
+module('DOM UI');
+test('DOM UI Components', function(){
+	ok( true, 'dom UI');
 	
-	ok( true, 'current language: ' + hotjs.i18n.getLang() );
-	equal( hotjs.i18n.get('mygod'), 'my god', 'hotjs.i18n.get(\'mygod\')');
-	equal( hotjs.i18n.get('lady.gaga'), 'lady gaga', 'hotjs.i18n.get(\'lady.gaga\')');
+	hotjs.domUI.popupDialog( 'Hello', 'Nice to meet you.' );
+
+	hotjs.domUI.popupDialog('Hello', 'Are you sure?', {
+			'ok' : function() {
+				alert('ok');
+				return true;
+			},
+			'cancel' : function() {
+				alert('cancel');
+				return false;
+			}
+		}, {
+			'color' : 'blue',
+			'background' : '#cccccc',
+			'top' : '100px',
+			'padding' : '5px'
+		});
+
+});
+
+module('Local Storage');
+test('local storage', function(){
+	
+	ok( typeof(Storage)!=="undefined", 'Yes! localStorage and sessionStorage support!' );
+
+	if (localStorage.clickcount) {
+		localStorage.clickcount = Number(localStorage.clickcount) + 1;
+		localStorage.clickcount = Number(localStorage.clickcount) + 1;
+	} else {
+		localStorage.clickcount = 1;
+	}
+	
+	console.log( localStorage.clickcount );
+	console.log( typeof localStorage.clickcount );
+
+	console.log( localStorage );
 });
 
 module('Social APIs');
 test("Basic operations of Social APIs", function() {
 
 	var user = new hotjs.Social.User();
-	
-	ok( true, 'hello!' );
+
+	ok(true, 'hello!');
 
 	// load API from remote inf file. 
 	//var ret = user.loadAPI( "./sns/user.inf", "user", 1.05 );
 	//equal( ret, true, "Load API definition from sns inf." );
-	
+
 	user.onMsgParse = function(msg) {
 		//console.log( msg );
 		//if( msg.api == "say" ) alert( msg.who + " say: " + msg.what );
 	};
-	
+
 	//ok( user.login("zhang3", "abc123", "Gomoku", 1.0, 5000), "login to sns, start heartbeat." );
-	
+
 });
 
-
-	</script>
+</script>
 </body>
 </html>

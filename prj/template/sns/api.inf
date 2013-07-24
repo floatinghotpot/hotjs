@@ -1,8 +1,0 @@
-{
-	"module" : "{__name__}",
-	"version" : 1.0,
-	"base" : "./{__name__}.py/",
-	"list" : [ 
-		{ "api": "_default_", "url" : "index", "param": [], "comment" : "default api, must be defined." }
-	]
-}
