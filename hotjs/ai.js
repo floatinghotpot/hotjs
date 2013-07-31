@@ -10,18 +10,16 @@ var BasicAI = function(){
 };
 
 hotjs.inherit( BasicAI, hotjs.Class, {
-	startup : function(conf) {
+	init : function(conf) {
 	},
 	judge : function( puzzle ) {
-		
 	},
 	solve : function( puzzle ) {
 		return {};
 	},
 	reset : function() {
-		
 	},
-	shutdown : function() {
+	exit : function() {
 	}
 });
 
@@ -223,6 +221,31 @@ hotjs.inherit(Matrix, BasicAI, {
 	}
 });
 
+//TODO: GoAI
+var GoAI = function(){
+	hotjs.base(this);
+	
+	this.char_style = {
+			level: 1,
+			think_time: 500,
+			attack_factor: 1.2
+	};
+};
+
+hotjs.inherit(GoAI, BasicAI, {
+	setCharStyle : function( c ) {
+		this.char_style = {
+				level: c.level,
+				think_time: c.think_time,
+				attack_factor: c.attack_factor
+		};
+		return this;
+	},
+	getCharStyle : function() {
+		return this.char_style;
+	}	
+});
+
 //TODO: GomokuAI
 var GomokuAI = function(){
 	hotjs.base(this);
@@ -238,7 +261,7 @@ var GomokuAI = function(){
 	};
 };
 
-hotjs.inherit(GomokuAI, BasicAI, {
+hotjs.inherit(GomokuAI, GoAI, {
 	genPattern : function genPattern(str) {
 		if(str == undefined) str = '';
 		if( str.length < 5 ) {
@@ -306,17 +329,6 @@ hotjs.inherit(GomokuAI, BasicAI, {
 		}
 		
 		return this;
-	},
-	setCharStyle : function( c ) {
-		this.char_style = {
-				level: c.level,
-				think_time: c.think_time,
-				attack_factor: c.attack_factor
-		};
-		return this;
-	},
-	getCharStyle : function() {
-		return this.char_style;
 	},
 	findHits : function( m1, hit_factor ) {
 		var pts = this.patterns;
