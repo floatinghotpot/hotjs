@@ -12,6 +12,9 @@ var BasicAI = function(){
 hotjs.inherit( BasicAI, hotjs.Class, {
 	startup : function(conf) {
 	},
+	judge : function( puzzle ) {
+		
+	},
 	solve : function( puzzle ) {
 		return {};
 	},
@@ -267,8 +270,10 @@ hotjs.inherit(GomokuAI, BasicAI, {
 			}
 		}
 		
-		// another patten that must win
+		// another patten that must or easy to win
 		this.addPattern( ['.2222.', 0, 5000, [0,5] ] );
+		this.addPattern( ['.222.', 3, 500, [0,4] ] );
+		this.addPattern( ['.2.2.', 2, 50, [2,0,4] ] );
 		
 		return this;
 	},
@@ -276,8 +281,10 @@ hotjs.inherit(GomokuAI, BasicAI, {
 		var pts = this.patterns;
 		for(var i=pts.length-1; i>=0; i--) {
 			var pt = pts[i];
-			if(pt[0] == p[0]) { 
-				pt[2] = p[2]; // replace the hit score
+			if(pt[0] == p[0]) {
+				// replace the hit score
+				pt[2] = p[2]; 
+				pt[3] = p[3];
 				return this;
 			}
 		}
