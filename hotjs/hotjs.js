@@ -5,92 +5,35 @@ var hotjs = hotjs || {};
 
 hotjs.version = 1.0;
 
-function agentType() {
-	var agent = navigator.userAgent;
-	if( agent.indexOf('Chrome') > -1 ) return 'Chrome';
-	else if( agent.indexOf('Firefox') > -1 ) return 'Firefox';
-	else if( agent.indexOf('MSIE') > -1 ) return 'MSIE';
-	else if( agent.indexOf('Safari') > -1 ) return 'Safari';
-	else if( agent.indexOf('Opera') > -1 ) return 'Opera';
-	else return 'others';
-}
-
-var agentVersion = function () {
-	var at = agentType();
-	var ua = navigator.userAgent;
-	if( at == 'Chrome' ) {
-		return ua.split('Chrome/')[1].split(' ')[0];
-	} else if ( at == 'Firefox' ) {
-		return ua.split('Firefox/')[1].split(' ')[0];
-	} else if ( at == 'Opera' || at == 'Safari ') {
-		return ua.split('Version/')[1].split(' ')[0];
-	} else if ( at == 'MSIE' ) {
-		return ua.split('MSIE ')[1].split(' ')[0];
-	}
-
-	return '0';
-};
-
-hotjs.agentType = agentType();
-hotjs.agentVersion = agentVersion();
-hotjs.agentVersionInt = parseInt( agentVersion().split('.')[0], 10 );
-
 /*
  * copy this code to where needs __FILE__
  * 
-var __FILE__ = ( hotjs.agentType == 'Safari' ) ? 
-		function() { try { throw new Error(); } catch (e) { return e.sourceURL; } }() :
-		hotjs.this_file();
-		
-var __DIR__ = function(f) {
-	hotjs.getAbsPath(f, __FILE__);
+var __FILE__;
+
+// Method 1: get path using the last loaded script, 
+// remember, we must append script in resource preloading.
+var scripts = document.getElementsByTagName("script");
+__FILE__ = scripts[scripts.length - 1].src;
+if( ! __FILE__ ) __FILE__ = scripts[scripts.length - 2].src;
+
+// Method 2: get with error exception
+try {
+    throw Error("get js path");
+}catch(ex){
+    if(ex.fileName) { //Firefox
+        __FILE__ = ex.fileName;
+    } else if(ex.sourceURL) { //Safari
+        __FILE__ = ex.sourceURL;
+    } else if(ex.stack) { //Chrome or IE10+
+        __FILE__ = (ex.stack.match(/at\s+(.*?):\d+:\d+/)||['',''])[1];
+    }
 }
 
-*/
-
-hotjs.this_file = function(){
-	switch( hotjs.agentType ) {
-	case 'MSIE':
-		if( hotjs.agentVersionInt < 10 ) return '';
-		try {
-			throw new Error();
-		} catch (e) {
-			return e.stack
-				.split('\n')[2]
-				.split('(')[1]
-				.split(':').slice( 0, -2 ).join(':'); 
-		}
-		break;
-	case 'Chrome':
-		try {
-			throw new Error();
-		} catch (e) {
-			var line = e.stack.split('\n')[2];
-			if( line.indexOf('(') > -1 ) {
-				return line.split('(')[1]
-					.split(':').slice( 0, -2 ).join(':'); 
-			} else {
-				return line.split('at ')[1]
-					.split(':').slice( 0, -2 ).join(':'); 
-			}
-		}
-		break;
-	case 'Firefox':
-	case 'Opera':
-		try {
-			throw new Error();
-		} catch (e) {
-			return e.stack.split('\n')[1]
-				.split('@')[1]
-				.split(':').slice( 0, -1 ).join(':'); 
-		}
-	case 'Safari':
-		// TODO: Safari does not support error.stack, 
-		// only get the stack top as error.sourceURL.
-		return '';
-	}
-	return '';
+var __DIR__ = function(f) {
+	return hotjs.getAbsPath(f, __FILE__);
 };
+
+*/
 
 // tool for inherit
 // See 
