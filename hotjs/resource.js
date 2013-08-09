@@ -44,6 +44,13 @@
 		var d = document.getElementById('loading_msg');
 		if( d ) {
 			d.innerHTML = per + "% (" + n + '/' + all + ')';
+			if( resDebug ) {
+				for( var k in resourceCache ) {
+					if( resourceCache[k] == false ) {
+						d.innerHTML += '<br/>' + k;
+					}
+				}
+			}
 		}
 	}
 	
@@ -288,13 +295,13 @@
 				res.async = true;
 				res.addEventListener('load', onload);
 				var ss = document.getElementsByTagName('script');
-				ss[0].parentNode.insertBefore(res, ss[0]);
+				ss[0].parentNode.appendChild(res);
 				res.setAttribute('src', url);
 			} else if ( is_css ) {
 				res.async = true;
 				res.addEventListener('load', onload);
 				var ss = document.getElementsByTagName('script');
-				ss[0].parentNode.insertBefore(res, ss[0]);
+				ss[0].parentNode.appendChild(res);
 				res.setAttribute('href', url);
 			} else {
 				res.addEventListener('load', onload);
@@ -324,7 +331,7 @@
 				res.async = 1;
 				res.setAttribute('src', url);
 				var ss = document.getElementsByTagName('script');
-				ss[0].parentNode.insertBefore(res, ss[0]);				
+				ss[0].parentNode.appendChild( res );
 			} else {
 				res = new Image();
 				res.setAttribute('src', url);
