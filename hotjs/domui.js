@@ -95,11 +95,12 @@ var popupDialog = function( title, content, buttons, style, x_img ) {
 
 	var idX = dlgId + "X";
 	x_img = x_img.replace( '<img', "<img id='" + idX + "'" );
-	div.innerHTML = "<table class='m'>\
-<tr>\
-<td class='i'></td><td>" + title + "</td><td class='i r'>" + x_img + "</td></tr>\
-<tr><td colspan=3 class='dialog'>" + content + "</td></tr>\
-<tr><td colspan=3 class='m'>" + btnHtml + "</td></tr>\
+	div.innerHTML = 
+"<table class='dialog' cellspacing='0' cellpadding='0'>\
+<tr><td class='dlg00'></td><td class='dlg01 m'>" + title + "</td><td class='dlg02'>" + x_img + "</td></tr>\
+<tr><td class='dlg10'></td><td class='dlg11 m'>" + content + "</td><td class='dlg12'></td></tr>\
+<tr><td class='dlg10'></td><td class='dlg11 m'>" + btnHtml + "</td><td class='dlg12'></td></tr>\
+<tr><td class='dlg20'></td><td class='dlg21'></td><td class='dlg22'></td></tr>\
 </table>";
 	
 	$('img#' + idX).on('click', function(){ dismiss(dlgId); });
