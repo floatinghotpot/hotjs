@@ -4377,7 +4377,7 @@ var popupDialog = function( title, content, buttons, style, x_img ) {
 	content = content || '';
 	style = style || {};
 	buttons = buttons || {};
-	x_img = x_img || "<img src='" + pngX + "'>";
+	x_img = x_img || "<img class='dlgx' src='" + pngX + "'>";
 	
 	var dlgId = 'DLG' + Date.now();
 	var div = document.createElement('div');
