@@ -70,7 +70,7 @@ var showSplash = function( show, content, style ) {
 };
 
 var popupDialog = function( title, content, buttons, style, x_img ) {
-	title = title || 'dialog';
+	title = title || '';
 	content = content || '';
 	style = style || {};
 	buttons = buttons || {};
