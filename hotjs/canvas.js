@@ -35,6 +35,10 @@ var View = function(){
 	this.bgimg = undefined;
 	this.bgimgrect = undefined;
 
+	this.fgrepeat = false;
+	this.fgimg = undefined;
+	this.fgimgrect = undefined;
+	
 	this.container = undefined;
 
 	// all scenes
@@ -223,6 +227,16 @@ hotjs.inherit(View, hotjs.Class, {
 		}
 		return this;
 	},	
+	setFgImage : function(repeat, img, r) {
+		this.fgrepeat = repeat;
+		this.fgimg = img;
+		if(! r) {
+			this.fgimgrect = [0,0, img.width, img.height];
+		} else {
+			this.fgimgrect = [ r[0], r[1], r[2], r[3] ];
+		}
+		return this;
+	},	
 	getSize : function() {
 		return [this.canvas.width, this.canvas.height];
 	},
@@ -343,6 +357,17 @@ hotjs.inherit(View, hotjs.Class, {
 		
 		for(var i=0; i<this.scenes.length; i++) {
 			this.scenes[i].render(c);
+		}
+
+		if(!! this.fgimg) {
+			if( this.fgrepeat ) {
+				c.fillStyle = c.createPattern(this.fgimg, 'repeat');
+				c.fillRect( 0, 0, this.canvas.width,this.canvas.height);
+			} else {
+				c.drawImage(this.fgimg, 
+						this.fgimgrect[0], this.fgimgrect[1], this.fgimgrect[2], this.fgimgrect[3], 
+						0, 0, this.canvas.width,this.canvas.height);
+			}
 		}
 		
 		this.draw(c);
