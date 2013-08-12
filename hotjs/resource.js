@@ -369,11 +369,12 @@
 		} else {
 			var lla = window.plugins.LowLatencyAudio;
 			if(! audioCache[ url ]) {
-				var assetPath = url.substring( url.indexOf('www/') + len('www/') );
+				var www = 'www/';
+				var assetPath = url.substring( url.indexOf(www) + www.length );
 				if(fx) {
-					lla.preloadFX(id, assetPath);
+					lla.preloadFX(url, assetPath);
 				} else {
-					lla.preloadAudio(id, assetPath);
+					lla.preloadAudio(url, assetPath, 1);
 				}
 				audioCache[ url ] = 'loaded';
 			}
@@ -392,7 +393,9 @@
 		if( audioCache[ url ] ) {
 			var using_html5_audio = ((! window.plugins) || (! window.plugins.LowLatencyAudio) || (url.indexOf('http://') === 0) );
 			if( using_html5_audio ) {
-				get(url).stop();
+				var res = get(url);
+				res.pause();
+				res.currentTime = 0;
 			} else {
 				window.plugins.LowLatencyAudio.stop( url );
 			}
