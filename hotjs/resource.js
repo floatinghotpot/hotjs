@@ -345,16 +345,61 @@
 	}
 	
 	var audio_muted = false;
+	var audioCache = {};
 	
-	function muteAudio(b) {
-		audio_muted = b;
-	}
-	function playAudio(url) {
-		if( ! audio_muted ) {
-			get(url).play();
+	function muteAudio( mute_it ) {
+		audio_muted = mute_it;
+		
+		if( mute_it ) {
+			for( var url in audioCache ) {
+				var status = audioCache[ url ];
+				if( status === 'loop' || status === 'play' ) {
+					stopAudio( url );
+				}
+			}
 		}
 	}
-
+	function playAudio(url, fx, loop) {
+		if( audio_muted ) return;
+		
+		var using_html5_audio = ((! window.plugins) || (! window.plugins.LowLatencyAudio) || (url.indexOf('http://') === 0) );
+		if( using_html5_audio ) {
+			get(url).play();
+			audioCache[ url ] = 'play';
+		} else {
+			var lla = window.plugins.LowLatencyAudio;
+			if(! audioCache[ url ]) {
+				var assetPath = url.substring( url.indexOf('www/') + len('www/') );
+				if(fx) {
+					lla.preloadFX(id, assetPath);
+				} else {
+					lla.preloadAudio(id, assetPath);
+				}
+				audioCache[ url ] = 'loaded';
+			}
+			if( loop ) {
+				lla.loop( url );
+				audioCache[ url ] = 'loop';
+			} else {
+				lla.play( url );
+				audioCache[ url ] = 'play';
+			}
+		}
+	}
+	function stopAudio(url) {
+		if( audio_muted ) return;
+		
+		if( audioCache[ url ] ) {
+			var using_html5_audio = ((! window.plugins) || (! window.plugins.LowLatencyAudio) || (url.indexOf('http://') === 0) );
+			if( using_html5_audio ) {
+				get(url).stop();
+			} else {
+				window.plugins.LowLatencyAudio.stop( url );
+			}
+			audioCache[ url ] = 'stop';
+		}
+	}
+	
 	function regApp(app) {
 		if( activeApp !== null ) {
 			console.log( 'warning: previous app not exit normally.');
@@ -405,6 +450,7 @@
 		onError : onError,
 		
 		playAudio : playAudio,
+		stopAudio : stopAudio,
 		muteAudio : muteAudio,
 
 		regApp : regApp,
