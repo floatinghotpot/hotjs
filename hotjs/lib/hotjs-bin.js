@@ -1000,7 +1000,43 @@ hotjs.Matrix = Matrix;
 			}
 		}
 	}
-	function playAudio(url, fx, loop) {
+	function preloadAudio( url, is_fx ) {
+		var using_html5_audio = ((! window.plugins) || (! window.plugins.LowLatencyAudio) || (url.indexOf('http://') === 0) );
+		if( using_html5_audio ) {
+			return;
+		} else {
+			if(! audioCache[ url ]) {
+				var www = 'www/';
+				var assetPath = url.substring( url.indexOf(www) + www.length );
+				var lla = window.plugins.LowLatencyAudio;
+				if(is_fx) {
+					lla.preloadFX(url, assetPath);
+				} else {
+					lla.preloadAudio(url, assetPath, 1);
+				}
+				audioCache[ url ] = 'loaded';
+			}			
+		}		
+	}
+	function preloadMusic( urls ) {
+		if( Array.isArray(urls) ) {
+			for( var i=0; i<urls.length; i++ ) {
+				preloadAudio( urls[i], false );
+			}
+		} else {
+			preloadAudio( urls, false );
+		}
+	}
+	function preloadFX( urls ) {
+		if( Array.isArray(urls) ) {
+			for( var i=0; i<urls.length; i++ ) {
+				preloadAudio( urls[i], true );
+			}
+		} else {
+			preloadAudio( urls, true );
+		}
+	}
+	function playAudio(url, is_fx, loop) {
 		if( audio_muted ) return;
 		
 		var using_html5_audio = ((! window.plugins) || (! window.plugins.LowLatencyAudio) || (url.indexOf('http://') === 0) );
@@ -1008,17 +1044,11 @@ hotjs.Matrix = Matrix;
 			get(url).play();
 			audioCache[ url ] = 'play';
 		} else {
-			var lla = window.plugins.LowLatencyAudio;
 			if(! audioCache[ url ]) {
-				var www = 'www/';
-				var assetPath = url.substring( url.indexOf(www) + www.length );
-				if(fx) {
-					lla.preloadFX(url, assetPath);
-				} else {
-					lla.preloadAudio(url, assetPath, 1);
-				}
-				audioCache[ url ] = 'loaded';
+				preloadAudio( url, is_fx );
 			}
+			
+			var lla = window.plugins.LowLatencyAudio;
 			if( loop ) {
 				lla.loop( url );
 				audioCache[ url ] = 'loop';
@@ -1093,6 +1123,8 @@ hotjs.Matrix = Matrix;
 		onLoading : onLoading,
 		onError : onError,
 		
+		preloadMusic : preloadMusic,
+		preloadFX : preloadFX,
 		playAudio : playAudio,
 		stopAudio : stopAudio,
 		muteAudio : muteAudio,

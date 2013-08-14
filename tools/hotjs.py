@@ -32,7 +32,7 @@ curdir = os.path.abspath('.')
 
 lib_dir = os.path.join(devdir, 'hotjs/lib')
 hotjsbin_path = os.path.join(lib_dir,'hotjs-bin.js')
-hotjsmini_path = os.path.join(lib_dir,'hotjs-mini.js')
+hotjsmini_path = os.path.join(lib_dir,'hotjs.min.js')
 
 def removeDupes(seq):
     # Not order preserving
