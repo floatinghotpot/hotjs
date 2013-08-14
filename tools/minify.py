@@ -25,8 +25,6 @@ if sys.version_info[0]==3:
 else :
     from urllib import urlretrieve
 
-yui_jar = ''
-
 tooldir = os.path.dirname(os.path.realpath(__file__))
 devdir = os.path.dirname(tooldir)
 basedir = os.path.dirname(devdir)
@@ -39,6 +37,8 @@ def find_yuicompressor():
                 return tooldir + '/' + file
     return ""
         
+yui_jar = find_yuicompressor()
+
 def minify( inputfile, options ):
     if( exists(inputfile) ):
         if( inputfile.endswith('.js') or inputfile.endswith('.css') ):
@@ -88,10 +88,11 @@ def main():
     usage = """usage: %prog [js/css file or dir]
     """
     
-    yui_jar = find_yuicompressor()
     if( yui_jar == '' ):
         print( 'YUI compressor not found in tools folder.' )
         return 0
+    else:
+        print( 'yui_jar: ' + yui_jar )
 
     parser = optparse.OptionParser(usage)
     parser.add_option("-c", "--clean", action="store_true", dest="clean", default=False, 
