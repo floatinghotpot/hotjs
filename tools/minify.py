@@ -13,7 +13,7 @@ import re
 import shutil
 import fileinput
 import mimetypes
-from os.path import join, splitext, split, exists
+from os.path import join, splitext, split, exists, isfile, isdir, islink, ismount
 from shutil import copyfile
 from datetime import datetime
 import base64
@@ -25,27 +25,12 @@ if sys.version_info[0]==3:
 else :
     from urllib import urlretrieve
 
+yui_jar = ''
+
 tooldir = os.path.dirname(os.path.realpath(__file__))
 devdir = os.path.dirname(tooldir)
 basedir = os.path.dirname(devdir)
 curdir = os.path.abspath('.')
-
-lib_dir = os.path.join(devdir, 'hotjs/lib')
-hotjsbin_path = os.path.join(lib_dir,'hotjs-bin.js')
-hotjsmini_path = os.path.join(lib_dir,'hotjs-mini.js')
-
-def removeDupes(seq):
-    # Not order preserving
-    keys = {}
-    for e in seq:
-        keys[e.rstrip()] = 1
-    return keys.keys()
-    
-def escapeSpace(s):
-    return s.replace(" ","\\ ")
-    
-def quoteSpace(s):
-    return s.replace(" ","' '")
 
 def find_yuicompressor():
     for root, subFolders, files in os.walk(tooldir):
@@ -54,46 +39,86 @@ def find_yuicompressor():
                 return tooldir + '/' + file
     return ""
         
-def minify( inputfile ):
-    yui = find_yuicompressor()
-    if( yui == '' ):
-        print( 'YUI compressor not found in tools folder.' )
-        return 0
-    
-    if exists( inputfile ):
-        #print( 'processing %s ... ' % inputfile )
-        pass
+def minify( inputfile, options ):
+    if( exists(inputfile) ):
+        if( inputfile.endswith('.js') or inputfile.endswith('.css') ):
+            words = inputfile.split('.')
+            words.insert( len(words)-1, 'min' )
+            outputfile = '.' . join(words)
+            
+            if options.clean:
+                print( 'removing: %s' % outputfile );
+                if exists( outputfile ):
+                    os.remove( outputfile )
+                
+            if options.build:
+                print( "minifying: %s" % inputfile )
+                subprocess.call(['java', '-jar', yui_jar, inputfile, '-o', outputfile ])
+                
+            if options.replace:
+                print( "replacing: %s" % inputfile )
+                os.rename( outputfile, inputfile )
+                
+        else:
+            #print( 'skip: ' + inputfile )
+            pass
     else:
-        print('file not found: %s' % inputfile )
-        return 0
-    
-    words = inputfile.split('.')
-    words.insert( len(words)-1, 'min' )
-    outputfile = '.' . join(words)
+        print( 'not found: ' + inputfile )
         
-    print( "minifying '%s' to '%s' ... " % (inputfile, outputfile) )
-    subprocess.call(['java', '-jar', yui, inputfile, '-o', outputfile ])
-
-    print( 'Done.\n')
+def minify_recursive( path, options ):
+    if os.path.isfile( path ):
+        minify( path, options )
+    elif os.path.islink( path ):
+        pass
+    elif os.path.isdir( path ):
+        for root, subFolders, files in os.walk(path):
+            for f in files:
+                minify( root +  '/' + f, options )
+            for dir in subFolders:
+                if( dir == '.' or dir == '..') :
+                    pass
+                else:
+                    minify_recursive( root + '/' + dir, options )
+    else:
+        print( 'file not found: ' + path )
 
 def main():
     """The entrypoint for this script."""
     
-    usage = """usage: %prog [js/css file]
+    usage = """usage: %prog [js/css file or dir]
     """
     
+    yui_jar = find_yuicompressor()
+    if( yui_jar == '' ):
+        print( 'YUI compressor not found in tools folder.' )
+        return 0
+
     parser = optparse.OptionParser(usage)
-    parser.add_option("-o", "--output", dest="output", action="store", type="string",
-                      help="Output file for minified result")
+    parser.add_option("-c", "--clean", action="store_true", dest="clean", default=False, 
+                      help="clean the minified output files")
+    parser.add_option("-b", "--build", action="store_true", dest="build", default=True, 
+                      help="build, compress js/css to minified files")
+    parser.add_option("-r", "--replace", action="store_true", dest="replace", default=False, 
+                      help="replace source files with compressed files")
     
     (options, args) = parser.parse_args()
     
-    if( len(args) < 1 ) :
-        parser.error('lacking arguments, give js/css file path as input please.\n')
-        exit(1)
+    if options.replace: 
+        options.build = True
         
-    minify( args[0] )
+    if options.clean:
+        options.build = False
+        options.replace = False
+            
+    if( len(args) < 1 ) :
+        parser.error('lacking arguments, please give js/css file path as input.\n')
+        exit(1)
     
+    for arg in args:
+        minify_recursive( arg, options )
+    
+    print( 'Done.\n')
+
 if __name__ == '__main__':
     main()
         
