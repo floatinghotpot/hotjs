@@ -13,15 +13,28 @@ var dismiss = function( id_or_obj ) {
 	}
 };
 
-var toggle = function( id_or_obj ) {
+var toggle = function( id_or_obj, direction ) {
 	var o = id_or_obj;
 	if( typeof o == 'string' ) {
 		o = document.getElementById( o );
 	}
+	direction = direction || 'bottom';
+
+	var win = $(o), w = win.width(), h = win.height();
+	var scrw = $(window).width(), scrh = $(window).height();
+
+	var in_css = { 'top': o.style.top, 'left': o.style.left };
+
+	var out_css = {};
+	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
+	if( direction.indexOf('left') >= 0 ) out_css['left'] = -h-20 + 'px';
+	if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
+	if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';
+	
 	if( o.style.display == 'none' ) {
-		o.style.display = 'block';
+		win.css( out_css ).show().animate( in_css, 'normal', 'swing', function(){} );
 	} else {
-		o.style.display = 'none';
+		win.animate( out_css, 'normal', 'swing', function(){ win.hide().css(in_css); } );
 	}
 };
 	
@@ -69,21 +82,21 @@ var showSplash = function( show, content, style ) {
 		});
 };
 
-var popupDialog = function( title, content, buttons, style, x_img ) {
-	title = title || '';
-	content = content || '';
+var popupDialog = function( title, content, buttons, style, direction ) {
+	title = title || '&nbsp;';
+	content = content || '&nbsp;';
 	style = style || {};
 	buttons = buttons || {};
-	x_img = x_img || "<img class='dlgx clickable' src='" + resources.getXPng() + "'>";
+	direction = direction || 'bottom';
 	
 	var dlgId = 'DLG' + Date.now();
+	var idX = dlgId + "X";
+
 	var div = document.createElement('div');
 	document.body.appendChild( div );
 	
 	var win = $(div);
-	win.attr('id', dlgId);
-	win.attr('class', 'dialog');
-	win.css({'position':'absolute', 'display':'none'});
+	win.attr({'id':dlgId, 'class':'dialog'}).css({'position':'absolute', 'display':'none' });
 	
 	var btnHtml = "";
 	for( var i in buttons ) {
@@ -91,8 +104,7 @@ var popupDialog = function( title, content, buttons, style, x_img ) {
 		btnHtml += "<button class='dialog' id='" + btnId  + "' v='" + i + "'>" + hotjs.i18n.get(i) + "</button> ";
 	}
 
-	var idX = dlgId + "X";
-	x_img = x_img.replace( '<img', "<img id='" + idX + "'" );
+	x_img = "<img id='" + idX + "' class='dlgx clickable' src='" + resources.getXPng() + "'>";
 	div.innerHTML = 
 "<table class='dialog' cellspacing='0' cellpadding='0'>\
 <tr><td class='dlg00'></td><td class='dlg01 m'></td><td class='dlg02'>" + x_img + "</td></tr>\
@@ -102,25 +114,36 @@ var popupDialog = function( title, content, buttons, style, x_img ) {
 <tr><td class='dlg20'></td><td class='dlg21'></td><td class='dlg22'></td></tr>\
 </table>";
 	
-	$('img#' + idX).on('click', function(){ dismiss(dlgId); });
+	var w = win.width(), h = win.height();
+	var scrw = $(window).width(), scrh = $(window).height();
+	
+	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px' };
+	for( var k in style ) {
+		css[ k ] = style[ k ];
+	}
+	
+	var out_css = {};
+	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
+	if( direction.indexOf('left') >= 0 ) out_css['left'] = -h-20 + 'px';
+	if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
+	if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';	
+
+	$('img#' + idX).on('click', function(){ 
+		win.animate( out_css,'normal','swing', function(){ dismiss( dlgId ); }); 
+	});
 
 	for( var i in buttons ) {
 		var btnId = dlgId + i;
 		$('button#' + btnId).on('click', function(){
 			var i = $(this).attr('v');
 			var func = buttons[i];
-			if(func()) dismiss( dlgId );
+			if(func()) {
+				win.animate( out_css,'normal','swing', function(){ dismiss( dlgId ); });				
+			}
 		});
 	}	
 
-	var w = window.innerWidth, h = window.innerHeight;
-	win.css({ 'top': ((h-win.height())/2-10) + 'px', 'left': (w-win.width())/2 + 'px', 'display':'block' });
-
-	if( typeof style == 'string' ) {
-		div.style = style + ';position:absolute;';
-	} else {
-		win.css( style );
-	}
+	win.css( out_css ).show().animate( css, 'normal','swing',function(){} );
 	
 	return div;
 };
