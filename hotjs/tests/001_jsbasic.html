@@ -84,6 +84,15 @@ test('Array', function(){
 
 });
 
+module('Object/Map');
+test('Object/Map', function(){
+	
+	var a = { 'test': 1, 1001: 2 };
+	equal( a[ 'test' ], 1, 'using string as key of mapping' );
+	equal( a[ 1001 ], 2, 'using integer as key of mapping' );
+	
+});
+
 module('Browser features');
 test('Browser features', function(){
 

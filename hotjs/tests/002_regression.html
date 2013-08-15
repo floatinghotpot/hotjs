@@ -26,9 +26,9 @@
 <script src="../social.js"></script>
 <script src="../i18n.js"></script>
 
-
 <script>
-	
+hotjs.require('../domui.js');
+
 module('Javascript core extension');
 
 test("Array indexOf", function() {
@@ -99,8 +99,19 @@ test("Object inherit and override", function() {
 	
 });
 
-module('Random');
+module('hotjs');
+test('hotjs utility functions', function(){
+	
+	equal( hotjs.getDirPath('../../test.js'), '../..', 'getDirPath' );
+	str = hotjs.getAbsPath('../../../test.js', '../../hello.js');
+	equal( str, '../test.js', 'getAbsPath' );
 
+	ok( typeof hotjs.require == 'function', 'hotjs.require is function.');
+	ok( typeof requireScripts == 'function', 'requireScripts fallback defined.');
+});
+
+
+module('Random');
 test("Random functions", function() {
 	// test random 
 	ok( hotjs.Random.Float(10,20) >= 10, 'random(10,20) >= 10');
@@ -111,7 +122,6 @@ test("Random functions", function() {
 });
 
 module('Vector');
-
 test("Vector functions", function() {
 	// test Vector operation 
 	notEqual(hotjs.Vector.copy([1,2]), [1,2], 'vector copy  return different object.');
@@ -130,7 +140,6 @@ test("Vector functions", function() {
 });
 
 module('HashMap');
-
 test("HashMap class", function() {
 	// test HashMap 
 	var hm = new hotjs.HashMap();
@@ -148,64 +157,6 @@ test("HashMap class", function() {
 	}
 	hm.clear();
 	ok( hm.isEmpty(), 'hashmap is empty after clear() called.');
-});
-
-module('Resource');
-
-test("Resource preload", function() {
-	resources.onLoading( function(url,n,all) {
-		var per = Math.round( n * 100 / all );
-		var d = document.getElementById('loading_msg');
-		if( d ) {
-			d.innerHTML += '<br>' + url.substring(url.lastIndexOf('/')+1) + ' loaded. (' + per + '%)'; 
-		}
-		var d = document.getElementById('loading_bar');
-		if( d ) {
-			d.style.width = 300 * per / 100 + 'px';
-			d.innerHTML = per + "%";
-		}
-	});
-	resources.onError(function(url){
-		var d = document.getElementById('loading_msg');
-		if( d ) {
-			d.innerHTML += '<br>' + url.substring(url.lastIndexOf('/')+1) + ' not found.'; 
-		}
-	});
-	resources.onReady(function(){
-		var d = document.getElementById('loading_msg');
-		if( d ) {
-			d.innerHTML += '<br>Resource loaded.'; 
-		}
-		d = document.getElementById('res_loading_msg_win');
-		//d = document.getElementById('loading_img');
-		if( d ) {
-			d.setAttribute('style', 'display:none');
-		}
-	});
-	function showLoadingDialog(){
-		var w = window.innerWidth, h = window.innerHeight;
-		var tw = 300, th = 300;
-		var x = (w-tw)/2, y = (h-th)/2;
-		var d = document.createElement('div');
-		d.setAttribute('id', 'res_loading_msg_win');
-		d.setAttribute('style', 'width:'+tw+'px;text-align:center;background:white;padding:10px;font-family:Verdana,Geneva,sans-serif;font-size:9pt;border:solid black 1px;display:solid;position:absolute;left:' +x + 'px;top:' +y+'px;'  );
-		document.body.appendChild( d );
-		d.innerHTML = "<b>Loading Resource</b><br>";
-		d.innerHTML += "<br><div id='loading_msg' style='text-align:left;overflow-y:scroll;overflow-x:hidden;width:300px;height:140px;border:solid silver 1px;'>Loading resource:</div>";
-		d.innerHTML += "<br><div id='loading_bar' style='text-align:center;width:0px;height:16px;background:#008800;color:white;border:solid silver 1px;'></div>";
-		d.innerHTML += "<br><img id='loading_img' src='data:image/gif;base64,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'/>";
-		d.innerHTML += "<br><input type='button' value='OK' onClick=\"document.getElementById('res_loading_msg_win').setAttribute('style', 'display:none');\"/>";
-	}
-	showLoadingDialog();
-	resources.load([
-		'http://img.talkandroid.com/uploads/2011/07/sony-ericsson-logo.jpg',
-		'http://media.glassdoor.com/m/3472/ericsson-worldwide-office.jpg',
-		'http://www.stephaniequinn.com/Music/Jazz%20Rag%20Ensemble%20-%2010.mp3',
-		'http://blogs-images.forbes.com/tomiogeron/files/2012/01/ericsson1.jpg',
-		'http://biztech.gr/sites/default/files/field/image/ericsson.jpg' 
-		]);
-
-	ok( true, 'resource loaded.');
 });
 
 module('Math Matrix');
@@ -325,6 +276,97 @@ test('hotjs.AI.Matrix', function(){
 	
 });
 
+module('Resource');
+test("Resource preload", function() {
+	resources.setDebug(true);
+
+	var ss = document.getElementsByTagName('script');
+	var urls = [];
+	for(var i=0; i<ss.length; i++ ) {
+		urls.push( ss[i].src );
+		ok( true, 'js file: ' + ss[i].src );
+	}
+
+	var s1 = document.getElementsByTagName('script').length;
+	resources.unload('../domui.js');
+	var s2 = document.getElementsByTagName('script').length;
+	equal( (s1-1), s2, 'dynamically unload domui.js, script files change from: ' + s1 + ' -> ' + s2 );
+	
+	var res = [
+	   		'http://img.talkandroid.com/uploads/2011/07/sony-ericsson-logo.jpg',
+			'http://media.glassdoor.com/m/3472/ericsson-worldwide-office.jpg',
+			'http://blogs-images.forbes.com/tomiogeron/files/2012/01/ericsson1.jpg',
+			'http://biztech.gr/sites/default/files/field/image/ericsson.jpg' 
+			];
+	resources.load( res, {
+		ready: function(){}
+	});
+	ok( true, 'resource loaded.');
+});
+
+module('Local Storage');
+test('local storage', function(){
+	
+	ok( typeof(Storage)!=="undefined", 'Yes! localStorage and sessionStorage support!' );
+
+	if( localStorage.var1 === undefined ) {
+		var var1 = 1;
+		ok( true, 'first time, init: var1 = ' + var1 );
+		localStorage.var1 = var1;
+	} else {
+		var var1 = Number( localStorage.var1 );
+		ok( var1 > 0, 'var1 = ' + var1 );
+		var1 ++;
+		localStorage.var1 = var1;
+	}
+	
+	ok( true, 'typeof localStorage.var1 is: ' + typeof localStorage.var1 );
+
+});
+
+
+module('I18N');
+test('I18N multi-language APIs', function(){
+	ok( true, 'current language: ' + hotjs.i18n.getLang() );
+
+	hotjs.i18n.put( hotjs.i18n.getLang(), {
+		mygod: 'my god',
+		lady: {
+			gaga: 'lady gaga',
+			papa: 'lady papa'
+		}
+	})
+	
+	equal( hotjs.i18n.get('mygod'), 'my god', "hotjs.i18n.get('mygod')");
+	equal( hotjs.i18n.get('lady.gaga'), 'lady gaga', "hotjs.i18n.get('lady.gaga')");
+});
+
+module('DOM UI');
+test('DOM UI Components', function(){
+	ok( true, 'dom UI');
+	
+	var dialog1 = hotjs.domUI.popupDialog( 'Hello', 'Nice to meet you.' );
+	ok( dialog1 != null, 'simple dialog' );
+
+	var dialog2 = hotjs.domUI.popupDialog('Hello', 'Are you sure?', {
+			'ok' : function() {
+				alert('ok');
+				return true;
+			},
+			'cancel' : function() {
+				alert('cancel');
+				return false;
+			}
+		}, {
+			'color' : 'blue',
+			'background' : '#cccccc',
+			'top' : '100px',
+			'padding' : '5px'
+		});
+	ok( dialog2 != null, 'dialog with specified buttons' );
+	
+});
+
 
 module('AjaxClient');
 
@@ -373,21 +415,8 @@ test("Basic AjaxClient APIs", function() {
 	
 });
 
-module('I18N');
-test('I18N multi-language APIs', function(){
-	ok( true, 'current language: ' + hotjs.i18n.getLang() );
 
-	hotjs.i18n.put( hotjs.i18n.getLang(), {
-		mygod: 'my god',
-		lady: {
-			gaga: 'lady gaga',
-			papa: 'lady papa'
-		}
-	})
-	
-	equal( hotjs.i18n.get('mygod'), 'my god', 'hotjs.i18n.get(\'mygod\')');
-	equal( hotjs.i18n.get('lady.gaga'), 'lady gaga', 'hotjs.i18n.get(\'lady.gaga\')');
-});
+
 
 
 	</script>
