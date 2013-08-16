@@ -4480,19 +4480,19 @@ var showSplash = function( show, content, style ) {
 	}
 	
 	var w = window.innerWidth, h = window.innerHeight;
-		win.css({
-			'margin' : '0px',
-			'padding' : '0px',
-			'top' : '0px',
-			'left' : '0px',
-			'width' : w + 'px',
-			'height' : h + 'px',
-			'text-align' : 'center',
-			'vertical-align' : 'middle',
-			'position' : 'absolute',
-			'z-index' : '999',
-			'display' : 'block'
-		});
+	win.css({
+		'margin' : '0px',
+		'padding' : '0px',
+		'top' : '0px',
+		'left' : '0px',
+		'width' : w + 'px',
+		'height' : h + 'px',
+		'text-align' : 'center',
+		'vertical-align' : 'middle',
+		'position' : 'absolute',
+		'z-index' : '999',
+		'display' : 'block'
+	});
 };
 
 var popupDialog = function( title, content, buttons, style, direction ) {
@@ -4537,13 +4537,26 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	
 	var out_css = {};
 	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
+	else if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
+	else out_css['top'] = css['top'];
+	
 	if( direction.indexOf('left') >= 0 ) out_css['left'] = -h-20 + 'px';
-	if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
-	if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';	
+	else if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';	
+	else out_css['left'] = css['left'];
 
-	$('img#' + idX).on('click', function(){ 
-		win.animate( out_css,'normal','swing', function(){ dismiss( dlgId ); }); 
-	});
+	div.popup = function() {
+		win.css( out_css ).show().animate( css, 'normal','swing',function(){} );
+	};
+	
+	div.dismiss = function() {
+		win.animate( out_css,'normal','swing', function(){
+			if( div && div.parentNode ) {
+				div.parentNode.removeChild( div );
+			}
+		}); 
+	};
+	
+	$('img#' + idX).on('click', div.dismiss);
 
 	for( var i in buttons ) {
 		var btnId = dlgId + i;
@@ -4551,12 +4564,12 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 			var i = $(this).attr('v');
 			var func = buttons[i];
 			if(func()) {
-				win.animate( out_css,'normal','swing', function(){ dismiss( dlgId ); });				
+				div.dismiss();
 			}
 		});
 	}	
 
-	win.css( out_css ).show().animate( css, 'normal','swing',function(){} );
+	div.popup();
 	
 	return div;
 };
