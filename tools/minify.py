@@ -46,18 +46,19 @@ def minify( inputfile, options ):
             words.insert( len(words)-1, 'min' )
             outputfile = '.' . join(words)
             
-            if options.clean:
+            if options.build:
+                if options.replace:
+                    print( "minifying & replacing: %s" % inputfile )
+                    subprocess.call(['java', '-jar', yui_jar, inputfile, '-o', outputfile ])
+                    os.rename( outputfile, inputfile )
+                else:
+                    print( "minifying: %s" % inputfile )
+                    subprocess.call(['java', '-jar', yui_jar, inputfile, '-o', outputfile ])
+                    
+            elif options.clean:
                 print( 'removing: %s' % outputfile );
                 if exists( outputfile ):
                     os.remove( outputfile )
-                
-            if options.build:
-                print( "minifying: %s" % inputfile )
-                subprocess.call(['java', '-jar', yui_jar, inputfile, '-o', outputfile ])
-                
-            if options.replace:
-                print( "replacing: %s" % inputfile )
-                os.rename( outputfile, inputfile )
                 
         else:
             #print( 'skip: ' + inputfile )
@@ -74,11 +75,6 @@ def minify_recursive( path, options ):
         for root, subFolders, files in os.walk(path):
             for f in files:
                 minify( root +  '/' + f, options )
-            for dir in subFolders:
-                if( dir == '.' or dir == '..') :
-                    pass
-                else:
-                    minify_recursive( root + '/' + dir, options )
     else:
         print( 'file not found: ' + path )
 
@@ -106,6 +102,7 @@ def main():
     
     if options.replace: 
         options.build = True
+        options.clean = False
         
     if options.clean:
         options.build = False
