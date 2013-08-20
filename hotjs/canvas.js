@@ -541,6 +541,8 @@ var Node = function() {
 	this.subnodes = undefined;
 	this.index = {};
 	
+	this.hidden = false;
+	
 	this.size = [40,40];
 	this.color = undefined; // default: 'black'
 	this.bgcolor = undefined; // default: 'white'
@@ -576,6 +578,14 @@ var Node = function() {
 };
 
 hotjs.inherit(Node, hotjs.Class, {
+	show : function( s ) {
+		if(s === undefined) s = true;
+		this.hidden = (! s);
+		
+		if(this.sprite) this.sprite.reset();
+		
+		return this;
+	},
 	setName : function(n) {
 		this.name = n;
 		return this;
@@ -1068,6 +1078,8 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	render : function(c) {
+		if( this.hidden ) return;
+		
 		c.save();
 		
 		// apply pos / scale / rotation

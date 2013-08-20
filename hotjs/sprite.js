@@ -19,6 +19,9 @@ Sprite.prototype = {
 	update : function(dt) {
 		this._index += this.speed * dt;
 	},
+	reset : function() {
+		this._index = 0;
+	},
 
 	render : function(ctx, w, h) {
 		var frame;
@@ -76,6 +79,9 @@ hotjs.inherit(Animat, hotjs.Class, {
 			this.index ++;
 			if( this.index >= this.anim.length ) this.index = 0;
 		}
+	},
+	reset : function() {
+		this.index = 0;
 	},
 	render: function(c, w, h) {
 		c.save();

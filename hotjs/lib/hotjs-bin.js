@@ -1684,6 +1684,8 @@ var Node = function() {
 	this.subnodes = undefined;
 	this.index = {};
 	
+	this.hidden = false;
+	
 	this.size = [40,40];
 	this.color = undefined; // default: 'black'
 	this.bgcolor = undefined; // default: 'white'
@@ -1719,6 +1721,14 @@ var Node = function() {
 };
 
 hotjs.inherit(Node, hotjs.Class, {
+	show : function( s ) {
+		if(s === undefined) s = true;
+		this.hidden = (! s);
+		
+		if(this.sprite) this.sprite.reset();
+		
+		return this;
+	},
 	setName : function(n) {
 		this.name = n;
 		return this;
@@ -2211,6 +2221,8 @@ hotjs.inherit(Node, hotjs.Class, {
 		return this;
 	},
 	render : function(c) {
+		if( this.hidden ) return;
+		
 		c.save();
 		
 		// apply pos / scale / rotation
@@ -2537,6 +2549,9 @@ Sprite.prototype = {
 	update : function(dt) {
 		this._index += this.speed * dt;
 	},
+	reset : function() {
+		this._index = 0;
+	},
 
 	render : function(ctx, w, h) {
 		var frame;
@@ -2594,6 +2609,9 @@ hotjs.inherit(Animat, hotjs.Class, {
 			this.index ++;
 			if( this.index >= this.anim.length ) this.index = 0;
 		}
+	},
+	reset : function() {
+		this.index = 0;
 	},
 	render: function(c, w, h) {
 		c.save();
