@@ -337,10 +337,7 @@ hotjs.inherit(View, hotjs.Class, {
 
 		return this;
 	},
-	render : function() {
-		var c = this.ctx;
-		c.save();
-		
+	drawBg : function( c ) {
 		if(!! this.bgimg) {
 			if( this.bgrepeat ) {
 				c.fillStyle = c.createPattern(this.bgimg, 'repeat');
@@ -354,11 +351,8 @@ hotjs.inherit(View, hotjs.Class, {
 			c.fillStyle = this.bgcolor;
 			c.fillRect( 0, 0, this.canvas.width, this.canvas.height );
 		}
-		
-		for(var i=0; i<this.scenes.length; i++) {
-			this.scenes[i].render(c);
-		}
-
+	},
+	drawFg : function( c ) {
 		if(!! this.fgimg) {
 			if( this.fgrepeat ) {
 				c.fillStyle = c.createPattern(this.fgimg, 'repeat');
@@ -369,6 +363,18 @@ hotjs.inherit(View, hotjs.Class, {
 						0, 0, this.canvas.width,this.canvas.height);
 			}
 		}
+	},
+	render : function() {
+		var c = this.ctx;
+		c.save();
+
+		this.drawBg(c);
+		
+		for(var i=0; i<this.scenes.length; i++) {
+			this.scenes[i].render(c);
+		}
+		
+		this.drawFg(c);
 		
 		this.draw(c);
 		
