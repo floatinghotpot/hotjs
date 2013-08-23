@@ -501,11 +501,11 @@ hotjs.inherit(GomokuAI, GoAI, {
 				m2.setValueByPos( move[0], move[1], (m2.countValue('1')<=m2.countValue('2') ? '1' :'2')  );
 				var result = this.deepThinking(m2.data, depth-1);
 				if( result.myWinHits.length > 0 ) {
-					move[2] += 5000;
+					move[2] += 1000;
 				} else if( result.peerWinHits.length > 0 ) {
-					move[2] -= 5000;
+					move[2] -= 1000;
 				} else {
-					move[2] += result.bestMove[2] / 2;
+					move[2] += result.bestMove[2] / 10;
 				}
 				mergedRating[ move[1] ][ move[0] ] = move[2];
 			}
@@ -514,6 +514,7 @@ hotjs.inherit(GomokuAI, GoAI, {
 				else if(a[2] < b[2]) return 1;
 				return 0;
 			});
+			bestMove = (topMoves.length>0) ? topMoves[0] : [Math.floor(m1.rows()/2),Math.floor(m1.rows()/2),1];
 		}
 		
 		return {
