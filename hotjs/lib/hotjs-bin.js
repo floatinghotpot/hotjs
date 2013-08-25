@@ -740,7 +740,7 @@ hotjs.Matrix = Matrix;
 			d = document.createElement('div');
 			d.setAttribute('id', 'hotjs_res_loading_win');
 			d.setAttribute('style', 
-					'left:' +x + 'px;top:' +y+'px;width:'+tw+'px;text-align:center;alpha:0.5;background:silver;border:solid silver 1px;padding:10px;display:solid;position:absolute;'
+					'left:' +x + 'px;top:' +y+'px;width:'+tw+'px;text-align:center;alpha:0.5;padding:10px;display:solid;position:absolute;'
 					+ '-moz-border-radius:10px;-webkit-border-radius: 10px;-khtml-border-radius: 10px;border-radius: 10px;'
 					);
 			document.body.appendChild( d );
