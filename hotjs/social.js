@@ -591,6 +591,16 @@ hotjs.inherit( User, AjaxClient, {
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	
+	searchGamer : function searchGamer( appkey, level ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			level : level
+		});
+		
+		return ((!! msg) && msg.done) ? true : false;
+	},
+	
 	uploadGameData : function uploadGameData( appkey, md5key, result, steps ) {
 		var msg = this.callAPI( arguments.callee.name, {
 			sid : this.session,

@@ -43,6 +43,8 @@
 		{ "api": "say", "url" : "say", "param": [ "sid", "what" ], "comment" : "anyone in room can hear. return msg.done=true/false" },
 		
 		{ "api": "sms", "url" : "sms", "param": [ "sid", "name", "what" ], "comment" : "send short message, only between friends. return msg.done=true/false" },
+
+		{ "api": "searchGamer", "url": "searchGamer", "param" : [ "sid", "appkey", "level" ], "comment" : "search player for same game same level" },
 		
 		{ "api": "uploadGameData", "url" : "uploadGameData", "param" : [ "sid", "appkey", "md5key", "result", "steps" ], "comment" : "share game result" },
 		{ "api": "listGameData", "url" : "listGameData", "param" : [ "sid", "appkey", "pagesize", "pageindex" ], "comment" : "list game" },
