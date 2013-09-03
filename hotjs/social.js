@@ -30,9 +30,15 @@ var AjaxClient = function(){
 	this.msgList = [];
 
 	this.urls = {};
+	this.debugmode = false;
 };
 
 AjaxClient.prototype = {
+	setDebugMode : function(d) {
+		if(d === undefined) d = true;
+		this.debugmode = d;
+		return true;
+	},
 	config : function( set ){
 		if( set.msgMax != undefined ) {
 			this.msgMax = set.msgMax;
@@ -92,7 +98,7 @@ AjaxClient.prototype = {
 		return true;
 	},
 	requestMsg : function( data, url, options ) {
-		console.log( 'sending: ' + JSON.stringify(data) );
+		if(this.debugmode) console.log( 'sending: ' + JSON.stringify(data) );
 		var ajaxpkg = {};		
 		for( var i in this.settings ) ajaxpkg[i] = this.settings[i];
 		if( !! options ) for( var i in options ) ajaxpkg[i] = options[i];
@@ -100,21 +106,21 @@ AjaxClient.prototype = {
 		if( !! url ) ajaxpkg.url = url;
 		ajaxpkg.async = false;
 		
-		var me = this;
+		var self = this;
 		var msgs = false;
 		
 		$.ajax( ajaxpkg )
 			.done(function(data, textStatus, jqXHR){
-				console.log( 'received: ' + data );
+				if(self.debugmode) console.log( 'received: ' + data );
 				data = JSON.parse( data );
 				
 				msgs = data;
 			})
 			.fail(function(jqXHR, textStatus, errorThrown){
-				me.onMsgFail( jqXHR, textStatus, errorThrown );
+				self.onMsgFail( jqXHR, textStatus, errorThrown );
 			})
 			.complete(function(data_or_jqXHR, textStatus, jqXHR_or_errorThrown){
-				me.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
+				self.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
 			});
 		
 		return msgs;
@@ -128,27 +134,29 @@ AjaxClient.prototype = {
 		if( !! url ) ajaxpkg.url = url;
 		ajaxpkg.async = true;
 		
-		var me = this;
+		var self = this;
 		
 		$.ajax( ajaxpkg )
 			.done(function(data, textStatus, jqXHR){
-				console.log( data );
+				if(self.debugmode) console.log( data );
 				data = JSON.parse( data );
 				
-				me.onMsgComing( data, textStatus, jqXHR );
+				self.onMsgComing( data, textStatus, jqXHR );
 			})
 			.fail(function(jqXHR, textStatus, errorThrown){
-				me.onMsgFail( jqXHR, textStatus, errorThrown );
+				self.onMsgFail( jqXHR, textStatus, errorThrown );
 			})
 			.complete(function(data_or_jqXHR, textStatus, jqXHR_or_errorThrown){
-				me.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
+				self.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
 			});
 		
 		return true;
 	},
 	onMsgFail : function( jqXHR, textStatus, errorThrown ) {
-		console.log( "ajax fail" );
-		console.log( jqXHR, textStatus, errorThrown );
+		if(this.debugmode) {
+			console.log( "ajax fail" );
+			console.log( jqXHR, textStatus, errorThrown );
+		}
 	},
 	onMsgComplete : function( data_or_jqXHR, textStatus, jqXHR_or_errorThrown ) {
 	},
