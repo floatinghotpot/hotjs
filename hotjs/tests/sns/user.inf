@@ -7,12 +7,13 @@
 
 		{ "api": "registerAccount", "url" : "registerAccount", "param": [ "username", "password", "fullname", "email", "cellphone" ], "comment" : "return msg.done=true/false, msg.comment" },
 		{ "api": "deleteAccount", "url" : "deleteAccount", "param": [ "username", "password" ], "comment" : "return msg.done=true/false, msg.comment" },
+		{ "api": "autoRegister", "url" : "autoRegister", "param": [ "uuid" ], "comment" : "auto register, return username and password" },
 
 		{ "api": "login", "url" : "login", "param": [ "username", "password", "app", "version", "heartbeat" ], "comment" : "return msg.sid, the session key" },
 		{ "api": "heartbeat", "url" : "heartbeat", "param": [ "sid" ], "comment" : "return all msg in inbox, [ msg1, msg2, msg3, ... ]" },
 		{ "api": "logout", "url" : "logout", "param": [ "sid" ], "comment" : "return msg.done=true/false" },
 
-		{ "api": "changePassword", "url" : "changePassword", "param": [ "username", "oldpwd", "newpwd" ], "comment" : "return msg.done=true/false, msg.comment" },
+		{ "api": "changeIdPassword", "url" : "changeIdPassword", "param": [ "username", "oldpwd", "newusername", "newpwd" ], "comment" : "return msg.done=true/false, msg.comment" },
 		{ "api": "updateProfile", "url" : "updateProfile", "param": [ "sid", "profile" ], "comment" : "profile is { public: {any}, protected: {dont care}, private: {as it is} }, return msg.done=true/false" },
 		{ "api": "getProfile", "url" : "getProfile", "param": [ "sid" ], "comment" : "return msg.done=true/false, msg.profile as it is." },
 		{ "api": "queryProfile", "url" : "queryProfile", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false, msg.profile depends on friend relationship." },
@@ -41,6 +42,15 @@
 		{ "api": "leaveRoom", "url" : "leaveRoom", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
 		{ "api": "say", "url" : "say", "param": [ "sid", "what" ], "comment" : "anyone in room can hear. return msg.done=true/false" },
 		
-		{ "api": "sms", "url" : "sms", "param": [ "sid", "name", "what" ], "comment" : "send short message, only between friends. return msg.done=true/false" }
+		{ "api": "sms", "url" : "sms", "param": [ "sid", "name", "what" ], "comment" : "send short message, only between friends. return msg.done=true/false" },
+		
+		{ "api": "uploadGameData", "url" : "uploadGameData", "param" : [ "sid", "appkey", "md5key", "result", "steps" ], "comment" : "share game result" },
+		{ "api": "listGameData", "url" : "listGameData", "param" : [ "sid", "appkey", "pagesize", "pageindex" ], "comment" : "list game" },
+		{ "api": "downloadGameData", "url" : "downloadGameData", "param":[ "sid", "appkey", "md5key" ], "comment" : "download game data" },
+
+		{ "api": "udateGameScore", "url" : "udateGameScore", "param" : [ "sid", "appkey", "data1", "data2", "data3" ], "comment" : "update game score" },
+		{ "api": "getGameScoreTop10", "url" : "getGameScoreTop10", "param" : [ "sid", "appkey" ], "comment" : "get game top scores" },
+		
+		{ "api": "feedback", "url" : "sms", "param": [ "sid", "appkey", "msg" ], "comment" : "send feedback in app, forward to our email if possible" }
 	]
 } 
