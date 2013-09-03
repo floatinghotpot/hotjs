@@ -12,11 +12,10 @@ var AjaxClient = function(){
 		cache : false,
 		data : {},
 		processData : true,
-		type : 'GET',
+		type : 'POST',
 		async : false,
 		timeout : 10000,	// 10 sec
 		dataType : 'html',
-		//dataType : 'html',
 		crossDomain : false,
 		context : document.body,
 		statusCode : {
@@ -93,8 +92,8 @@ AjaxClient.prototype = {
 		return true;
 	},
 	requestMsg : function( data, url, options ) {
-		var ajaxpkg = {};
-		
+		console.log( 'sending: ' + JSON.stringify(data) );
+		var ajaxpkg = {};		
 		for( var i in this.settings ) ajaxpkg[i] = this.settings[i];
 		if( !! options ) for( var i in options ) ajaxpkg[i] = options[i];
 		if( !! data ) ajaxpkg.data = data;
@@ -106,7 +105,7 @@ AjaxClient.prototype = {
 		
 		$.ajax( ajaxpkg )
 			.done(function(data, textStatus, jqXHR){
-				console.log( data );
+				console.log( 'received: ' + data );
 				data = JSON.parse( data );
 				
 				msgs = data;
