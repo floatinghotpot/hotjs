@@ -568,9 +568,9 @@ hotjs.inherit( User, AjaxClient, {
 		var msg = this.callAPI( arguments.callee.name, {
 			sid : this.session,
 			name : name,
-			password : pwd
+			secret : pwd
 		} );
-		return ((!! msg) && msg.done) ? msg.name : false;
+		return ((!! msg) && msg.done) ? true : false;
 	},
 	// if no one in room after exist, then remove the password if there is.
 	leaveRoom : function leaveRoom( name ) {

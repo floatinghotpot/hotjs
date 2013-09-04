@@ -3342,11 +3342,10 @@ var AjaxClient = function(){
 		cache : false,
 		data : {},
 		processData : true,
-		type : 'GET',
+		type : 'POST',
 		async : false,
 		timeout : 10000,	// 10 sec
 		dataType : 'html',
-		//dataType : 'html',
 		crossDomain : false,
 		context : document.body,
 		statusCode : {
@@ -3361,9 +3360,15 @@ var AjaxClient = function(){
 	this.msgList = [];
 
 	this.urls = {};
+	this.debugmode = false;
 };
 
 AjaxClient.prototype = {
+	setDebugMode : function(d) {
+		if(d === undefined) d = true;
+		this.debugmode = d;
+		return true;
+	},
 	config : function( set ){
 		if( set.msgMax != undefined ) {
 			this.msgMax = set.msgMax;
@@ -3423,29 +3428,29 @@ AjaxClient.prototype = {
 		return true;
 	},
 	requestMsg : function( data, url, options ) {
-		var ajaxpkg = {};
-		
+		if(this.debugmode) console.log( 'sending: ' + JSON.stringify(data) );
+		var ajaxpkg = {};		
 		for( var i in this.settings ) ajaxpkg[i] = this.settings[i];
 		if( !! options ) for( var i in options ) ajaxpkg[i] = options[i];
 		if( !! data ) ajaxpkg.data = data;
 		if( !! url ) ajaxpkg.url = url;
 		ajaxpkg.async = false;
 		
-		var me = this;
+		var self = this;
 		var msgs = false;
 		
 		$.ajax( ajaxpkg )
 			.done(function(data, textStatus, jqXHR){
-				console.log( data );
+				if(self.debugmode) console.log( 'received: ' + data );
 				data = JSON.parse( data );
 				
 				msgs = data;
 			})
 			.fail(function(jqXHR, textStatus, errorThrown){
-				me.onMsgFail( jqXHR, textStatus, errorThrown );
+				self.onMsgFail( jqXHR, textStatus, errorThrown );
 			})
 			.complete(function(data_or_jqXHR, textStatus, jqXHR_or_errorThrown){
-				me.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
+				self.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
 			});
 		
 		return msgs;
@@ -3459,27 +3464,29 @@ AjaxClient.prototype = {
 		if( !! url ) ajaxpkg.url = url;
 		ajaxpkg.async = true;
 		
-		var me = this;
+		var self = this;
 		
 		$.ajax( ajaxpkg )
 			.done(function(data, textStatus, jqXHR){
-				console.log( data );
+				if(self.debugmode) console.log( data );
 				data = JSON.parse( data );
 				
-				me.onMsgComing( data, textStatus, jqXHR );
+				self.onMsgComing( data, textStatus, jqXHR );
 			})
 			.fail(function(jqXHR, textStatus, errorThrown){
-				me.onMsgFail( jqXHR, textStatus, errorThrown );
+				self.onMsgFail( jqXHR, textStatus, errorThrown );
 			})
 			.complete(function(data_or_jqXHR, textStatus, jqXHR_or_errorThrown){
-				me.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
+				self.onMsgComplete( data_or_jqXHR, textStatus, jqXHR_or_errorThrown );
 			});
 		
 		return true;
 	},
 	onMsgFail : function( jqXHR, textStatus, errorThrown ) {
-		console.log( "ajax fail" );
-		console.log( jqXHR, textStatus, errorThrown );
+		if(this.debugmode) {
+			console.log( "ajax fail" );
+			console.log( jqXHR, textStatus, errorThrown );
+		}
 	},
 	onMsgComplete : function( data_or_jqXHR, textStatus, jqXHR_or_errorThrown ) {
 	},
@@ -3565,6 +3572,14 @@ hotjs.inherit( User, AjaxClient, {
 		} );
 		return (!! msg) ? msg.done : false;
 	},
+	// return username & password in msg
+	autoRegister : function autoRegister(uuid) {
+		var msg = this.callAPI( arguments.callee.name, {
+			uuid : uuid
+		});
+		
+		return (!! msg) ? msg : false;
+	},
 	
 	login : function login(u, p, app, ver, hb) {
 		var msg = this.callAPI( arguments.callee.name, {
@@ -3586,9 +3601,6 @@ hotjs.inherit( User, AjaxClient, {
 			// set hb interval if needed.
 			if(!! hb) this.hb_interval = hb;
 			
-			var magic_id = 'u' + this.session;
-			window[ magic_id ] = this;
-			
 			// start first hb.
 			this.heartbeat();
 			
@@ -3602,16 +3614,16 @@ hotjs.inherit( User, AjaxClient, {
 		if( !! this.session ) {
 			// send heartbeat msg
 			var api = arguments.callee.name;
-			var data = { sid : this.session, test1: [2,3,"str"], test2: {x:1, y:2} };
+			var data = { sid:this.session, t:Date.now() };
 			this.postMsg( { 
 				api: api, 
 				param: JSON.stringify(data) 
 				}, this.urls[ api ] );
 			
-			//window.hotjs_user = this;
-			var magic_id = 'u' + this.session;
-			var func = "window." + magic_id + ".heartbeat()"; 
-			this.hb_timer = window.setTimeout( func, this.hb_interval );
+			var self = this;
+			this.hb_timer = window.setTimeout( function(){
+				self.heartbeat();
+			}, this.hb_interval );
 		}
 		return true;
 	},
@@ -3619,9 +3631,6 @@ hotjs.inherit( User, AjaxClient, {
 		// stop heartbeat timer
 		if(!! this.hb_timer) {
 			clearTimeout( this.hb_tiemr );
-			
-			var magic_id = 'u' + this.session;
-			delete window[ magic_id ];
 		}
 		
 		// send logout msg
@@ -3631,10 +3640,12 @@ hotjs.inherit( User, AjaxClient, {
 		this.session = "";
 		return (!! msg) ? msg.done : false;
 	},
-	changePassword : function changePassword( u, oldpwd, newpwd ) {
+	changeIdPassword : function changeIdPassword( u, oldpwd, newu, newpwd ) {
+		if(newu === undefined) newu = u;
 		var msg = this.callAPI( arguments.callee.name, {
 			username : u,
 			oldpwd : oldpwd,
+			newusername : newu,
 			newpwd : newpwd
 		} );
 		return (!! msg) ? msg.done : false;
@@ -3887,9 +3898,9 @@ hotjs.inherit( User, AjaxClient, {
 		var msg = this.callAPI( arguments.callee.name, {
 			sid : this.session,
 			name : name,
-			password : pwd
+			secret : pwd
 		} );
-		return ((!! msg) && msg.done) ? msg.name : false;
+		return ((!! msg) && msg.done) ? true : false;
 	},
 	// if no one in room after exist, then remove the password if there is.
 	leaveRoom : function leaveRoom( name ) {
@@ -3916,7 +3927,79 @@ hotjs.inherit( User, AjaxClient, {
 			what : s
 		} );
 		return ((!! msg) && msg.done) ? true : false;
+	},
+	
+	searchGamer : function searchGamer( appkey, level ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			level : level
+		});
+		
+		return ((!! msg) && msg.done) ? true : false;
+	},
+	
+	uploadGameData : function uploadGameData( appkey, md5key, result, steps ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			md5key : md5key,
+			result : result,
+			steps : steps
+		});
+		
+		return ((!! msg) && msg.done) ? true : false;
+	},
+	listGameData : function listGameData( appkey, pagesize, pageindex ) {
+		if( pageindex === undefined ) pageindex = 0;
+		if( pagesize === undefined ) pagesize = 10;
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			pagesize : pagesize,
+			pageindex : pageindex
+		});
+		
+		return ((!! msg) && msg.done) ? msg.list : false;
+	},
+	// msg.data = { "md5key" : "xx", "result" : "xx", "steps" : "xx" }
+	downloadGameData : function downloadGameData( appkey, md5key ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			md5key : md5key
+		});
+		
+		return ((!! msg) && msg.done) ? msg.data : false;
+	},
+	
+	updateGameScore : function updateGameScore( appkey, data1, data2, data3 ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			data1 : data1,
+			data2 : data2,
+			data3 : data3
+		});
+		return ((!! msg) && msg.done) ? true : false;
+	},
+	// { "data1" : [ { "name" : "tom", "score" : 10 }, { ... } ], "data2" : [], "data3" : [] }
+	getGameScoreTop10 : function getGameScoreTop10( appkey ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey
+		});
+		return ((!! msg) && msg.done) ? msg.data : false;
+	},
+	
+	feedback : function feedback( appkey, txt ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			msg : txt
+		});
+		return ((!! msg) && msg.done) ? true : false;
 	}
+	
 });
 
 hotjs.Social.AjaxClient = AjaxClient;

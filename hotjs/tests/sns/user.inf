@@ -38,7 +38,7 @@
 		{ "api": "quitGroup", "url" : "quitGroup", "param": [ "sid", "group" ], "comment" : "return msg.done=true/false" },
 		{ "api": "chat", "url" : "chat", "param": [ "sid", "group", "what" ], "comment" : "chat in a group, return msg.done=true/false" },
 
-		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "sid", "name", "password" ], "comment" : "enter room, create if not exists, password optional, return msg.done=true/false" },
+		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "sid", "name", "secret" ], "comment" : "enter room, create if not exists, password optional, return msg.done=true/false" },
 		{ "api": "leaveRoom", "url" : "leaveRoom", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
 		{ "api": "say", "url" : "say", "param": [ "sid", "what" ], "comment" : "anyone in room can hear. return msg.done=true/false" },
 		
