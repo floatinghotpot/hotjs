@@ -83,7 +83,7 @@ var showSplash = function( show, content, style ) {
 };
 
 var popupDialog = function( title, content, buttons, style, direction ) {
-	title = title || '&nbsp;';
+	title = title || '';
 	content = content || '&nbsp;';
 	style = style || {};
 	buttons = buttons || {};
@@ -98,21 +98,25 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	var win = $(div);
 	win.attr({'id':dlgId, 'class':'dialog'}).css({'position':'absolute', 'display':'none' });
 	
+	x_img = "<img id='" + idX + "' class='dlgx clickable' src='" + resources.getXPng() + "'>";
+	var html = 
+"<table class='dialog' cellspacing='0' cellpadding='0'>\
+<tr><td class='dlg00'></td><td class='dlg01 m'></td><td class='dlg02'>" + x_img + "</td></tr>";
+	
+	if( title != '' ) html += "<tr><td class='dlg10'></td><td class='dlg11 m'>" + title + "</td><td class='dlg12'></td></tr>";
+
+	html += "<tr><td class='dlg10'></td><td class='dlg11 m'><div class='dlg11'>" + content + "</div></td><td class='dlg12'></td></tr>";
+
 	var btnHtml = "";
 	for( var i in buttons ) {
 		var btnId = dlgId + i;
 		btnHtml += "<button class='dialog' id='" + btnId  + "' v='" + i + "'>" + hotjs.i18n.get(i) + "</button> ";
 	}
+	if( btnHtml != '') html += "<tr><td class='dlg10'></td><td class='dlg11 m'>" + btnHtml + "</td><td class='dlg12'></td></tr>";
 
-	x_img = "<img id='" + idX + "' class='dlgx clickable' src='" + resources.getXPng() + "'>";
-	div.innerHTML = 
-"<table class='dialog' cellspacing='0' cellpadding='0'>\
-<tr><td class='dlg00'></td><td class='dlg01 m'></td><td class='dlg02'>" + x_img + "</td></tr>\
-<tr><td class='dlg10'></td><td class='dlg11 m'>" + title + "</td><td class='dlg12'></td></tr>\
-<tr><td class='dlg10'></td><td class='dlg11 m'><div class='dlg11'>" + content + "</div></td><td class='dlg12'></td></tr>\
-<tr><td class='dlg10'></td><td class='dlg11 m'>" + btnHtml + "</td><td class='dlg12'></td></tr>\
-<tr><td class='dlg20'></td><td class='dlg21'></td><td class='dlg22'></td></tr>\
-</table>";
+	html += "<tr><td class='dlg20'></td><td class='dlg21'></td><td class='dlg22'></td></tr></table>";
+	
+	div.innerHTML = html;
 	
 	var w = win.width(), h = win.height();
 	var scrw = $(window).width(), scrh = $(window).height();
