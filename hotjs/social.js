@@ -223,7 +223,9 @@ var User = function(){
 };
 
 hotjs.inherit( User, AjaxClient, {
-
+	setHeartbeat : function( hb ) {
+		this.hb_interval = hb;
+	},
 	registerAccount : function registerAccount(u, p, fn, e, c) {
 		var msg = this.callAPI( arguments.callee.name, {
 			username : u,
