@@ -1,6 +1,6 @@
 {
 	"module" : "user",
-	"version" : 1.0,
+	"version" : 1.1,
 	"base" : "./user.py/",
 	"list" : [ 
 		{ "api": "_default_", "url" : "_default_", "param": [], "comment" : "default api, must be defined." },
@@ -53,6 +53,6 @@
 		{ "api": "udateGameScore", "url" : "udateGameScore", "param" : [ "sid", "appkey", "data1", "data2", "data3" ], "comment" : "update game score" },
 		{ "api": "getGameScoreTop10", "url" : "getGameScoreTop10", "param" : [ "sid", "appkey" ], "comment" : "get game top scores" },
 		
-		{ "api": "feedback", "url" : "sms", "param": [ "sid", "appkey", "msg" ], "comment" : "send feedback in app, forward to our email if possible" }
+		{ "api": "feedback", "url" : "feedback", "param": [ "sid", "appkey", "msg" ], "comment" : "send feedback in app, forward to our email if possible" }
 	]
 } 
