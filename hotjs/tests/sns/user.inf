@@ -1,6 +1,6 @@
 {
 	"module" : "user",
-	"version" : 1.0,
+	"version" : 1.1,
 	"base" : "./user.py/",
 	"list" : [ 
 		{ "api": "_default_", "url" : "_default_", "param": [], "comment" : "default api, must be defined." },
@@ -38,11 +38,13 @@
 		{ "api": "quitGroup", "url" : "quitGroup", "param": [ "sid", "group" ], "comment" : "return msg.done=true/false" },
 		{ "api": "chat", "url" : "chat", "param": [ "sid", "group", "what" ], "comment" : "chat in a group, return msg.done=true/false" },
 
-		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "sid", "name", "password" ], "comment" : "enter room, create if not exists, password optional, return msg.done=true/false" },
+		{ "api": "enterRoom", "url" : "enterRoom", "param": [ "sid", "name", "secret" ], "comment" : "enter room, create if not exists, password optional, return msg.done=true/false" },
 		{ "api": "leaveRoom", "url" : "leaveRoom", "param": [ "sid", "name" ], "comment" : "return msg.done=true/false" },
 		{ "api": "say", "url" : "say", "param": [ "sid", "what" ], "comment" : "anyone in room can hear. return msg.done=true/false" },
 		
 		{ "api": "sms", "url" : "sms", "param": [ "sid", "name", "what" ], "comment" : "send short message, only between friends. return msg.done=true/false" },
+
+		{ "api": "searchGamer", "url": "searchGamer", "param" : [ "sid", "appkey", "level" ], "comment" : "search player for same game same level" },
 		
 		{ "api": "uploadGameData", "url" : "uploadGameData", "param" : [ "sid", "appkey", "md5key", "result", "steps" ], "comment" : "share game result" },
 		{ "api": "listGameData", "url" : "listGameData", "param" : [ "sid", "appkey", "pagesize", "pageindex" ], "comment" : "list game" },
@@ -51,6 +53,6 @@
 		{ "api": "udateGameScore", "url" : "udateGameScore", "param" : [ "sid", "appkey", "data1", "data2", "data3" ], "comment" : "update game score" },
 		{ "api": "getGameScoreTop10", "url" : "getGameScoreTop10", "param" : [ "sid", "appkey" ], "comment" : "get game top scores" },
 		
-		{ "api": "feedback", "url" : "sms", "param": [ "sid", "appkey", "msg" ], "comment" : "send feedback in app, forward to our email if possible" }
+		{ "api": "feedback", "url" : "feedback", "param": [ "sid", "appkey", "msg" ], "comment" : "send feedback in app, forward to our email if possible" }
 	]
 } 
