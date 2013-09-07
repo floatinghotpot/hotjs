@@ -11,3 +11,5 @@ ui.js
 domui.js
 i18n.js
 ai.js
+md5.js
+base64.js

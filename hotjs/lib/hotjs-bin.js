@@ -111,6 +111,16 @@ hotjs.log = function(o, n) {
 	}
 };
 
+function s4() {
+	return Math.floor((1 + Math.random()) * 0x10000)
+		.toString(16)
+	    .substring(1);
+}
+
+hotjs.guid = function() {
+	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+};
+
 //[].indexOf(value)
 if (typeof Array.prototype.indexOf !== 'function') {
 	Array.prototype.indexOf = function(obj, fromIndex) {
@@ -3580,7 +3590,7 @@ hotjs.inherit( User, AjaxClient, {
 			uuid : uuid
 		});
 		
-		return (!! msg) ? msg : false;
+		return ((!! msg) && msg.done) ? msg : false;
 	},
 	
 	login : function login(u, p, app, ver, hb) {
@@ -3643,13 +3653,14 @@ hotjs.inherit( User, AjaxClient, {
 		return (!! msg) ? msg.done : false;
 	},
 	changeIdPassword : function changeIdPassword( u, oldpwd, newu, newpwd ) {
-		if(newu === undefined) newu = u;
-		var msg = this.callAPI( arguments.callee.name, {
-			username : u,
-			oldpwd : oldpwd,
-			newusername : newu,
-			newpwd : newpwd
-		} );
+		var param = {
+				username : u,
+				oldpwd : oldpwd,
+				newusername : newu,
+				newpwd : newpwd
+			};
+		hotjs.log( param );
+		var msg = this.callAPI( arguments.callee.name, param);
 		return (!! msg) ? msg.done : false;
 	},
 	
@@ -5364,3 +5375,461 @@ hotjs.AI.GomokuAI = GomokuAI;
 hotjs.AI.PathFinder = PathFinder;
 
 })();
+
+// ------- md5.js ------------- 
+
+/*
+ * JavaScript MD5 1.0.1
+ * https://github.com/blueimp/JavaScript-MD5
+ *
+ * Copyright 2011, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ * 
+ * Based on
+ * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+ * Digest Algorithm, as defined in RFC 1321.
+ * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for more info.
+ */
+
+/*jslint bitwise: true */
+/*global unescape, define */
+
+(function ($) {
+    'use strict';
+
+    /*
+    * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+    * to work around bugs in some JS interpreters.
+    */
+    function safe_add(x, y) {
+        var lsw = (x & 0xFFFF) + (y & 0xFFFF),
+            msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+        return (msw << 16) | (lsw & 0xFFFF);
+    }
+
+    /*
+    * Bitwise rotate a 32-bit number to the left.
+    */
+    function bit_rol(num, cnt) {
+        return (num << cnt) | (num >>> (32 - cnt));
+    }
+
+    /*
+    * These functions implement the four basic operations the algorithm uses.
+    */
+    function md5_cmn(q, a, b, x, s, t) {
+        return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
+    }
+    function md5_ff(a, b, c, d, x, s, t) {
+        return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
+    }
+    function md5_gg(a, b, c, d, x, s, t) {
+        return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
+    }
+    function md5_hh(a, b, c, d, x, s, t) {
+        return md5_cmn(b ^ c ^ d, a, b, x, s, t);
+    }
+    function md5_ii(a, b, c, d, x, s, t) {
+        return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
+    }
+
+    /*
+    * Calculate the MD5 of an array of little-endian words, and a bit length.
+    */
+    function binl_md5(x, len) {
+        /* append padding */
+        x[len >> 5] |= 0x80 << (len % 32);
+        x[(((len + 64) >>> 9) << 4) + 14] = len;
+
+        var i, olda, oldb, oldc, oldd,
+            a =  1732584193,
+            b = -271733879,
+            c = -1732584194,
+            d =  271733878;
+
+        for (i = 0; i < x.length; i += 16) {
+            olda = a;
+            oldb = b;
+            oldc = c;
+            oldd = d;
+
+            a = md5_ff(a, b, c, d, x[i],       7, -680876936);
+            d = md5_ff(d, a, b, c, x[i +  1], 12, -389564586);
+            c = md5_ff(c, d, a, b, x[i +  2], 17,  606105819);
+            b = md5_ff(b, c, d, a, x[i +  3], 22, -1044525330);
+            a = md5_ff(a, b, c, d, x[i +  4],  7, -176418897);
+            d = md5_ff(d, a, b, c, x[i +  5], 12,  1200080426);
+            c = md5_ff(c, d, a, b, x[i +  6], 17, -1473231341);
+            b = md5_ff(b, c, d, a, x[i +  7], 22, -45705983);
+            a = md5_ff(a, b, c, d, x[i +  8],  7,  1770035416);
+            d = md5_ff(d, a, b, c, x[i +  9], 12, -1958414417);
+            c = md5_ff(c, d, a, b, x[i + 10], 17, -42063);
+            b = md5_ff(b, c, d, a, x[i + 11], 22, -1990404162);
+            a = md5_ff(a, b, c, d, x[i + 12],  7,  1804603682);
+            d = md5_ff(d, a, b, c, x[i + 13], 12, -40341101);
+            c = md5_ff(c, d, a, b, x[i + 14], 17, -1502002290);
+            b = md5_ff(b, c, d, a, x[i + 15], 22,  1236535329);
+
+            a = md5_gg(a, b, c, d, x[i +  1],  5, -165796510);
+            d = md5_gg(d, a, b, c, x[i +  6],  9, -1069501632);
+            c = md5_gg(c, d, a, b, x[i + 11], 14,  643717713);
+            b = md5_gg(b, c, d, a, x[i],      20, -373897302);
+            a = md5_gg(a, b, c, d, x[i +  5],  5, -701558691);
+            d = md5_gg(d, a, b, c, x[i + 10],  9,  38016083);
+            c = md5_gg(c, d, a, b, x[i + 15], 14, -660478335);
+            b = md5_gg(b, c, d, a, x[i +  4], 20, -405537848);
+            a = md5_gg(a, b, c, d, x[i +  9],  5,  568446438);
+            d = md5_gg(d, a, b, c, x[i + 14],  9, -1019803690);
+            c = md5_gg(c, d, a, b, x[i +  3], 14, -187363961);
+            b = md5_gg(b, c, d, a, x[i +  8], 20,  1163531501);
+            a = md5_gg(a, b, c, d, x[i + 13],  5, -1444681467);
+            d = md5_gg(d, a, b, c, x[i +  2],  9, -51403784);
+            c = md5_gg(c, d, a, b, x[i +  7], 14,  1735328473);
+            b = md5_gg(b, c, d, a, x[i + 12], 20, -1926607734);
+
+            a = md5_hh(a, b, c, d, x[i +  5],  4, -378558);
+            d = md5_hh(d, a, b, c, x[i +  8], 11, -2022574463);
+            c = md5_hh(c, d, a, b, x[i + 11], 16,  1839030562);
+            b = md5_hh(b, c, d, a, x[i + 14], 23, -35309556);
+            a = md5_hh(a, b, c, d, x[i +  1],  4, -1530992060);
+            d = md5_hh(d, a, b, c, x[i +  4], 11,  1272893353);
+            c = md5_hh(c, d, a, b, x[i +  7], 16, -155497632);
+            b = md5_hh(b, c, d, a, x[i + 10], 23, -1094730640);
+            a = md5_hh(a, b, c, d, x[i + 13],  4,  681279174);
+            d = md5_hh(d, a, b, c, x[i],      11, -358537222);
+            c = md5_hh(c, d, a, b, x[i +  3], 16, -722521979);
+            b = md5_hh(b, c, d, a, x[i +  6], 23,  76029189);
+            a = md5_hh(a, b, c, d, x[i +  9],  4, -640364487);
+            d = md5_hh(d, a, b, c, x[i + 12], 11, -421815835);
+            c = md5_hh(c, d, a, b, x[i + 15], 16,  530742520);
+            b = md5_hh(b, c, d, a, x[i +  2], 23, -995338651);
+
+            a = md5_ii(a, b, c, d, x[i],       6, -198630844);
+            d = md5_ii(d, a, b, c, x[i +  7], 10,  1126891415);
+            c = md5_ii(c, d, a, b, x[i + 14], 15, -1416354905);
+            b = md5_ii(b, c, d, a, x[i +  5], 21, -57434055);
+            a = md5_ii(a, b, c, d, x[i + 12],  6,  1700485571);
+            d = md5_ii(d, a, b, c, x[i +  3], 10, -1894986606);
+            c = md5_ii(c, d, a, b, x[i + 10], 15, -1051523);
+            b = md5_ii(b, c, d, a, x[i +  1], 21, -2054922799);
+            a = md5_ii(a, b, c, d, x[i +  8],  6,  1873313359);
+            d = md5_ii(d, a, b, c, x[i + 15], 10, -30611744);
+            c = md5_ii(c, d, a, b, x[i +  6], 15, -1560198380);
+            b = md5_ii(b, c, d, a, x[i + 13], 21,  1309151649);
+            a = md5_ii(a, b, c, d, x[i +  4],  6, -145523070);
+            d = md5_ii(d, a, b, c, x[i + 11], 10, -1120210379);
+            c = md5_ii(c, d, a, b, x[i +  2], 15,  718787259);
+            b = md5_ii(b, c, d, a, x[i +  9], 21, -343485551);
+
+            a = safe_add(a, olda);
+            b = safe_add(b, oldb);
+            c = safe_add(c, oldc);
+            d = safe_add(d, oldd);
+        }
+        return [a, b, c, d];
+    }
+
+    /*
+    * Convert an array of little-endian words to a string
+    */
+    function binl2rstr(input) {
+        var i,
+            output = '';
+        for (i = 0; i < input.length * 32; i += 8) {
+            output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xFF);
+        }
+        return output;
+    }
+
+    /*
+    * Convert a raw string to an array of little-endian words
+    * Characters >255 have their high-byte silently ignored.
+    */
+    function rstr2binl(input) {
+        var i,
+            output = [];
+        output[(input.length >> 2) - 1] = undefined;
+        for (i = 0; i < output.length; i += 1) {
+            output[i] = 0;
+        }
+        for (i = 0; i < input.length * 8; i += 8) {
+            output[i >> 5] |= (input.charCodeAt(i / 8) & 0xFF) << (i % 32);
+        }
+        return output;
+    }
+
+    /*
+    * Calculate the MD5 of a raw string
+    */
+    function rstr_md5(s) {
+        return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
+    }
+
+    /*
+    * Calculate the HMAC-MD5, of a key and some data (raw strings)
+    */
+    function rstr_hmac_md5(key, data) {
+        var i,
+            bkey = rstr2binl(key),
+            ipad = [],
+            opad = [],
+            hash;
+        ipad[15] = opad[15] = undefined;
+        if (bkey.length > 16) {
+            bkey = binl_md5(bkey, key.length * 8);
+        }
+        for (i = 0; i < 16; i += 1) {
+            ipad[i] = bkey[i] ^ 0x36363636;
+            opad[i] = bkey[i] ^ 0x5C5C5C5C;
+        }
+        hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
+        return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
+    }
+
+    /*
+    * Convert a raw string to a hex string
+    */
+    function rstr2hex(input) {
+        var hex_tab = '0123456789abcdef',
+            output = '',
+            x,
+            i;
+        for (i = 0; i < input.length; i += 1) {
+            x = input.charCodeAt(i);
+            output += hex_tab.charAt((x >>> 4) & 0x0F) +
+                hex_tab.charAt(x & 0x0F);
+        }
+        return output;
+    }
+
+    /*
+    * Encode a string as utf-8
+    */
+    function str2rstr_utf8(input) {
+        return unescape(encodeURIComponent(input));
+    }
+
+    /*
+    * Take string arguments and return either raw or hex encoded strings
+    */
+    function raw_md5(s) {
+        return rstr_md5(str2rstr_utf8(s));
+    }
+    function hex_md5(s) {
+        return rstr2hex(raw_md5(s));
+    }
+    function raw_hmac_md5(k, d) {
+        return rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d));
+    }
+    function hex_hmac_md5(k, d) {
+        return rstr2hex(raw_hmac_md5(k, d));
+    }
+
+    function md5(string, key, raw) {
+        if (!key) {
+            if (!raw) {
+                return hex_md5(string);
+            }
+            return raw_md5(string);
+        }
+        if (!raw) {
+            return hex_hmac_md5(key, string);
+        }
+        return raw_hmac_md5(key, string);
+    }
+
+    if (typeof define === 'function' && define.amd) {
+        define(function () {
+            return md5;
+        });
+    } else {
+        $.md5 = md5;
+    }
+}(this));
+
+// ------- base64.js ------------- 
+
+/*
+ * $Id: base64.js,v 2.12 2013/05/06 07:54:20 dankogai Exp dankogai $
+ *
+ *  Licensed under the MIT license.
+ *    http://opensource.org/licenses/mit-license
+ *
+ *  References:
+ *    http://en.wikipedia.org/wiki/Base64
+ */
+
+(function(global) {
+    'use strict';
+    if (global.Base64) return;
+    var version = "2.1.2";
+    // if node.js, we use Buffer
+    var buffer;
+    if (typeof module !== 'undefined' && module.exports) {
+        buffer = require('buffer').Buffer;
+    }
+    // constants
+    var b64chars
+        = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    var b64tab = function(bin) {
+        var t = {};
+        for (var i = 0, l = bin.length; i < l; i++) t[bin.charAt(i)] = i;
+        return t;
+    }(b64chars);
+    var fromCharCode = String.fromCharCode;
+    // encoder stuff
+    var cb_utob = function(c) {
+        if (c.length < 2) {
+            var cc = c.charCodeAt(0);
+            return cc < 0x80 ? c
+                : cc < 0x800 ? (fromCharCode(0xc0 | (cc >>> 6))
+                                + fromCharCode(0x80 | (cc & 0x3f)))
+                : (fromCharCode(0xe0 | ((cc >>> 12) & 0x0f))
+                   + fromCharCode(0x80 | ((cc >>>  6) & 0x3f))
+                   + fromCharCode(0x80 | ( cc         & 0x3f)));
+        } else {
+            var cc = 0x10000
+                + (c.charCodeAt(0) - 0xD800) * 0x400
+                + (c.charCodeAt(1) - 0xDC00);
+            return (fromCharCode(0xf0 | ((cc >>> 18) & 0x07))
+                    + fromCharCode(0x80 | ((cc >>> 12) & 0x3f))
+                    + fromCharCode(0x80 | ((cc >>>  6) & 0x3f))
+                    + fromCharCode(0x80 | ( cc         & 0x3f)));
+        }
+    };
+    var re_utob = /[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g;
+    var utob = function(u) {
+        return u.replace(re_utob, cb_utob);
+    };
+    var cb_encode = function(ccc) {
+        var padlen = [0, 2, 1][ccc.length % 3],
+        ord = ccc.charCodeAt(0) << 16
+            | ((ccc.length > 1 ? ccc.charCodeAt(1) : 0) << 8)
+            | ((ccc.length > 2 ? ccc.charCodeAt(2) : 0)),
+        chars = [
+            b64chars.charAt( ord >>> 18),
+            b64chars.charAt((ord >>> 12) & 63),
+            padlen >= 2 ? '=' : b64chars.charAt((ord >>> 6) & 63),
+            padlen >= 1 ? '=' : b64chars.charAt(ord & 63)
+        ];
+        return chars.join('');
+    };
+    var btoa = global.btoa ? function(b) {
+        return global.btoa(b);
+    } : function(b) {
+        return b.replace(/[\s\S]{1,3}/g, cb_encode);
+    };
+    var _encode = buffer
+        ? function (u) { return (new buffer(u)).toString('base64') } 
+    : function (u) { return btoa(utob(u)) }
+    ;
+    var encode = function(u, urisafe) {
+        return !urisafe 
+            ? _encode(u)
+            : _encode(u).replace(/[+\/]/g, function(m0) {
+                return m0 == '+' ? '-' : '_';
+            }).replace(/=/g, '');
+    };
+    var encodeURI = function(u) { return encode(u, true) };
+    // decoder stuff
+    var re_btou = new RegExp([
+        '[\xC0-\xDF][\x80-\xBF]',
+        '[\xE0-\xEF][\x80-\xBF]{2}',
+        '[\xF0-\xF7][\x80-\xBF]{3}'
+    ].join('|'), 'g');
+    var cb_btou = function(cccc) {
+        switch(cccc.length) {
+        case 4:
+            var cp = ((0x07 & cccc.charCodeAt(0)) << 18)
+                |    ((0x3f & cccc.charCodeAt(1)) << 12)
+                |    ((0x3f & cccc.charCodeAt(2)) <<  6)
+                |     (0x3f & cccc.charCodeAt(3)),
+            offset = cp - 0x10000;
+            return (fromCharCode((offset  >>> 10) + 0xD800)
+                    + fromCharCode((offset & 0x3FF) + 0xDC00));
+        case 3:
+            return fromCharCode(
+                ((0x0f & cccc.charCodeAt(0)) << 12)
+                    | ((0x3f & cccc.charCodeAt(1)) << 6)
+                    |  (0x3f & cccc.charCodeAt(2))
+            );
+        default:
+            return  fromCharCode(
+                ((0x1f & cccc.charCodeAt(0)) << 6)
+                    |  (0x3f & cccc.charCodeAt(1))
+            );
+        }
+    };
+    var btou = function(b) {
+        return b.replace(re_btou, cb_btou);
+    };
+    var cb_decode = function(cccc) {
+        var len = cccc.length,
+        padlen = len % 4,
+        n = (len > 0 ? b64tab[cccc.charAt(0)] << 18 : 0)
+            | (len > 1 ? b64tab[cccc.charAt(1)] << 12 : 0)
+            | (len > 2 ? b64tab[cccc.charAt(2)] <<  6 : 0)
+            | (len > 3 ? b64tab[cccc.charAt(3)]       : 0),
+        chars = [
+            fromCharCode( n >>> 16),
+            fromCharCode((n >>>  8) & 0xff),
+            fromCharCode( n         & 0xff)
+        ];
+        chars.length -= [0, 0, 2, 1][padlen];
+        return chars.join('');
+    };
+    var atob = global.atob ? function(a) {
+        return global.atob(a);
+    } : function(a){
+        return a.replace(/[\s\S]{1,4}/g, cb_decode);
+    };
+    var _decode = buffer
+        ? function(a) { return (new buffer(a, 'base64')).toString() }
+    : function(a) { return btou(atob(a)) };
+    var decode = function(a){
+        return _decode(
+            a.replace(/[-_]/g, function(m0) { return m0 == '-' ? '+' : '/' })
+                .replace(/[^A-Za-z0-9\+\/]/g, '')
+        );
+    };
+    // export Base64
+    global.Base64 = {
+        VERSION: version,
+        atob: atob,
+        btoa: btoa,
+        fromBase64: decode,
+        toBase64: encode,
+        utob: utob,
+        encode: encode,
+        encodeURI: encodeURI,
+        btou: btou,
+        decode: decode
+    };
+    // if ES5 is available, make Base64.extendString() available
+    if (typeof Object.defineProperty === 'function') {
+        var noEnum = function(v){
+            return {value:v,enumerable:false,writable:true,configurable:true};
+        };
+        global.Base64.extendString = function () {
+            Object.defineProperty(
+                String.prototype, 'fromBase64', noEnum(function () {
+                    return decode(this)
+                }));
+            Object.defineProperty(
+                String.prototype, 'toBase64', noEnum(function (urisafe) {
+                    return encode(this, urisafe)
+                }));
+            Object.defineProperty(
+                String.prototype, 'toBase64URI', noEnum(function () {
+                    return encode(this, true)
+                }));
+        };
+    }
+    // that's it!
+})(this);

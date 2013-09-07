@@ -108,6 +108,16 @@ hotjs.log = function(o, n) {
 	}
 };
 
+function s4() {
+	return Math.floor((1 + Math.random()) * 0x10000)
+		.toString(16)
+	    .substring(1);
+}
+
+hotjs.guid = function() {
+	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+};
+
 //[].indexOf(value)
 if (typeof Array.prototype.indexOf !== 'function') {
 	Array.prototype.indexOf = function(obj, fromIndex) {

@@ -250,7 +250,7 @@ hotjs.inherit( User, AjaxClient, {
 			uuid : uuid
 		});
 		
-		return (!! msg) ? msg : false;
+		return ((!! msg) && msg.done) ? msg : false;
 	},
 	
 	login : function login(u, p, app, ver, hb) {
@@ -313,13 +313,14 @@ hotjs.inherit( User, AjaxClient, {
 		return (!! msg) ? msg.done : false;
 	},
 	changeIdPassword : function changeIdPassword( u, oldpwd, newu, newpwd ) {
-		if(newu === undefined) newu = u;
-		var msg = this.callAPI( arguments.callee.name, {
-			username : u,
-			oldpwd : oldpwd,
-			newusername : newu,
-			newpwd : newpwd
-		} );
+		var param = {
+				username : u,
+				oldpwd : oldpwd,
+				newusername : newu,
+				newpwd : newpwd
+			};
+		hotjs.log( param );
+		var msg = this.callAPI( arguments.callee.name, param);
 		return (!! msg) ? msg.done : false;
 	},
 	
