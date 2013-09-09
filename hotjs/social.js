@@ -313,13 +313,13 @@ hotjs.inherit( User, AjaxClient, {
 		return (!! msg) ? msg.done : false;
 	},
 	changeIdPassword : function changeIdPassword( u, oldpwd, newu, newpwd ) {
+		if( u === newu ) newu = '';
 		var param = {
 				username : u,
 				oldpwd : oldpwd,
 				newusername : newu,
 				newpwd : newpwd
 			};
-		hotjs.log( param );
 		var msg = this.callAPI( arguments.callee.name, param);
 		return (!! msg) ? msg.done : false;
 	},
