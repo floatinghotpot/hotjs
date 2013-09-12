@@ -137,27 +137,26 @@ var View = function(){
 hotjs.inherit(View, hotjs.Class, {
 	start : function() {
 		// using closure, me is accessable to inner function, but 'this' changed.
-		var me = this;
+		var self = this;
 		var lastTime = Date.now();
-		var step = 1000 / this.maxFps;
-		var nextTime = lastTime + step;
+		var nextTime = lastTime + 1000 / self.maxFps;
 		
 		function view_loop(){
 			var now = Date.now();
 			if( now > nextTime ) {
-				if( me.running ) {
+				if( self.running ) {
 					var dt = (now - lastTime) / 1000.0;
-					me.update( dt );
-					me.render();
+					self.update( dt );
+					self.render();
 				}
 				lastTime = now;
-				nextTime += step;
+				nextTime += 1000 / self.maxFps;
 			}
 			
-			if( ! me.stopping ) {
+			if( ! self.stopping ) {
 				requestAnimFrame( view_loop );
 			} else {
-				me.stopped = true;
+				self.stopped = true;
 			}
 		}
 		
