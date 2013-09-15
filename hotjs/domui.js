@@ -121,12 +121,12 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	var w = win.width(), h = win.height();
 	var scrw = $(window).width(), scrh = $(window).height();
 	
-	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px' };
+	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px', 'opacity':1 };
 	for( var k in style ) {
 		css[ k ] = style[ k ];
 	}
 	
-	var out_css = {};
+	var out_css = {'opacity':0};
 	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
 	else if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
 	else out_css['top'] = css['top'];
