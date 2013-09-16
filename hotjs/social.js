@@ -633,7 +633,7 @@ hotjs.inherit( User, AjaxClient, {
 			pageindex : pageindex
 		});
 		
-		return ((!! msg) && msg.done) ? msg.list : false;
+		return msg;
 	},
 	// msg.data = { "md5key" : "xx", "result" : "xx", "steps" : "xx" }
 	downloadGameData : function downloadGameData( appkey, md5key ) {
