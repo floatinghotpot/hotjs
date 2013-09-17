@@ -1290,27 +1290,26 @@ var View = function(){
 hotjs.inherit(View, hotjs.Class, {
 	start : function() {
 		// using closure, me is accessable to inner function, but 'this' changed.
-		var me = this;
+		var self = this;
 		var lastTime = Date.now();
-		var step = 1000 / this.maxFps;
-		var nextTime = lastTime + step;
+		var nextTime = lastTime + 1000 / self.maxFps;
 		
 		function view_loop(){
 			var now = Date.now();
 			if( now > nextTime ) {
-				if( me.running ) {
+				if( self.running ) {
 					var dt = (now - lastTime) / 1000.0;
-					me.update( dt );
-					me.render();
+					self.update( dt );
+					self.render();
 				}
 				lastTime = now;
-				nextTime += step;
+				nextTime += 1000 / self.maxFps;
 			}
 			
-			if( ! me.stopping ) {
+			if( ! self.stopping ) {
 				requestAnimFrame( view_loop );
 			} else {
-				me.stopped = true;
+				self.stopped = true;
 			}
 		}
 		
@@ -3973,9 +3972,9 @@ hotjs.inherit( User, AjaxClient, {
 			pageindex : pageindex
 		});
 		
-		return ((!! msg) && msg.done) ? msg.list : false;
+		return msg;
 	},
-	// msg.data = { "md5key" : "xx", "result" : "xx", "steps" : "xx" }
+	// msg = { "md5key" : "xx", "result" : "xx", "steps" : "xx" }
 	downloadGameData : function downloadGameData( appkey, md5key ) {
 		var msg = this.callAPI( arguments.callee.name, {
 			sid : this.session,
@@ -3983,7 +3982,17 @@ hotjs.inherit( User, AjaxClient, {
 			md5key : md5key
 		});
 		
-		return ((!! msg) && msg.done) ? msg.data : false;
+		return msg;
+	},
+	voteGameData : function voteGameData( appkey, md5key, rating ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			md5key : md5key,
+			rating : rating
+		});
+
+		return ((!! msg) && msg.done);
 	},
 	
 	updateGameScore : function updateGameScore( appkey, data1, data2, data3 ) {
@@ -3994,7 +4003,7 @@ hotjs.inherit( User, AjaxClient, {
 			data2 : data2,
 			data3 : data3
 		});
-		return ((!! msg) && msg.done) ? true : false;
+		return ((!! msg) && msg.done);
 	},
 	// { "data1" : [ { "name" : "tom", "score" : 10 }, { ... } ], "data2" : [], "data3" : [] }
 	getGameScoreTop10 : function getGameScoreTop10( appkey ) {
@@ -4010,7 +4019,7 @@ hotjs.inherit( User, AjaxClient, {
 			sid : this.session,
 			msg : txt
 		});
-		return ((!! msg) && msg.done) ? true : false;
+		return ((!! msg) && msg.done);
 	}
 	
 });
@@ -4655,12 +4664,12 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	var w = win.width(), h = win.height();
 	var scrw = $(window).width(), scrh = $(window).height();
 	
-	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px' };
+	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px', 'opacity':1 };
 	for( var k in style ) {
 		css[ k ] = style[ k ];
 	}
 	
-	var out_css = {};
+	var out_css = {'opacity':0};
 	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
 	else if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
 	else out_css['top'] = css['top'];
