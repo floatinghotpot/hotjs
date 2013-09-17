@@ -635,7 +635,7 @@ hotjs.inherit( User, AjaxClient, {
 		
 		return msg;
 	},
-	// msg.data = { "md5key" : "xx", "result" : "xx", "steps" : "xx" }
+	// msg = { "md5key" : "xx", "result" : "xx", "steps" : "xx" }
 	downloadGameData : function downloadGameData( appkey, md5key ) {
 		var msg = this.callAPI( arguments.callee.name, {
 			sid : this.session,
@@ -643,7 +643,17 @@ hotjs.inherit( User, AjaxClient, {
 			md5key : md5key
 		});
 		
-		return ((!! msg) && msg.done) ? msg.data : false;
+		return msg;
+	},
+	voteGameData : function voteGameData( appkey, md5key, rating ) {
+		var msg = this.callAPI( arguments.callee.name, {
+			sid : this.session,
+			appkey : appkey,
+			md5key : md5key,
+			rating : rating
+		});
+
+		return ((!! msg) && msg.done);
 	},
 	
 	updateGameScore : function updateGameScore( appkey, data1, data2, data3 ) {
@@ -654,7 +664,7 @@ hotjs.inherit( User, AjaxClient, {
 			data2 : data2,
 			data3 : data3
 		});
-		return ((!! msg) && msg.done) ? true : false;
+		return ((!! msg) && msg.done);
 	},
 	// { "data1" : [ { "name" : "tom", "score" : 10 }, { ... } ], "data2" : [], "data3" : [] }
 	getGameScoreTop10 : function getGameScoreTop10( appkey ) {
@@ -670,7 +680,7 @@ hotjs.inherit( User, AjaxClient, {
 			sid : this.session,
 			msg : txt
 		});
-		return ((!! msg) && msg.done) ? true : false;
+		return ((!! msg) && msg.done);
 	}
 	
 });
