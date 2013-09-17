@@ -165,12 +165,61 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	return div;
 };
 
+var showChatBubble = function( type, content, style, direction ) {
+	type = type || 'left';
+	content = content || '&nbsp;';
+	style = style || {};
+	direction = direction || 'top';
+	
+	var dlgId = 'DLG' + Date.now();
+	var div = document.createElement('div');
+	document.body.appendChild( div );
+	
+	var win = $(div);
+	win.attr({'id':dlgId, 'class':'dialog'}).css({'position':'absolute', 'display':'none' });
+	div.innerHTML = "<p class='bubble "+ type +"'>" + content + "</p>";
+	
+	var w = win.width(), h = win.height();
+	var scrw = $(window).width(), scrh = $(window).height();
+	
+	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px', 'opacity':1 };
+	for( var k in style ) {
+		css[ k ] = style[ k ];
+	}
+	
+	var out_css = {'opacity':0};
+	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
+	else if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
+	else out_css['top'] = css['top'];
+	
+	if( direction.indexOf('left') >= 0 ) out_css['left'] = -h-20 + 'px';
+	else if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';	
+	else out_css['left'] = css['left'];
+
+	div.popup = function() {
+		win.css( css ).show();
+	};
+	
+	div.dismiss = function() {
+		win.animate( out_css,'normal','swing', function(){
+			if( div && div.parentNode ) {
+				div.parentNode.removeChild( div );
+			}
+		}); 
+	};
+
+	div.popup();
+	
+	return div;
+};
+
 hotjs.domUI = {
 	pngX: function(){ return resources.getXPng(); },
 	dismiss: dismiss,
 	toggle : toggle,
 	showSplash : showSplash,
-	popupDialog : popupDialog
+	popupDialog : popupDialog,
+	showChatBubble : showChatBubble
 };
 	
 })();
