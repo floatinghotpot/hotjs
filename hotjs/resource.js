@@ -46,8 +46,8 @@
 		var per = Math.round( 100 * n / all );
 		var d = document.getElementById('loading_msg');
 		if( d ) {
-			d.innerHTML = per + "% (" + n + '/' + all + ')';
 			if( resDebug ) {
+				d.innerHTML = per + "% (" + n + '/' + all + ')';
 				for( var k in resourceCache ) {
 					if( resourceCache[k] == false ) {
 						d.innerHTML += '<br/>' + k;
@@ -107,7 +107,7 @@
 		d.style['font-family'] = 'Verdana,Geneva,sans-serif';
 		d.style['font-size'] = '9pt';
 		d.innerHTML = "<img id='loading_img' src='" + gifLoading + "'/>";
-		d.innerHTML += "<br><br><div id='loading_msg'>0%</div>";
+		d.innerHTML += "<br><br><div id='loading_msg'></div>";
 		d.style.display = 'block';
 	}
 	
@@ -472,7 +472,10 @@
 		
 	window.resources = {
 		getLoadingGif : function() { return gifLoading; },
+		setLoadingGif : function(url) { gifLoading = url; },
 		getXPng : function() { return pngX; },
+		setXPng : function(url) { pngX = url },
+
 		get : get,
 		load : load,
 		unload : unload,
