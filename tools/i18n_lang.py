@@ -142,7 +142,11 @@ def export_dict_files( dir ):
 def main():
     """The entrypoint for this script."""
     
-    usage = """usage: %prog [js file or dir]
+    usage = """usage: %prog [js file or dir to scan] -i [import lang dir] -o [export lang dir]
+    
+    example:
+           %prog ./game.js
+           %prog ./game.js -i ./lang -o ./lang
     """
     
     parser = optparse.OptionParser(usage)
