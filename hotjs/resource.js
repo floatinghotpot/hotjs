@@ -432,6 +432,14 @@
 			audioCache[ url ] = 'stop';
 		}
 	}
+	function stopAllAudio() {
+		for( var url in audioCache ) {
+			var status = audioCache[ url ];
+			if( status === 'loop' || status === 'play' ) {
+				stopAudio( url );
+			}
+		}		
+	}
 	
 	function regApp(app) {
 		if( activeApp !== null ) {
@@ -490,6 +498,7 @@
 		playAudio : playAudio,
 		stopAudio : stopAudio,
 		muteAudio : muteAudio,
+		stopAllAudio : stopAllAudio,
 
 		regApp : regApp,
 		runAppFromJs : runAppFromJs,

@@ -1083,6 +1083,14 @@ hotjs.Matrix = Matrix;
 			audioCache[ url ] = 'stop';
 		}
 	}
+	function stopAllAudio() {
+		for( var url in audioCache ) {
+			var status = audioCache[ url ];
+			if( status === 'loop' || status === 'play' ) {
+				stopAudio( url );
+			}
+		}		
+	}
 	
 	function regApp(app) {
 		if( activeApp !== null ) {
@@ -1141,6 +1149,7 @@ hotjs.Matrix = Matrix;
 		playAudio : playAudio,
 		stopAudio : stopAudio,
 		muteAudio : muteAudio,
+		stopAllAudio : stopAllAudio,
 
 		regApp : regApp,
 		runAppFromJs : runAppFromJs,
@@ -4644,7 +4653,9 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	var win = $(div);
 	win.attr({'id':dlgId, 'class':'dialog'}).css({'position':'absolute', 'display':'none' });
 	
-	x_img = "<img id='" + idX + "' class='dlgx clickable' src='" + resources.getXPng() + "'>";
+	var xfunc = buttons[ 'x' ];
+	x_img = ( xfunc !== null ) ? "<img id='" + idX + "' class='dlgx clickable' src='" + resources.getXPng() + "'>" : '';
+	
 	var html = 
 "<table class='dialog' cellspacing='0' cellpadding='0'>\
 <tr><td class='dlg00'></td><td class='dlg01 m'></td><td class='dlg02'>" + x_img + "</td></tr>";
@@ -4655,6 +4666,7 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 
 	var btnHtml = "";
 	for( var i in buttons ) {
+		if( i === 'x' ) continue;
 		var btnId = dlgId + i;
 		btnHtml += "<button class='dialog' id='" + btnId  + "' v='" + i + "'>" + hotjs.i18n.get(i) + "</button> ";
 	}
@@ -4693,7 +4705,16 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 		}); 
 	};
 	
-	$('img#' + idX).on('click', div.dismiss);
+	if( xfunc !== null ) {
+		if(typeof xfunc === 'function') {
+			$('img#' + idX).on('click', function(){
+				xfunc();
+				div.dismiss();
+			});
+		} else {
+			$('img#' + idX).on('click', div.dismiss);
+		}
+	}
 
 	for( var i in buttons ) {
 		var btnId = dlgId + i;
