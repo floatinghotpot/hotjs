@@ -425,7 +425,7 @@
 			if( using_html5_audio ) {
 				var res = get(url);
 				res.pause();
-				res.currentTime = 0;
+				if(res.currentTime) res.currentTime = 0;
 			} else {
 				window.plugins.LowLatencyAudio.stop( url );
 			}
