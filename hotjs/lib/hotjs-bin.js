@@ -3596,11 +3596,11 @@ hotjs.inherit( User, AjaxClient, {
 		return (!! msg) ? msg.done : false;
 	},
 	// return username & password in msg
-	autoRegister : function autoRegister(uuid) {
+	autoRegister : function autoRegister(uuid, fn) {
 		var msg = this.callAPI( 'autoRegister', {
-			uuid : uuid
-		});
-		
+			uuid : uuid,
+			fullname: fn,
+		});		
 		return ((!! msg) && msg.done) ? msg : false;
 	},
 	
@@ -3953,13 +3953,20 @@ hotjs.inherit( User, AjaxClient, {
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	
+	// return msg.counts, { 'all':999, '1':10, '2':10, ..., 'vip':20 }
+	countOnlineGamer : function countOnlineGamer( appkey ) {
+		var msg = this.callAPI( 'countOnlineGamer', {
+			sid : this.session,
+			appkey : appkey
+		});		
+		return ((!! msg) && msg.done) ? msg.counts : false;
+	},
 	searchGamer : function searchGamer( appkey, level ) {
 		var msg = this.callAPI( 'searchGamer', {
 			sid : this.session,
 			appkey : appkey,
 			level : level
-		});
-		
+		});		
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	
