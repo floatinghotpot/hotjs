@@ -3918,13 +3918,14 @@ hotjs.inherit( User, AjaxClient, {
 	},
 	// if room not exist, then create it.
 	// may need enter password, if required
-	enterRoom : function enterRoom( name, pwd ) {
+	enterRoom : function enterRoom( name, pwd, appkey ) {
 		var msg = this.callAPI( 'enterRoom', {
 			sid : this.session,
 			name : name,
-			secret : pwd
+			secret : pwd,
+			appkey : appkey
 		} );
-		return ((!! msg) && msg.done) ? true : false;
+		return ((!! msg) && msg.done) ? msg.rid : false;
 	},
 	// if no one in room after exist, then remove the password if there is.
 	leaveRoom : function leaveRoom( name ) {
@@ -3953,13 +3954,13 @@ hotjs.inherit( User, AjaxClient, {
 		return ((!! msg) && msg.done) ? true : false;
 	},
 	
-	// return msg.counts, { 'all':999, '1':10, '2':10, ..., 'vip':20 }
+	// return msg, { 'all':999, '1':10, '2':10, ..., 'vip':20 }
 	countOnlineGamer : function countOnlineGamer( appkey ) {
 		var msg = this.callAPI( 'countOnlineGamer', {
 			sid : this.session,
 			appkey : appkey
 		});		
-		return ((!! msg) && msg.done) ? msg.counts : false;
+		return msg;
 	},
 	searchGamer : function searchGamer( appkey, level ) {
 		var msg = this.callAPI( 'searchGamer', {
