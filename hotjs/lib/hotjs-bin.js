@@ -4026,12 +4026,15 @@ hotjs.inherit( User, AjaxClient, {
 		return ((!! msg) && msg.done);
 	},
 	// { "data1" : [ { "name" : "tom", "score" : 10 }, { ... } ], "data2" : [], "data3" : [] }
-	getGameScoreTop10 : function getGameScoreTop10( appkey ) {
+	getGameScoreTop10 : function getGameScoreTop10( appkey, data1, data2, data3 ) {
 		var msg = this.callAPI( 'getGameScoreTop10', {
 			sid : this.session,
-			appkey : appkey
+			appkey : appkey,
+			data1 : data1,
+			data2 : data2,
+			data3 : data3
 		});
-		return ((!! msg) && msg.done) ? msg.data : false;
+		return msg;
 	},
 	
 	feedback : function feedback( appkey, txt ) {
