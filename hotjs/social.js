@@ -318,7 +318,7 @@ hotjs.inherit( User, AjaxClient, {
 				username : u,
 				oldpwd : oldpwd,
 				newusername : newu,
-				newpwd : newpwd
+				newpwd : newpwd,
 				newfullname : newfn
 			};
 		var msg = this.callAPI( 'changeIdPassword', param);
