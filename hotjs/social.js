@@ -312,13 +312,14 @@ hotjs.inherit( User, AjaxClient, {
 		this.session = "";
 		return (!! msg) ? msg.done : false;
 	},
-	changeIdPassword : function changeIdPassword( u, oldpwd, newu, newpwd ) {
+	changeIdPassword : function changeIdPassword( u, oldpwd, newu, newpwd, newfn ) {
 		if( u === newu ) newu = '';
 		var param = {
 				username : u,
 				oldpwd : oldpwd,
 				newusername : newu,
 				newpwd : newpwd
+				newfullname : newfn
 			};
 		var msg = this.callAPI( 'changeIdPassword', param);
 		return (!! msg) ? msg.done : false;
