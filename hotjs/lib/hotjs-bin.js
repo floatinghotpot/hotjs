@@ -4654,7 +4654,7 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	content = content || '&nbsp;';
 	style = style || {};
 	buttons = buttons || {};
-	direction = direction || 'top';
+	direction = direction || 'fade';
 	
 	var dlgId = 'DLG' + Date.now();
 	var idX = dlgId + "X";
