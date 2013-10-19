@@ -4654,7 +4654,7 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	content = content || '&nbsp;';
 	style = style || {};
 	buttons = buttons || {};
-	direction = direction || 'fade';
+	direction = direction || '';
 	
 	var dlgId = 'DLG' + Date.now();
 	var idX = dlgId + "X";
@@ -4706,15 +4706,22 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	else out_css['left'] = css['left'];
 
 	div.popup = function() {
-		win.css( out_css ).show().animate( css, 'normal','swing',function(){} );
+		if(direction === '') {
+			win.css( css ).show();
+		} else {
+			win.css( out_css ).show().animate( css, 'normal','swing',function(){} );
+		}
 	};
 	
 	div.dismiss = function() {
-		win.animate( out_css,'normal','swing', function(){
-			if( div && div.parentNode ) {
-				div.parentNode.removeChild( div );
-			}
-		}); 
+		if(direction === '') {
+			win.css( out_css );
+			if( div && div.parentNode ) div.parentNode.removeChild( div );
+		} else {
+			win.animate( out_css,'normal','swing', function(){
+				if( div && div.parentNode ) div.parentNode.removeChild( div );
+			});
+		}
 	};
 	
 	if( xfunc !== null ) {
