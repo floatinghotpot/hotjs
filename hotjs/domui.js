@@ -124,9 +124,11 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	var w = win.width(), h = win.height();
 	var scrw = $(window).width(), scrh = $(window).height();
 	
+	var autodismiss = 0;
 	var css = { 'top': (scrh-h)/2 + 'px', 'left': (scrw-w)/2 + 'px', 'opacity':1 };
 	for( var k in style ) {
-		css[ k ] = style[ k ];
+		if(k === 'dismiss') autodismiss = style[k];
+		else css[ k ] = style[ k ];
 	}
 	
 	var out_css = {'opacity':0};
@@ -138,14 +140,6 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	else if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';	
 	else out_css['left'] = css['left'];
 
-	div.popup = function() {
-		if(direction === '') {
-			win.css( css ).show();
-		} else {
-			win.css( out_css ).show().animate( css, 'normal','swing',function(){} );
-		}
-	};
-	
 	div.dismiss = function() {
 		if(direction === '') {
 			win.css( out_css );
@@ -155,6 +149,11 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 				if( div && div.parentNode ) div.parentNode.removeChild( div );
 			});
 		}
+	};
+	
+	div.popup = function() {
+		win.css( css ).show();
+		if(autodismiss) window.setTimeout(function(){div.dismiss();}, autodismiss);
 	};
 	
 	if( xfunc !== null ) {
