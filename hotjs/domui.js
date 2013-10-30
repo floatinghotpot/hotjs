@@ -157,14 +157,10 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	};
 	
 	if( xfunc !== null ) {
-		if(typeof xfunc === 'function') {
-			$('img#' + idX).on('click', function(){
-				xfunc();
-				div.dismiss();
-			});
-		} else {
-			$('img#' + idX).on('click', div.dismiss);
-		}
+		$('img#' + idX).on('click', function(e){ e.preventDefault();
+			if(typeof xfunc === 'function') xfunc();
+			div.dismiss();
+		});
 	}
 
 	for( var i in buttons ) {
@@ -172,7 +168,7 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 		$('button#' + btnId).on('click', function(){
 			var i = $(this).attr('v');
 			var func = buttons[i];
-			if(func()) {
+			if((typeof(func)==='function') && func()) {
 				div.dismiss();
 			}
 		});
