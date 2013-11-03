@@ -279,6 +279,7 @@ var HashMap = function() {
 		} catch (e) {
 			return null;
 		}
+		return null;
 	};
 
 	this.element = function(_index) {

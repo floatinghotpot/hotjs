@@ -282,6 +282,7 @@ var HashMap = function() {
 		} catch (e) {
 			return null;
 		}
+		return null;
 	};
 
 	this.element = function(_index) {
@@ -1563,14 +1564,16 @@ hotjs.inherit(View, hotjs.Class, {
 			c.fillText( rectInfo, this.infoPos[0], this.infoPos[1] + 80);
 			
 			if( this.curScene && this.curScene.scale ) {
-				var s = this.curScene.scale;
+				var sc = this.curScene;
+				var s = sc.scale;
 				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
 				c.fillText( s, this.infoPos[0], this.infoPos[1] + 100 );
+				c.fillText( 'multi-touch: (' + JSON.stringify(sc.touches0.keys()) + ', ' + JSON.stringify(sc.touches.keys()) +')', this.infoPos[0], this.infoPos[1] + 120 );
 			}
 			
-			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', this.infoPos[0], this.infoPos[1] + 120 );
-			c.fillText( this.mouseInNode[2] + ': (' + this.mouseInNode[0] + ', ' + this.mouseInNode[1] +')', this.infoPos[0], this.infoPos[1] + 140 );
-
+			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', this.infoPos[0], this.infoPos[1] + 140 );
+			c.fillText( this.mouseInNode[2] + ': (' + this.mouseInNode[0] + ', ' + this.mouseInNode[1] +')', this.infoPos[0], this.infoPos[1] + 160 );
+			
 			c.strokeRect( 0, 0, this.canvas.width, this.canvas.height );
 			c.restore();
 		}
@@ -1874,6 +1877,7 @@ hotjs.inherit(Node, hotjs.Class, {
 				py : this.pos[1]
 			};
 			if( this.zoomable ) {
+				if(! this.scale) this.scale = [1,1];
 				f.sx = this.scale[0];
 				f.sy = this.scale[1];
 			}
@@ -1937,18 +1941,20 @@ hotjs.inherit(Node, hotjs.Class, {
 		
 		if( this.zoomable ) {
 			// we treat touch of 2 fingers as zoom gesture
-			if( this.touches.size() == 2) {
+			if(( this.touches.size() == 2) && (this.touches0.size() == 2)) {
 				var ids = this.touches.keys();
 				
 				// calc distance between 2 fingers when touch start.
 				var f1t0 = this.touches0.get( ids[0] );
 				var f2t0 = this.touches0.get( ids[1] );
 				var d_t0 = Vector.getLength( Vector.sub([f1t0.x, f1t0.y], [f2t0.x, f2t0.y]) );
+				if(d_t0 < 1) d_t0 = 1;
 				
 				// calc distance between 2 fingers now.
 				var f1t1 = this.touches.get( ids[0] );
 				var f2t1 = this.touches.get( ids[1] );
 				var d_t1 = Vector.getLength( Vector.sub([f1t1.x, f1t1.y], [f2t1.x, f2t1.y]) );
+				if(d_t1 < 1) d_t1 = 1;
 				
 				// calc the new scale, based on the scale when put first finger.
 				var t0 = this.touches0.get( this.id0 );
@@ -2002,6 +2008,7 @@ hotjs.inherit(Node, hotjs.Class, {
 				py : this.pos[1]
 			};
 			if( this.zoomable ) {
+				if(! this.scale) this.scale = [1,1];
 				f.sx = this.scale[0];
 				f.sy = this.scale[1];
 			}
@@ -2053,6 +2060,7 @@ hotjs.inherit(Node, hotjs.Class, {
 				py : this.pos[1]
 			};
 			if( this.zoomable ) {
+				if(! this.scale) this.scale = [1,1];
 				f.sx = this.scale[0];
 				f.sy = this.scale[1];
 			}
