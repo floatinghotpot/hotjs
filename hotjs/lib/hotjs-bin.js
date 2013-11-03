@@ -4232,13 +4232,18 @@ getClientRect : function (el) {
 };
 
 // iOS
+/*
 if (hotjs.Util.getDeviceInfo().ios) {
-	window.addEventListener("load", function () {
-		setTimeout(function () {
-			document.body.scrollTop = 0;
-		}, 300);
-	});
+	// avoid error in web worker without window
+	if(window && window.addEventListener && setTimeout && document && document.body ) {
+		window.addEventListener("load", function () {
+			setTimeout(function () {
+				document.body.scrollTop = 0;
+			}, 300);
+		});
+	}
 }
+*/
 
 //bind polyfill, https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 if (!Function.prototype.bind) {
