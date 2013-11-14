@@ -56,7 +56,7 @@ var showSplash = function( show, content, style ) {
 	var win = $(div);
 	
 	if( typeof content == 'string' ) {
-		div.innerHTML = ( "<table style='width:100%;height:100%;'><tr><td class='m'>" 
+		div.innerHTML = ( "<table style='width:100%;height:100%;'><tr><td height='20%'>&nbsp;</td></tr><tr><td class='m'>" 
 				+ content + "</td></tr><tr><td height='20%' class='m'><div id='hotjs_res_loading_win'></div></td></tr></table>" );
 	}
 	

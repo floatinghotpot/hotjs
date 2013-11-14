@@ -8,30 +8,43 @@ hotjs.version = 1.0;
 /*
  * copy this code to where needs __FILE__
  * 
-var __FILE__;
-
-// Method 1: get path using the last loaded script, 
-// remember, we must append script in resource preloading.
-var scripts = document.getElementsByTagName("script");
-__FILE__ = scripts[scripts.length - 1].src;
-if( ! __FILE__ ) __FILE__ = scripts[scripts.length - 2].src;
-
-// Method 2: get with error exception
-try {
-    throw Error("get js path");
-}catch(ex){
-    if(ex.fileName) { //Firefox
-        __FILE__ = ex.fileName;
-    } else if(ex.sourceURL) { //Safari
-        __FILE__ = ex.sourceURL;
-    } else if(ex.stack) { //Chrome or IE10+
-        __FILE__ = (ex.stack.match(/at\s+(.*?):\d+:\d+/)||['',''])[1];
-    }
+//Method 1: get path using the last loaded script, 
+//remember, we must append script in resource preloading.
+function getCurrentScriptPath() {
+	var scripts = document.getElementsByTagName("script");
+	var n = scripts.length;
+	while( n > 0 ) {
+		n --;
+		var url = scripts[ n ].src;
+		if( url.indexOf('xxx.js') >= 0 ) return url;
+	}
+	return '';
 }
 
-var __DIR__ = function(f) {
+//Method 2: get with error exception
+function getCurrentScriptPath2() {
+	var url = '';
+	try {
+		throw Error("get js path");
+	}catch(ex){
+		if(ex.fileName) { //Firefox
+			url = ex.fileName;
+		} else if(ex.sourceURL) { //Safari
+			url = ex.sourceURL;
+		} else if(ex.stack) { //Chrome or IE10+
+			url = (ex.stack.match(/at\s+(.*?):\d+:\d+/)||['',''])[1];
+		} else {
+			// no such info in ex, iOS 5
+		}
+	}
+	return url;
+}
+
+var __FILE__ = getCurrentScriptPath() || getCurrentScriptPath2();
+
+function _F(f) {
 	return hotjs.getAbsPath(f, __FILE__);
-};
+}
 
 */
 
