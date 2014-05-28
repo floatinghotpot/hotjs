@@ -17,17 +17,17 @@
 <script src="lib/jquery-1.9.js"></script>
 
 <script src="../hotjs.js"></script>
-<script src="../math.js"></script>
-<script src="../canvas.js"></script>
-<script src="../physics.js"></script>
-<script src="../resource.js"></script>
-<script src="../util.js"></script>
-<script src='../ai.js'></script>
-<script src="../social.js"></script>
-<script src="../i18n.js"></script>
+<script src="../hotjs-math.js"></script>
+<script src="../hotjs-canvas.js"></script>
+<script src="../hotjs-physics.js"></script>
+<script src="../hotjs-resource.js"></script>
+<script src="../hotjs-util.js"></script>
+<script src='../hotjs-ai.js'></script>
+<script src="../hotjs-social.js"></script>
+<script src="../hotjs-i18n.js"></script>
 
 <script>
-hotjs.require('../domui.js');
+hotjs.require('../hotjs-domui.js');
 
 module('Javascript core extension');
 
@@ -288,7 +288,7 @@ test("Resource preload", function() {
 	}
 
 	var s1 = document.getElementsByTagName('script').length;
-	resources.unload('../domui.js');
+	resources.unload('../hotjs-domui.js');
 	var s2 = document.getElementsByTagName('script').length;
 	equal( (s1-1), s2, 'dynamically unload domui.js, script files change from: ' + s1 + ' -> ' + s2 );
 	

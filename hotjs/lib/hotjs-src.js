@@ -439,7 +439,7 @@ hotjs.App = App;
 })(); 
 
 
-// ------- math.js ------------- 
+// ------- hotjs-math.js ------------- 
 
 
 hotjs = hotjs || {};
@@ -661,7 +661,7 @@ hotjs.Matrix = Matrix;
 
 })();
 
-// ------- resource.js ------------- 
+// ------- hotjs-resource.js ------------- 
 
 
 // merged into hotjs.js as a basic class.
@@ -1175,7 +1175,7 @@ hotjs.Matrix = Matrix;
 
 })();
 
-// ------- canvas.js ------------- 
+// ------- hotjs-canvas.js ------------- 
 
 // name space
 var hotjs = hotjs || {};
@@ -1581,7 +1581,9 @@ hotjs.inherit(View, hotjs.Class, {
 				var s = sc.scale;
 				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
 				c.fillText( s, this.infoPos[0], this.infoPos[1] + 100 );
-				c.fillText( 'multi-touch: (' + JSON.stringify(sc.touches0.keys()) + ', ' + JSON.stringify(sc.touches.keys()) +')', this.infoPos[0], this.infoPos[1] + 120 );
+				if(sc.touches0 && sc.touches) {
+					c.fillText( 'multi-touch: (' + JSON.stringify(sc.touches0.keys()) + ', ' + JSON.stringify(sc.touches.keys()) +')', this.infoPos[0], this.infoPos[1] + 120 );
+				}
 			}
 			
 			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', this.infoPos[0], this.infoPos[1] + 140 );
@@ -2574,7 +2576,7 @@ hotjs.Scene = Scene;
 })(); 
 
 
-// ------- sprite.js ------------- 
+// ------- hotjs-sprite.js ------------- 
 
 // name space
 var hotjs = hotjs || {};
@@ -2870,7 +2872,7 @@ hotjs.ParticleSet = ParticleSet;
 hotjs.ParticleSystem = ParticleSystem;
 
 })(); 
-// ------- animation.js ------------- 
+// ------- hotjs-animation.js ------------- 
 
 
 hotjs.Anim = hotjs.Anim || {};
@@ -3131,7 +3133,7 @@ hotjs.Anim = {
 
 })();
 
-// ------- physics.js ------------- 
+// ------- hotjs-physics.js ------------- 
 
 
 hotjs = hotjs || {};
@@ -3368,7 +3370,7 @@ hotjs.Physics.Ball = Ball;
 })();
 
 
-// ------- social.js ------------- 
+// ------- hotjs-social.js ------------- 
 
 
 hotjs = hotjs || {};
@@ -4074,7 +4076,7 @@ hotjs.Social.User = User;
 
 })();
 
-// ------- util.js ------------- 
+// ------- hotjs-util.js ------------- 
 
 
 hotjs = hotjs || {};
@@ -4409,7 +4411,7 @@ hotjs.Util.BenchLab = BenchLab;
 })();
 
 
-// ------- ui.js ------------- 
+// ------- hotjs-ui.js ------------- 
 
 
 (function(){
@@ -4589,7 +4591,7 @@ hotjs.ShowBoard = ShowBoard;
 
 })();
 
-// ------- domui.js ------------- 
+// ------- hotjs-domui.js ------------- 
 
 
 hotjs.domUI = hotjs.domUI || {};
@@ -4830,7 +4832,7 @@ hotjs.domUI = {
 };
 	
 })();
-// ------- i18n.js ------------- 
+// ------- hotjs-i18n.js ------------- 
 
 
 hotjs = hotjs || {};
@@ -4936,7 +4938,7 @@ hotjs.i18n = {
 
 };
 
-// ------- ai.js ------------- 
+// ------- hotjs-ai.js ------------- 
 
 
 hotjs = hotjs || {};

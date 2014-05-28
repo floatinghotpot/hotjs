@@ -402,7 +402,9 @@ hotjs.inherit(View, hotjs.Class, {
 				var s = sc.scale;
 				s = Math.round(s[0] * 100) + "% x " + Math.round(s[1] * 100) + "%";
 				c.fillText( s, this.infoPos[0], this.infoPos[1] + 100 );
-				c.fillText( 'multi-touch: (' + JSON.stringify(sc.touches0.keys()) + ', ' + JSON.stringify(sc.touches.keys()) +')', this.infoPos[0], this.infoPos[1] + 120 );
+				if(sc.touches0 && sc.touches) {
+					c.fillText( 'multi-touch: (' + JSON.stringify(sc.touches0.keys()) + ', ' + JSON.stringify(sc.touches.keys()) +')', this.infoPos[0], this.infoPos[1] + 120 );
+				}
 			}
 			
 			c.fillText( this.mouseInView[2] + ': (' + this.mouseInView[0] + ', ' + this.mouseInView[1] + ')', this.infoPos[0], this.infoPos[1] + 140 );
