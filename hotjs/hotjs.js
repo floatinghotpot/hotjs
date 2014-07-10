@@ -409,6 +409,7 @@ hotjs.inherit(App, hotjs.Class, {
 		return this;
 	},
 	resume : function( true_or_false ) {
+		if(true_or_false === null) true_or_false = true;
 		for(var i=0; i<this.modules.length; i++) {
 			this.modules[i].resume( true_or_false );
 		}

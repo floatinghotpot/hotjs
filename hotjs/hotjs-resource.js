@@ -365,8 +365,7 @@
 			return;
 		} else {
 			if(! audioCache[ url ]) {
-				var www = 'www/';
-				var assetPath = url.substring( url.indexOf(www) + www.length );
+				var assetPath = url;
 				var lla = window.plugins.LowLatencyAudio;
 				if(is_fx) {
 					lla.preloadFX(url, assetPath);

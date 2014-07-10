@@ -1,4 +1,3 @@
-
 hotjs = hotjs || {};
 
 hotjs.i18n = {
@@ -34,21 +33,26 @@ hotjs.i18n = {
 	getCookieLang : function() {
 		return this.extractLang(document.cookie.split('; '));
 	},
+	detectLang : function() {
+		if (typeof (this.lang = this.getUrlLang()) === 'string')
+			;
+		else if (typeof (this.lang = this.getCookieLang()) === 'string')
+			;
+		else if (typeof (this.lang = navigator.language) === 'string')
+			;
+		else if (typeof (this.lang = navigator.userLanguage) === 'string')
+			;
+		else
+			this.lang = this.defaultLang;
+		
+		if (this.lang.length > 2)
+			this.lang = this.lang.charAt(0) + this.lang.charAt(1);
+		
+		return this;
+	},
 	getLang : function() {
 		if (typeof this.lang !== 'string') {
-			if (typeof (this.lang = this.getUrlLang()) === 'string')
-				;
-			else if (typeof (this.lang = this.getCookieLang()) === 'string')
-				;
-			else if (typeof (this.lang = navigator.language) === 'string')
-				;
-			else if (typeof (this.lang = navigator.userLanguage) === 'string')
-				;
-			else
-				this.lang = this.defaultLang;
-			
-			if (this.lang.length > 2)
-				this.lang = this.lang.charAt(0) + this.lang.charAt(1);
+			this.detectLang();
 		}
 		return this.lang;
 	},
@@ -74,7 +78,8 @@ hotjs.i18n = {
 			it.removeClass('I18N');
 			if (typeof key === 'undefined')
 				key = it.text();
-			it.attr('i18n', key).text(this.get(key));
+			var langText = this.get(key);
+			it.attr('i18n', key).text( langText );
 		}
 		return this;
 	},
@@ -82,8 +87,7 @@ hotjs.i18n = {
 		//alert( JSON.stringify( this.text[this.getLang()] ) );
 		var lang = this.getLang();
 		if (typeof this.text[ lang ] === 'undefined') {
-			resources.load('lang/' + lang + '.lang.js');
-			return this;
+			this.lang = this.defaultLang;
 		}
 		if (typeof item === 'undefined') {
 			item = $('[I18N]');
@@ -101,3 +105,4 @@ hotjs.i18n = {
 	}
 
 };
+
