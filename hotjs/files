@@ -10,6 +10,8 @@ hotjs-util.js
 hotjs-ui.js
 hotjs-domui.js
 hotjs-i18n.js
+hotjs-audio.js
 hotjs-ai.js
+hotjs-ad.js
 md5.js
 base64.js

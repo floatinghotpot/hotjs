@@ -262,7 +262,7 @@ hotjs.inherit(SnookerPool, hotjs.Physics.Scene, {
 	shootBall : function( v_len ) {
 		if( !! this.hitBall ) {
 			if( ! v_len ) {
-				v_len = this.width() * hotjs.Random.Float(0.03, 0.1); 
+				v_len = this.width() * hotjs.Random.Float(0.5, 1.0) * 6; 
 			}
 			
 			// hit the ball
