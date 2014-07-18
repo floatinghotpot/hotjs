@@ -18,23 +18,10 @@ var toggle = function( id_or_obj, direction ) {
 	if( typeof o == 'string' ) {
 		o = document.getElementById( o );
 	}
-	direction = direction || 'bottom';
-
-	var win = $(o), w = win.width(), h = win.height();
-	var scrw = $(window).width(), scrh = $(window).height();
-
-	var in_css = { 'top': o.style.top, 'left': o.style.left };
-
-	var out_css = {};
-	if( direction.indexOf('top') >= 0 ) out_css['top'] = -h-20 + 'px';
-	if( direction.indexOf('left') >= 0 ) out_css['left'] = -h-20 + 'px';
-	if( direction.indexOf('bottom') >= 0 ) out_css['top'] = scrh + 'px';
-	if( direction.indexOf('right') >= 0 ) out_css['left'] = scrw + 'px';
-	
 	if( o.style.display == 'none' ) {
-		win.css( out_css ).show().animate( in_css, 'normal', 'swing', function(){} );
+        $(o).show();
 	} else {
-		win.animate( out_css, 'normal', 'swing', function(){ win.hide().css(in_css); } );
+        $(o).hide();
 	}
 };
 	
@@ -141,14 +128,8 @@ var popupDialog = function( title, content, buttons, style, direction ) {
 	else out_css['left'] = css['left'];
 
 	div.dismiss = function() {
-		if(direction === '') {
-			win.css( out_css );
-			if( div && div.parentNode ) div.parentNode.removeChild( div );
-		} else {
-			win.animate( out_css,'normal','swing', function(){
-				if( div && div.parentNode ) div.parentNode.removeChild( div );
-			});
-		}
+        win.css( out_css );
+        if( div && div.parentNode ) div.parentNode.removeChild( div );
 	};
 	
 	div.popup = function() {
@@ -215,11 +196,9 @@ var showChatBubble = function( type, content, style, direction ) {
 	};
 	
 	div.dismiss = function() {
-		win.animate( out_css,'normal','swing', function(){
-			if( div && div.parentNode ) {
-				div.parentNode.removeChild( div );
-			}
-		}); 
+        if( div && div.parentNode ) {
+            div.parentNode.removeChild( div );
+        }
 	};
 
 	div.popup();

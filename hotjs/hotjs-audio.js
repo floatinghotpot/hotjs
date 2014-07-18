@@ -78,14 +78,33 @@ var hotjs = hotjs || {};
         }
     };
 
-    if(window.plugins && window.plugins.LowLatencyAudio) {
-        hotjs.Audio = window.plugins.LowLatencyAudio;
-        if(typeof hotjs.Audio.mute !== 'function') {
-            hotjs.Audio.mute = function(ismute, success, fail) {
+    hotjs.Audio = hotjs.Audio || {};
+
+    var initHotjsAudio = function() {
+        if(window.plugins && window.plugins.LowLatencyAudio) {
+            hotjs.Audio = window.plugins.LowLatencyAudio;
+            if(typeof hotjs.Audio.mute !== 'function') {
+                hotjs.Audio.mute = function(ismute, success, fail) {
+                }
+            }
+        } else {
+            hotjs.Audio = html5_audio;
+        }
+
+        hotjs.Audio.preloadFXBatch = function(fx_mapping, success, fail) {
+            for(var k in fx_mapping) {
+                this.preloadFX(k, fx_mapping[k]);
             }
         }
-    } else {
-        hotjs.Audio = html5_audio;
+        hotjs.Audio.unloadFXBatch = function(fx_mapping, success, fail) {
+            for(var k in fx_mapping) {
+                this.unload(k);
+            }
+        }
+
+        hotjs.Audio.init = initHotjsAudio;
     }
+
+    hotjs.Audio.init = initHotjsAudio;
 
 })();
