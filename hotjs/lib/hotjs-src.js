@@ -4938,6 +4938,100 @@ hotjs.i18n = {
 
 };
 
+// ------- hotjs-audio.js ------------- 
+
+/**
+ * Created by liming on 14-7-18.
+ */
+
+var hotjs = hotjs || {};
+
+(function() {
+
+    var html5_audio = {
+        // id -> obj mapping
+        res_cache: {},
+
+        preloadFX: function(id, assetPath, success, fail) {
+            var res = new Audio();
+            res.onload = success;
+            res.onerror = fail;
+            res.setAttribute('src', assetPath);
+            res.load();
+            this.res_cache[ id ] = res;
+        },
+
+        preloadAudio: function(id, assetPath, voices, volume, success, fail) {
+            var res = new Audio();
+            res.onload = success;
+            res.onerror = fail;
+            res.setAttribute('src', assetPath);
+            res.load();
+            res.volume = volume;
+            this.res_cache[ id ] = res;
+        },
+
+        play: function(id, success, fail) {
+            var res = this.res_cache[ id ];
+            if(typeof res === 'object') {
+                res.play();
+                if(typeof success === 'function') success();
+            } else {
+                if(typeof fail === 'function') fail();
+            }
+        },
+
+        mute: function(ismute, success, fail) {
+            for(id in this.res_cache) {
+                var res = this.res_cache[ id ];
+                if(typeof res === 'object') res.muted = ismute;
+            }
+            if(typeof success === 'function') success();
+        },
+
+        loop: function(id, success, fail) {
+            var res = this.res_cache[ id ];
+            if(typeof res === 'object') {
+                res.loop = true;
+                res.play();
+                if(typeof success === 'function') success();
+            } else {
+                if(typeof fail === 'function') fail();
+            }
+       },
+        stop: function(id, success, fail) {
+            var res = this.res_cache[ id ];
+            if(typeof res === 'object') {
+                res.pause();
+                if (res.currentTime) res.currentTime = 0;
+                if(typeof success === 'function') success();
+            } else {
+                if(typeof fail === 'function') fail();
+            }
+        },
+        unload: function(id, success, fail) {
+            var res = this.res_cache[ id ];
+            if(typeof res === 'object') {
+                delete this.res_cache[ id ];
+                if(typeof success === 'function') success();
+            } else {
+                if(typeof fail === 'function') fail();
+            }
+        }
+    };
+
+    if(window.plugins && window.plugins.LowLatencyAudio) {
+        hotjs.Audio = window.plugins.LowLatencyAudio;
+        if(typeof hotjs.Audio.mute !== 'function') {
+            hotjs.Audio.mute = function(ismute, success, fail) {
+            }
+        }
+    } else {
+        hotjs.Audio = html5_audio;
+    }
+
+})();
+
 // ------- hotjs-ai.js ------------- 
 
 
@@ -5499,6 +5593,97 @@ hotjs.AI.GomokuAI = GomokuAI;
 hotjs.AI.PathFinder = PathFinder;
 
 })();
+
+// ------- hotjs-ad.js ------------- 
+
+/**
+ * Created by liming on 14-7-18.
+ */
+
+hotjs = hotjs || {};
+hotjs.Ad = hotjs.Ad || {};
+
+(function(){
+    var ad_options = {
+        admob_ios : 'ca-app-pub-6869992474017983/4806197152',
+        admob_android : 'ca-app-pub-6869992474017983/9375997553',
+        bannerAtTop : true,
+        overlap: true,
+        offsetTopBar: false,
+        isTesting : false
+    };
+
+    function initAd( options ) {
+        if(options != null) {
+            if(options.admob_ios !== null) ad_options.admob_ios = options.admob_ios;
+            if(options.admob_android !== null) ad_options.admob_android = options.admob_android;
+            if(options.bannerAtTop !== null) ad_options.bannerAtTop = options.bannerAtTop;
+            if(options.overlap !== null) ad_options.overlap = options.overlap;
+            if(options.isTesting !== null) ad_options.isTesting = options.isTesting;
+        }
+
+        if(window.plugins) {
+            if(( /(ipad|iphone|ipod)/i.test(navigator.userAgent) ) && window.plugins.iAd) {
+                window.plugins.iAd.createBannerView(
+                    {
+                        bannerAtTop: ad_options.bannerAtTop,
+                        overlap: ad_options.overlap,
+                        offsetTopBar : ad_options.offsetTopBar
+                    }, function() {
+                        window.plugins.iAd.ready = true;
+                        window.plugins.iAd.showAd( true );
+                    }, function(){
+                        console.log( "failed to create ad view" );
+                    });
+
+            } else if(window.plugins.AdMob) {
+                var adId = ( /(ipad|iphone|ipod)/i.test(navigator.userAgent) ) ? ad_options.admob_ios : ad_options.admob_android;
+
+                var am = window.plugins.AdMob;
+                am.createBannerView(
+                    {
+                        'publisherId': adId,
+                        'adSize': am.AD_SIZE.BANNER,
+                        'bannerAtTop': ad_options.bannerAtTop,
+                        'overlap': ad_options.overlap,
+                        'offsetTopBar' : ad_options.offsetTopBar
+                    }, function() {
+                        am.requestAd( { 'isTesting': ad_options.isTesting }, function() {
+                            window.plugins.AdMob.ready = true;
+                            am.showAd( true );
+                        }, function() {
+                            console.log('failed to request ad');
+                        });
+                    }, function(){
+                        console.log( 'failed to create ad view' );
+                    });
+
+            } else {
+                console.log('iAd / AdMob plugin not available/ready.');
+            }
+
+        } else {
+            console.log('window.plugins not available/ready.');
+        }
+    }
+
+    function showAd( show ) {
+        if(window.plugins) {
+            if(window.plugins.iAd) {
+                if(window.plugins.iAd.ready) window.plugins.iAd.show( show );
+            } else if(window.plugins.AdMob) {
+                if(window.plugins.AdMob.ready) window.plugins.AdMob.show( show );
+            } else {
+                console.log('iAd / AdMob plugin not available/ready.');
+            }
+        }
+    }
+
+    hotjs.Ad.init = initAd;
+    hotjs.Ad.show = showAd;
+
+})();
+
 
 // ------- md5.js ------------- 
 

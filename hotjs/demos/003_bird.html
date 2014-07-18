@@ -69,8 +69,8 @@ function kick_ball(i){
 	var w = window.innerWidth, h = window.innerHeight;
 	var b = balls[i];
 	if( b != undefined ) {
-		var vx = Math.random() * w * 3;   
-		var vy = - Math.random() * h * 3;
+		var vx = Math.random() * w * 5;   
+		var vy = - Math.random() * h * 5;
 		console.log( vx, vy );
 		b.setVelocity(vx,vy);
 	}
