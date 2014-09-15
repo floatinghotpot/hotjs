@@ -490,7 +490,7 @@ hotjs.inherit(GomokuAI, GoAI, {
 		var bestMove = (topMoves.length>0) ? topMoves[0] : [Math.floor(m1.rows()/2),Math.floor(m1.rows()/2),1];
 
 		var notWinNow = (myHits.winHits.length == 0) && (peerHits.winHits.length == 0);
-		var notWinNextStep = (bestMove[2] < 10000);
+		var notWinNextStep = (bestMove[2] < 1000);
 		//console.log( notWin, notWinNextStep, myHits.winHits.length, peerHits.winHits.length );
 		if( notWinNow && notWinNextStep && (depth > 1) ) {
 			//console.log( 'depth = ' + depth );
@@ -500,10 +500,11 @@ hotjs.inherit(GomokuAI, GoAI, {
 				var m2 = m1.clone();
 				m2.setValueByPos( move[0], move[1], (m2.countValue('1')<=m2.countValue('2') ? '1' :'2')  );
 				var result = this.deepThinking(m2.data, depth-1);
-				if( result.myWinHits.length > 0 ) {
-					move[2] += 1000;
-				} else if( result.peerWinHits.length > 0 ) {
-					move[2] -= 1000;
+				if( result.myWinHits.length > 0 || result.peerWinHits.length > 0 ) {
+					if( result.myWinHits.length > 0) move[2] += 1000;
+					if( result.peerWinHits.length > 0 ) move[2] -= 1000;
+				//} else if( result.peerWinHits.length > 0 ) {
+				//	move[2] -= 1000;
 				} else {
 					move[2] += result.bestMove[2] / 10;
 				}
